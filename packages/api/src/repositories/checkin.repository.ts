@@ -16,7 +16,7 @@ import type {
   GuestInfo,
   QRCodeInfo,
   GuestSearchResult,
-} from '../services/checkin.service';
+} from '../services/checkin/checkin.service';
 
 export class PrismaCheckInRepository implements CheckInRepository {
   constructor(private readonly prisma: PrismaClient) { }
@@ -166,7 +166,7 @@ export class PrismaCheckInRepository implements CheckInRepository {
         name: data.name,
         slug: `${slug}-goshow-${Date.now()}`,
         type: data.type,
-        group: 'friend',
+        group: 'friend' as GuestGroup,
         plus_one_count: 0,
         delivery_status: 'not_sent',
       },
@@ -181,11 +181,9 @@ export class PrismaCheckInRepository implements CheckInRepository {
   }
 
   async findEventById(eventId: string): Promise<{ id: string; tenant_id: string } | null> {
-    const event = await this.prisma.event.findFirst({
+    return this.prisma.event.findFirst({
       where: { id: eventId },
       select: { id: true, tenant_id: true },
     });
-
-    return event;
   }
 }

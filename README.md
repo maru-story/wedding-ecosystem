@@ -105,50 +105,49 @@ Progressive Web App (PWA) untuk verifikasi kehadiran tamu di venue.
 
 ### 4. Backend API (`packages/api`)
 
-Single Fastify server yang menangani REST API dan WebSocket.
+Single Fastify server handling REST API and WebSocket. Uses a 4-layer architecture: Plugins → Routes → Middleware → Services → Repositories.
 
 | Fitur             | Deskripsi                                                     |
 | ----------------- | ------------------------------------------------------------- |
-| Authentication    | JWT (15 min access + 7 hari refresh), bcrypt, account lockout |
-| Tenant Isolation  | Setiap query di-filter berdasarkan `tenant_id`                |
-| Rate Limiting     | 100 req/menit per tenant (Redis-backed)                       |
-| CORS              | Per-app origin validation                                     |
-| WebSocket Auth    | JWT validation on handshake, room-based authorization         |
-| Health Check      | PostgreSQL, Redis, WebSocket status monitoring                |
-| Graceful Shutdown | SIGTERM/SIGINT handlers, drain connections                    |
-| Audit Logger      | Auto-log sensitive operations (login, export, bulk)           |
-| Response Cache    | Redis-backed, auto-invalidation on write                      |
-| Security Headers  | HSTS, X-Frame-Options, CSP-ready                              |
+| Authentication    | JWT via `@wedding/shared` utility, account lockout (Req 2.4)  |
+| Tenant Isolation  | Strict filtering by `tenant_id` at service & repository level |
+| Rate Limiting     | 100 req/menit per tenant (Redis-backed with in-memory fallbk) |
+| CORS              | Per-app origin validation via modular plugin                  |
+| WebSocket Auth    | Shared JWT logic, room-based authorization (Assigned Event)   |
+| Health Check      | Deep monitoring of PostgreSQL, Redis, WebSocket health        |
+| Graceful Shutdown | Managed lifecycle plugin for clean SIGTERM handling           |
+| Audit Logger      | Automated logging for high-value operations                   |
+| Response Cache    | Pattern-based Redis caching with auto-invalidation            |
+| Security Headers  | Production-ready HSTS, X-Frame-Options, CSP                   |
 
 ### 5. Shared Package (`packages/shared`)
 
 | Fitur            | Deskripsi                                      |
 | ---------------- | ---------------------------------------------- |
-| Zod Schemas      | Validasi input yang dipakai frontend & backend |
-| TypeScript Types | Interfaces, enums, error codes                 |
-| Sanitization     | HTML sanitize untuk user-generated content     |
-| Constants        | Rate limits, error codes, API response types   |
+| Zod Schemas      | Centralized validation for frontend & backend  |
+| TypeScript Types | Shared interfaces, enums, and RBAC roles       |
+| Auth Utility     | Type-safe JWT verification (Single Source of Truth) |
+| Sanitization     | HTML sanitize for user-generated content       |
 
 ### 6. Database (`packages/db`)
 
-| Fitur           | Deskripsi                       |
-| --------------- | ------------------------------- |
-| Prisma ORM      | Schema-first, type-safe queries |
-| Connection Pool | CPU cores × 2 + 1, minimum 10   |
-| SSL             | verify-full di production       |
-| Query Timeout   | 30 detik                        |
-| Multi-tenant    | `tenant_id` di setiap tabel     |
+| Fitur           | Deskripsi                                       |
+| --------------- | ----------------------------------------------- |
+| Prisma ORM      | Schema-first, type-safe queries (v7.7)          |
+| Unified Config  | Centralized pooling & SSL logic for all apps    |
+| Connection Pool | CPU-optimized formula: (cores × 2) + 1, min 10  |
+| SSL             | verify-full enforced for production safety      |
+| Multi-tenant    | RLS-ready with `tenant_id` on all user-data     |
 
 ### 7. Realtime (`packages/realtime`)
 
 | Fitur              | Deskripsi                                                    |
 | ------------------ | ------------------------------------------------------------ |
-| Socket.io          | Room-based per event                                         |
+| Socket.io          | Room-based isolation per event room                          |
 | Events             | guest_checked_in, rsvp_updated, go_show_added, stats_updated |
-| Auth Middleware    | JWT validation on WebSocket handshake                        |
-| Room Authorization | Tenant-scoped room access                                    |
-| Redis Adapter      | Ready untuk horizontal scaling                               |
-| Graceful Shutdown  | Notify clients, drain connections                            |
+| Shared Auth        | Standardized JWT verification via `@wedding/shared`          |
+| Room Authorization | Tenant-scoped access check for event rooms                   |
+| Redis Adapter      | Cluster-ready via shared pub/sub                             |
 
 ## Peran & Hak Akses (Roles & Permissions)
 
@@ -527,7 +526,7 @@ npx prisma migrate deploy
 npm run test
 
 # Per package
-npx turbo test --filter=@wedding/api        # ~843 tests
+npx turbo test --filter=@wedding/api        # ~924 tests
 npx turbo test --filter=@wedding/shared      # ~63 tests
 npx turbo test --filter=@wedding/realtime    # ~87 tests
 npx turbo test --filter=@wedding/dashboard   # ~81 tests
@@ -535,7 +534,7 @@ npx turbo test --filter=@wedding/invitation  # ~32 tests
 npx turbo test --filter=@wedding/scanner     # ~43 tests
 ```
 
-**Total: ~1149 tests** (unit + integration + property-based)
+**Total: ~1218 tests** (unit + integration + property-based)
 
 Property-based tests (fast-check) mencakup:
 
@@ -554,63 +553,30 @@ Property-based tests (fast-check) mencakup:
 wedding-ecosystem/
 ├── apps/
 │   ├── dashboard/          # Client & WO Dashboard (Next.js 16)
-│   │   ├── src/
-│   │   │   ├── app/        # App Router pages
-│   │   │   ├── components/ # UI components (shadcn/ui)
-│   │   │   ├── hooks/      # Custom hooks (useSocket, etc.)
-│   │   │   └── lib/        # API client, utilities
-│   │   ├── vercel.json     # Vercel deploy config
-│   │   └── next.config.js
 │   ├── invitation/         # Guest-facing invitation (Next.js 16)
-│   │   ├── src/
-│   │   │   ├── app/        # Dynamic route: /[slug]
-│   │   │   ├── components/ # Section components (14 sections)
-│   │   │   └── lib/        # API client, theme utils
-│   │   └── vercel.json
 │   └── scanner/            # Scanner PWA (Next.js 16)
-│       ├── src/
-│       │   ├── app/        # Scanner pages
-│       │   ├── components/ # QR scanner, auth, providers
-│       │   └── lib/        # Auth, offline queue, WebSocket
-│       ├── public/sw.js    # Service worker
-│       └── vercel.json
 ├── packages/
 │   ├── api/                # Backend API (Fastify 5)
 │   │   ├── src/
-│   │   │   ├── config/     # Production, database, Redis, logger
-│   │   │   ├── middleware/ # CORS, rate limit, tenant isolation, RBAC
-│   │   │   ├── plugins/    # Audit logger, response cache, security headers
-│   │   │   ├── routes/     # Auth, guests, events, checkin, RSVP, CMS, scanner
-│   │   │   └── services/   # Business logic layer
-│   │   └── railway.toml    # Railway deploy config
-│   ├── db/                 # Database (Prisma 7)
-│   │   ├── prisma/
-│   │   │   ├── schema.prisma
-│   │   │   └── migrations/
-│   │   └── src/            # Client factory, pool config
+│   │   │   ├── config/     # Grouped: database/, logger/, redis/, etc.
+│   │   │   ├── middleware/ # Grouped: cors/, rbac/, tenant-isolation/, etc.
+│   │   │   ├── plugins/    # Grouped: audit-logger/, rate-limiter/, etc.
+│   │   │   ├── routes/     # Grouped: guests/, health/, etc.
+│   │   │   ├── services/   # Grouped: auth/, guest/, checkin/, etc.
+│   │   │   └── repositories/ # Type-safe data access layer
+│   ├── db/                 # Database (Prisma 7.7 + PgAdapter)
+│   │   ├── src/            # Unified client factory & pool config
+│   │   └── prisma/         # Schema & Migrations
 │   ├── shared/             # Shared types & utilities
 │   │   └── src/
-│   │       ├── types/      # Enums, interfaces, Zod schemas
-│   │       └── utils/      # Sanitization, constants
+│   │       ├── types/      # auth/, enums/, interfaces/
+│   │       └── utils/      # auth/, sanitize/
 │   └── realtime/           # WebSocket server (Socket.io 4.8)
 │       └── src/
-│           ├── config/     # Production Socket.io config
-│           ├── middleware/ # JWT auth, room authorization
-│           ├── lifecycle/  # Graceful shutdown
-│           └── stats.ts    # Real-time stats aggregation
-├── .github/workflows/      # CI/CD pipelines
-│   ├── ci.yml              # Tests + security gate
-│   ├── deploy-backend.yml  # Blue-green Railway deploy
-│   ├── deploy-frontend.yml # Vercel deploy per app
-│   ├── smoke-test.yml      # Post-deploy verification
-│   └── secret-scanning.yml # Secret detection
-├── scripts/                # Utility scripts
-│   ├── setup-production-domain.sh
-│   ├── configure-cdn-cache.sh
-│   └── detect-secrets.sh
-├── .env.example            # Template environment variables
-├── package.json            # Monorepo root (npm workspaces)
-└── turbo.json              # Turborepo config
+│           ├── config/     # production/
+│           ├── middleware/ # auth/
+│           ├── lifecycle/  # graceful-shutdown/
+│           └── stats/      # stats.ts & stats.test.ts
 ```
 
 ---

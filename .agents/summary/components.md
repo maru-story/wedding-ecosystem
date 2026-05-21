@@ -41,17 +41,17 @@ graph TB
     subgraph "packages/api/src"
         Index["index.ts<br/>(Server bootstrap, graceful shutdown)"]
         Config["config/<br/>(DB, Redis, logger, production, encryption, secret-rotation)"]
-        MW["middleware/<br/>(CORS, rate-limit, RBAC, tenant-isolation, encryption, input-validation, media-upload)"]
-        Plugins["plugins/<br/>(audit-logger, response-cache, security-headers, rate-limiter, CORS, request-validation)"]
-        Routes["routes/<br/>(thin HTTP adapters — no Prisma, no business logic)"]
+        MW["middleware/<br/>(CORS, RBAC, tenant-isolation, encryption, validate-helper)"]
+        Plugins["plugins/<br/>(auth, request-logger, rate-limiter, response-cache, security-headers)"]
+        Routes["routes/<br/>(thin HTTP adapters using AuthenticatedRequest)"]
         Services["services/<br/>(Business logic: slug generation, QR, PII, deduplication)"]
-        Repos["repositories/<br/>(Prisma adapters — all queries scoped by tenant_id)"]
+        Repos["repositories/<br/>(Type-safe Prisma adapters — all queries scoped by tenant_id)"]
     end
 
     Index --> Config
-    Index --> MW
     Index --> Plugins
-    Index --> Routes
+    Plugins --> Routes
+    Routes --> MW
     Routes --> Services
     Services --> Repos
 ```
@@ -60,40 +60,51 @@ graph TB
 
 | Service | File | Responsibility |
 |---------|------|----------------|
-| `AuthService` | `auth.service.ts` | Login, JWT generation/verification, password hashing, token refresh, account lockout |
-| `GuestService` | `guest.service.ts` | CRUD guests, QR code generation, encrypted payloads, slug generation |
-| `CheckInService` | `checkin.service.ts` | QR verification, manual check-in, go-show registration, duplicate detection |
-| `RsvpService` | `rsvp.service.ts` | RSVP submission and retrieval |
-| `CMSService` | `cms.service.ts` | Section CRUD, sort order management, toggle active state |
-| `EventService` | `event.service.ts` | Event creation with default sections and theme |
-| `NotificationService` | `notification.service.ts` | Bulk invitation sending (WhatsApp/Email), delivery status tracking |
-| `ScannerDeviceService` | `scanner-device.service.ts` | Device registration, lane assignment, heartbeat, max 2 per event |
-| `MediaUploadService` | `media-upload.service.ts` | File validation, virus scanning, cloud storage upload |
-| `StorageService` | `storage.ts` | R2 client, signed URLs, tenant quota management |
-| `GuestImportService` | `guest-import.service.ts` | CSV parsing, bulk import (max 2000 rows), cross-batch deduplication by name within event |
-| `AdminService` | `admin.service.ts` | Platform admin features: platform KPIs, tenant management, user listing, password resets, system audit logs |
+| `AuthService` | `auth/auth.service.ts` | Login, JWT generation/verification, password hashing, token refresh, account lockout |
+| `GuestService` | `guest/guest.service.ts` | CRUD guests, QR code generation, encrypted payloads, slug generation |
+| `CheckInService` | `checkin/checkin.service.ts` | QR verification, manual check-in, go-show registration, duplicate detection |
+| `RsvpService` | `rsvp/rsvp.service.ts` | RSVP submission and retrieval |
+| `CMSService` | `cms/cms.service.ts` | Section CRUD, sort order management, toggle active state |
+| `EventService` | `event/event.service.ts` | Event creation with default sections and theme |
+| `NotificationService` | `notification/notification.service.ts` | Bulk invitation sending (WhatsApp/Email), delivery status tracking |
+| `ScannerDeviceService` | `scanner-device/scanner-device.service.ts` | Device registration, lane assignment, heartbeat, max 2 per event |
+| `MediaUploadService` | `media-upload/media-upload.service.ts` | File validation, virus scanning, cloud storage upload |
+| `StorageService` | `storage/storage.ts` | R2 client, signed URLs, tenant storage quota enforcement |
+| `GuestImportService` | `guest-import/guest-import.service.ts` | CSV parsing, bulk import (max 2000 rows), deduplication |
+| `AdminService` | `admin/admin.service.ts` | Platform admin: platform KPIs, tenant management, user listing, password resets |
 
+#### Repositories
+
+| Repository | File | Responsibility |
+|------------|------|----------------|
+| `PrismaGuestRepository` | `guest/guest.repository.ts` | Type-safe Prisma adapter for guests and QR codes |
+| `PrismaCheckInRepository` | `checkin.repository.ts` | Manual and QR-based check-in persistence |
+| `PrismaCMSRepository` | `cms.repository.ts` | Section content and sort-order management |
+| `PrismaRsvpRepository` | `rsvp.repository.ts` | Guest RSVP state persistence |
+| `PrismaAdminRepository` | `admin.repository.ts` | Platform-wide stats and tenant/user management |
 
 #### Middleware Stack
 
-| Middleware | Purpose |
-|-----------|---------|
-| CORS | Per-app origin validation (Dashboard, Invitation, Scanner) |
-| Rate Limiter | 100 req/min per tenant (Redis-backed, in-memory fallback) |
-| Tenant Isolation | Extract `tenant_id` from JWT, scope all queries |
-| RBAC | Role-based route access (Admin, Client, WO, Scanner) |
-| Input Validation | Zod schema validation on request bodies |
-| PII Encryption | Encrypt/decrypt guest contact info at rest |
-| Media Upload | File type/size validation, virus scanning |
+| Middleware | Purpose | Path |
+|-----------|---------|------|
+| `CORS` | Per-app origin validation | `cors/cors.middleware.ts` |
+| `RBAC` | Role-based access enforcement | `rbac/rbac.middleware.ts` |
+| `Tenant Isolation` | Extracts `tenant_id` from JWT | `tenant-isolation/tenant-isolation.middleware.ts` |
+| `Encryption` | Transparent PII encryption/decryption | `encryption/encryption.ts` |
+| `Validate` | Unified input validation helper | `validate.ts` |
+| `Media Upload` | File validation and virus scanning | `media-upload/media-upload.middleware.ts` |
+| `Input Validation` | Legacy Zod middleware (migrating to `validate` helper) | `input-validation/input-validation.middleware.ts` |
 
 #### Plugins
 
 | Plugin | Purpose |
 |--------|---------|
-| Audit Logger | Auto-log sensitive operations (login, export, bulk actions) |
-| Response Cache | Redis-backed caching with pattern-based invalidation on writes |
-| Security Headers | HSTS, X-Frame-Options, CSP-ready headers |
-| Request Validation | Content-type enforcement, file upload route detection |
+| `auth` | Registers `authenticate` decorator and enriches logger with `tenant_id` |
+| `request-logger` | Structured tracing by adding unique `request_id` to all logs |
+| `rate-limiter` | Standardized categorical rate limiting (general, auth, scanner) with Redis |
+| `response-cache` | Symbol-based caching with pattern invalidation on successful writes |
+| `audit-logger` | Auto-log sensitive operations using `Prisma.InputJsonValue` |
+| `security-headers` | Production security hardening (HSTS, CSP-ready, XFO) |
 
 ### Realtime Server (`packages/realtime`)
 

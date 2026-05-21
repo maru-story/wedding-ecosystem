@@ -9,7 +9,7 @@
  */
 
 import type Redis from 'ioredis';
-import type { RedisClient } from '../services/checkin.service';
+import type { RedisClient } from '../services/checkin/checkin.service';
 
 /**
  * Production Redis adapter — uses real ioredis client.

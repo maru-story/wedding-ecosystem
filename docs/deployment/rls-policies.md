@@ -64,9 +64,7 @@ EXISTS (
 Before executing tenant-scoped queries, set the session variable using `SET LOCAL` (scoped to the current transaction):
 
 ```typescript
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@wedding/db';
 
 async function withTenantContext<T>(tenantId: string, operation: () => Promise<T>): Promise<T> {
   return prisma.$transaction(async (tx) => {
@@ -99,15 +97,12 @@ A recommended pattern for the API server is to set the tenant context at the beg
 import { FastifyInstance } from 'fastify';
 
 export function tenantContextPlugin(fastify: FastifyInstance) {
-  fastify.addHook('preHandler', async (request, reply) => {
-    const tenantId = request.user?.tenantId;
+  fastify.addHook('onRequest', async (request, reply) => {
+    const tenantId = request.user?.tenant_id;
 
     if (!tenantId) {
       return reply.status(401).send({ error: 'Tenant context required' });
     }
-
-    // Store tenant ID for use in database operations
-    request.tenantId = tenantId;
   });
 }
 ```
@@ -115,6 +110,8 @@ export function tenantContextPlugin(fastify: FastifyInstance) {
 Then in service functions:
 
 ```typescript
+import { PrismaClient } from '@wedding/db';
+
 async function getEvents(prisma: PrismaClient, tenantId: string) {
   return prisma.$transaction(async (tx) => {
     await tx.$executeRawUnsafe(`SET LOCAL app.current_tenant_id = '${tenantId}'`);

@@ -23,7 +23,7 @@ import {
   GuestRepository,
   GuestRecord,
   QRCodeRecord,
-} from '../../services/guest.service';
+} from '../../services/guest/guest.service';
 import {
   CheckInService,
   CheckInRepository,
@@ -32,7 +32,7 @@ import {
   CheckInRecord,
   GuestInfo,
   isServiceError,
-} from '../../services/checkin.service';
+} from '../../services/checkin/checkin.service';
 import {
   RsvpService,
   RsvpRepository,
@@ -40,7 +40,7 @@ import {
   RsvpRecord,
   GuestForRsvp,
   isRsvpError,
-} from '../../services/rsvp.service';
+} from '../../services/rsvp/rsvp.service';
 // --- Inline Stats Service for integration testing ---
 // (Avoids cross-package import; mirrors packages/realtime/src/stats.ts behavior)
 

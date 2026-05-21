@@ -16,21 +16,21 @@ apps/
 packages/
 ├── api/              → Fastify REST + WebSocket server (port 4000)
 │   └── src/
-│       ├── routes/      → Thin HTTP adapters (auth, guests, events, checkin, rsvp, cms, scanner, messages, notifications, invitations, health, admin)
-│       ├── services/    → Business logic (12 services; no direct Prisma calls)
-│       ├── repositories/ → Data-access layer — Prisma adapters, queries tenant-scoped (guest, checkin) or global admin (admin)
-│       ├── middleware/  → CORS, rate-limit, RBAC, tenant-isolation, encryption, input-validation
-│       └── plugins/     → audit-logger, response-cache, security-headers
+│       ├── routes/      → Feature subfolders with thin HTTP adapters (guests/, health/, etc.)
+│       ├── services/    → Feature subfolders with business logic (auth/, guest/, checkin/, etc.)
+│       ├── repositories/ → Feature subfolders with Prisma adapters (guest/, admin.repository.ts)
+│       ├── middleware/  → Feature subfolders (rbac/, tenant-isolation/, encryption/, etc.)
+│       └── plugins/     → Feature subfolders (audit-logger/, response-cache/, etc.)
 ├── db/               → Prisma 7 schema (12 models, 10 enums), migrations, client factory
 ├── shared/           → Zod schemas, TypeScript interfaces, enums, error codes, sanitization
-└── realtime/         → Socket.io 4.8 server, room-based per event, JWT auth middleware
+└── realtime/         → Socket.io 4.8 server, feature subfolders (stats/, middleware/auth/, etc.)
 ```
 
 ## Key Entry Points
 
 | Task | Start Here |
 |------|-----------|
-| Add API endpoint | `packages/api/src/routes/` (thin adapter) → `services/` (business logic) → `repositories/` (data access) |
+| Add API endpoint | `packages/api/src/routes/{feature}/` (thin adapter) → `services/{feature}/` (business logic) → `repositories/{feature}/` (data access) |
 | Add database model | `packages/db/prisma/schema.prisma` → run `prisma migrate dev` |
 | Add shared type/validation | `packages/shared/src/types/` (enums, interfaces, validation) |
 | Add invitation section | `apps/invitation/src/components/sections/` + register in `section-rendering.ts` |
@@ -42,8 +42,9 @@ packages/
 
 | Pattern | Detail |
 |---------|--------|
+| **Local Grouping** | Source files and their tests are grouped in feature subfolders (e.g., `services/auth/auth.service.ts` + `services/auth/auth.service.test.ts`). |
 | Multi-tenant isolation | Every query scoped by `tenant_id` via middleware — not optional, not per-route |
-| PII encryption at rest | Guest phone/email encrypted before DB write, decrypted in service layer (`middleware/encryption.ts`) |
+| PII encryption at rest | Guest phone/email encrypted before DB write, decrypted in service layer (`middleware/encryption/`) |
 | Denormalized `tenant_id` on Guest | Guest has both `event_id` and `tenant_id` for query performance (avoids JOIN) |
 | Pinned dependency versions | No `^` or `~` in app packages — exact versions only |
 | Single server for REST + WebSocket | Fastify and Socket.io share the same process on port 4000 |
@@ -74,11 +75,15 @@ packages/
 4. **Offline sync: server wins** — Conflict resolution uses server timestamp.
 5. **QR payload encrypted** — Contains `guest_id + event_id`, encrypted with app secret.
 6. **14 CMS sections** — Fixed set of section types (cover through music). Toggleable and reorderable, not user-creatable.
-7. **Guest capacity: 500 per event** — Enforced in `EventConfig.max_guests`.
+7. **Guest capacity: 2000 per event** — Enforced in `EventConfig.max_guests` and `guest.service.ts`.
+
+### Unified Auth Context (Mandatory — July 2026)
+
+The `AuthUser` interface is exclusively defined in `@wedding/shared`. Frontend apps must re-export this type rather than defining local versions. The interface includes mandatory `name` and `email` properties to ensure consistent profile display across the ecosystem.
 
 ## Testing
 
-- ~1149 tests across all packages (Vitest + fast-check property-based)
+- ~1218 tests across all packages (Vitest + fast-check property-based)
 - Property-based tests cover: QR validation, RSVP invariants, duplicate detection, tenant isolation, offline sync, room isolation
 - Run: `npm run test` (all) or `npx turbo test --filter=@wedding/{package}`
 
@@ -106,6 +111,8 @@ After **every** code change — no matter how small — the agent MUST:
    - `AGENTS.md` and `GEMINI.md` (directory maps, entry points, gotchas)
    - `.agents/summary/*.md` (architecture, components, interfaces, testing, review_notes)
    - `README.md` (feature list, API reference sections)
+   - `.kiro/steering/*.md` (documentation, product, structure, tech)
+   - `docs/*`
    - `packages/shared/src/types/` (if types/enums changed)
    - Postman collection (if an API endpoint was added, removed, or its shape changed)
 
@@ -130,14 +137,29 @@ After **every** code change — no matter how small — the agent MUST:
 
 ---
 
+### Local Grouping Pattern (Mandatory — July 2026)
+
+Source files and their corresponding tests must be grouped into feature subfolders. This applies to `services/`, `routes/`, `middleware/`, `plugins/`, `config/`, and `realtime/src/`.
+
+- **Good**: `services/auth/auth.service.ts` and `services/auth/auth.service.test.ts`.
+- **Bad**: `services/auth.service.ts` and `services/auth.service.test.ts` sitting in the root of `services/`.
+
+### Zero-Cast Repository Policy (Mandatory — July 2026)
+
+Repositories must use explicit Prisma types (e.g., `Prisma.GuestWhereInput`, `Prisma.GuestUpdateInput`) to ensure type safety. The use of `as any` or `as unknown` when interacting with Prisma models is strictly forbidden.
+
+### Validation Helper Pattern (Mandatory — July 2026)
+
+All route handlers must use the `validate(data, schema, reply)` helper from `middleware/validate.ts`. This ensures consistent error reporting using the shared `ErrorCode.VALIDATION_FAILED`.
+
 ### Repository Pattern (Guest domain — June 2026)
 
 The `Guest` domain has been migrated to a **3-layer architecture**: thin route → service → repository.
 
-- **Routes** (`routes/guests.ts`) must NOT call Prisma directly. They delegate entirely to `GuestService` and `GuestImportService`.
-- **Services** (`guest.service.ts`, `guest-import.service.ts`) contain all business logic: slug generation, QR encryption, deduplication. No Prisma imports.
-- **Repository** (`repositories/guest.repository.ts`) is the only layer that talks to Prisma. Every method receives `tenant_id` and must include it in the `where` clause — no exceptions.
-- The repository implements the `GuestRepository` interface defined at the top of `guest.service.ts`. Mock that interface in service tests; mock `PrismaClient` in repository tests.
+- **Routes** (`routes/guests/guests.ts`) must NOT call Prisma directly. They delegate entirely to `GuestService` and `GuestImportService`.
+- **Services** (`guest/guest.service.ts`, `guest-import/guest-import.service.ts`) contain all business logic: slug generation, QR encryption, deduplication. No Prisma imports.
+- **Repository** (`repositories/guest/guest.repository.ts`) is the only layer that talks to Prisma. Every method receives `tenant_id` and must include it in the `where` clause — no exceptions.
+- The repository implements the `GuestRepository` interface defined at the top of `guest/guest.service.ts`. Mock that interface in service tests; mock `PrismaClient` in repository tests.
 
 ### Critical Gotchas
 

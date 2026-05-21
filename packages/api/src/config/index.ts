@@ -8,7 +8,7 @@ export {
   type DatabaseUrls,
   type PoolConfig,
   type SSLConfig,
-} from './database';
+} from './database/database';
 
 export {
   buildRedisOptions,
@@ -26,7 +26,7 @@ export {
   resetRedisClients,
   type CacheOperationResult,
   type RedisConfig,
-} from './redis';
+} from './redis/redis';
 
 export {
   buildLoggerOptions,
@@ -36,7 +36,7 @@ export {
   getLoggerConfig,
   logSerializers,
   type LoggerConfig,
-} from './logger';
+} from './logger/logger';
 
 export {
   checkRotationDue,
@@ -67,7 +67,7 @@ export {
   type SecretRotationPolicy,
   type SecretType,
   type SecretUpdateFn,
-} from './secret-rotation';
+} from './secret-rotation/secret-rotation';
 
 export {
   ENCRYPTION_KEY_ENV_VAR,
@@ -75,6 +75,6 @@ export {
   redactEncryptionKey,
   validateEncryptionKeyAvailable,
   type EncryptionKeyConfig,
-} from './encryption-key';
+} from './encryption-key/encryption-key';
 
 export { getEnvConfig, resetEnvConfig, validateEnv, type EnvConfig } from './env';

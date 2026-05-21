@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import fc from 'fast-check';
-import { StatsService, StatsRepository, StatsBroadcaster } from './stats';
+import { StatsService, StatsRepository, StatsBroadcaster } from './stats/stats';
 import type { StatsUpdatedPayload } from './index';
 
 // --- Arbitraries ---

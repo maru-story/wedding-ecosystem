@@ -1,5 +1,8 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
 import { PrismaClient } from '@wedding/db';
+import { z } from 'zod';
+import { ErrorCode } from '@wedding/shared';
+import { validate } from '../middleware/validate';
 
 interface InvitationRouteOptions extends FastifyPluginOptions {
   prisma: PrismaClient;
@@ -15,45 +18,48 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
   // GET /invitations/:eventSlug/:guestSlug
   // Fetch personalized invitation data for a specific guest
   app.get('/:eventSlug/:guestSlug', async (request: FastifyRequest, reply) => {
-    const { eventSlug, guestSlug } = request.params as {
-      eventSlug: string;
-      guestSlug: string;
-    };
+    const paramsSchema = z.object({
+      eventSlug: z.string().min(1, { message: 'Slug event tidak valid' }),
+      guestSlug: z.string().min(1, { message: 'Slug tamu tidak valid' }),
+    });
+
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return;
 
     // Find event by slug
     const event = await prisma.event.findFirst({
-      where: { slug: eventSlug, status: 'published' },
+      where: { slug: params.eventSlug, status: 'published' },
     });
 
     if (!event) {
       return reply.status(404).send({
         success: false,
-        error: { code: 'INV_4001', message: 'Event tidak ditemukan' },
+        error: { code: ErrorCode.NOT_FOUND, message: 'Event tidak ditemukan' },
       });
     }
 
     // Find guest by slug within the event
     const guest = await prisma.guest.findFirst({
-      where: { slug: guestSlug, event_id: event.id },
+      where: { slug: params.guestSlug, event_id: event.id },
     });
 
     if (!guest) {
       return reply.status(404).send({
         success: false,
-        error: { code: 'INV_4002', message: 'Tamu tidak ditemukan' },
+        error: { code: ErrorCode.NOT_FOUND, message: 'Tamu tidak ditemukan' },
       });
     }
 
-    // Fetch event config (theme)
-    const eventConfig = await prisma.eventConfig.findFirst({
-      where: { event_id: event.id },
-    });
-
-    // Fetch active sections sorted by sort_order
-    const sections = await prisma.invitationSection.findMany({
-      where: { event_id: event.id, is_active: true },
-      orderBy: { sort_order: 'asc' },
-    });
+    // Fetch event config (theme) and active sections in parallel
+    const [eventConfig, sections] = await Promise.all([
+      prisma.eventConfig.findFirst({
+        where: { event_id: event.id },
+      }),
+      prisma.invitationSection.findMany({
+        where: { event_id: event.id, is_active: true },
+        orderBy: { sort_order: 'asc' },
+      }),
+    ]);
 
     // Extract invitation theme from config
     const themeConfig = eventConfig?.theme_config as Record<string, unknown> | null;
@@ -106,16 +112,21 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
   // GET /invitations/:eventSlug
   // Fetch basic event data (for previews or metadata)
   app.get('/:eventSlug', async (request: FastifyRequest, reply) => {
-    const { eventSlug } = request.params as { eventSlug: string };
+    const paramsSchema = z.object({
+      eventSlug: z.string().min(1, { message: 'Slug event tidak valid' }),
+    });
+
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return;
 
     const event = await prisma.event.findFirst({
-      where: { slug: eventSlug, status: 'published' },
+      where: { slug: params.eventSlug, status: 'published' },
     });
 
     if (!event) {
       return reply.status(404).send({
         success: false,
-        error: { code: 'INV_4001', message: 'Event tidak ditemukan' },
+        error: { code: ErrorCode.NOT_FOUND, message: 'Event tidak ditemukan' },
       });
     }
 

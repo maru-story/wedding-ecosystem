@@ -1,7 +1,9 @@
-import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { PrismaClient } from '@wedding/db';
-import { ScannerLane } from '@wedding/shared';
+import { z } from 'zod';
+import { ErrorCode, registerScannerSchema } from '@wedding/shared';
 import { getTenantEvent, replyEventNotFound } from '../repositories';
+import { validate } from '../middleware/validate';
 
 interface ScannerRouteOptions extends FastifyPluginOptions {
   prisma: PrismaClient;
@@ -11,33 +13,21 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
   const { prisma } = opts;
 
   // Auth hook for all scanner routes
-  app.addHook('onRequest', async (request, reply) => {
-    await (app as any).authenticate(request, reply);
-  });
+  app.addHook('onRequest', app.authenticate);
 
   // POST /scanner/devices/register - Register a scanner device
-  app.post('/devices/register', async (request: FastifyRequest, reply) => {
+  app.post('/devices/register', async (request, reply) => {
     const user = request.user!;
-    const { event_id, device_name, lane } = request.body as {
-      event_id: string;
-      device_name: string;
-      lane?: string;
-    };
-
-    if (!event_id || !device_name) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: 'VAL_4001', message: 'event_id dan device_name diperlukan' },
-      });
-    }
+    const body = validate(request.body, registerScannerSchema, reply);
+    if (!body) return;
 
     // Verify event belongs to tenant
-    const event = await getTenantEvent(prisma, event_id, user.tenant_id);
+    const event = await getTenantEvent(prisma, body.event_id, user.tenant_id);
     if (!event) return replyEventNotFound(reply);
 
     // Check active device count (max 2 per event)
     const activeDevices = await prisma.scannerDevice.count({
-      where: { event_id, is_active: true },
+      where: { event_id: body.event_id, is_active: true },
     });
 
     if (activeDevices >= 2) {
@@ -55,10 +45,9 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
     const device = await prisma.scannerDevice.create({
       data: {
         id: randomUUID(),
-        event_id,
-        device_name,
-        lane:
-          (lane as ScannerLane) || (activeDevices === 0 ? ScannerLane.LANE_1 : ScannerLane.LANE_2),
+        event_id: body.event_id,
+        device_name: body.device_name,
+        lane: body.lane,
         is_active: true,
         last_active_at: new Date(),
       },
@@ -68,24 +57,29 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
   });
 
   // PUT /scanner/devices/:deviceId/heartbeat - Update device heartbeat
-  app.put('/devices/:deviceId/heartbeat', async (request: FastifyRequest, reply) => {
+  app.put('/devices/:deviceId/heartbeat', async (request, reply) => {
     const user = request.user!;
-    const { deviceId } = request.params as { deviceId: string };
+    const paramsSchema = z.object({
+      deviceId: z.string().uuid({ message: 'ID device tidak valid' }),
+    });
+
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return;
 
     const device = await prisma.scannerDevice.findFirst({
-      where: { id: deviceId },
+      where: { id: params.deviceId },
       include: { event: true },
     });
 
     if (!device || device.event.tenant_id !== user.tenant_id) {
       return reply.status(404).send({
         success: false,
-        error: { code: 'RES_5001', message: 'Device tidak ditemukan' },
+        error: { code: ErrorCode.NOT_FOUND, message: 'Device tidak ditemukan' },
       });
     }
 
     const updated = await prisma.scannerDevice.update({
-      where: { id: deviceId },
+      where: { id: params.deviceId },
       data: { last_active_at: new Date() },
     });
 
@@ -93,24 +87,29 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
   });
 
   // DELETE /scanner/devices/:deviceId - Deactivate a scanner device
-  app.delete('/devices/:deviceId', async (request: FastifyRequest, reply) => {
+  app.delete('/devices/:deviceId', async (request, reply) => {
     const user = request.user!;
-    const { deviceId } = request.params as { deviceId: string };
+    const paramsSchema = z.object({
+      deviceId: z.string().uuid({ message: 'ID device tidak valid' }),
+    });
+
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return;
 
     const device = await prisma.scannerDevice.findFirst({
-      where: { id: deviceId },
+      where: { id: params.deviceId },
       include: { event: true },
     });
 
     if (!device || device.event.tenant_id !== user.tenant_id) {
       return reply.status(404).send({
         success: false,
-        error: { code: 'RES_5001', message: 'Device tidak ditemukan' },
+        error: { code: ErrorCode.NOT_FOUND, message: 'Device tidak ditemukan' },
       });
     }
 
     const updated = await prisma.scannerDevice.update({
-      where: { id: deviceId },
+      where: { id: params.deviceId },
       data: { is_active: false },
     });
 
@@ -118,15 +117,20 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
   });
 
   // GET /scanner/devices/:eventId - List active scanner devices for an event
-  app.get('/devices/:eventId', async (request: FastifyRequest, reply) => {
+  app.get('/devices/:eventId', async (request, reply) => {
     const user = request.user!;
-    const { eventId } = request.params as { eventId: string };
+    const paramsSchema = z.object({
+      eventId: z.string().uuid({ message: 'ID event tidak valid' }),
+    });
 
-    const event = await getTenantEvent(prisma, eventId, user.tenant_id);
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return;
+
+    const event = await getTenantEvent(prisma, params.eventId, user.tenant_id);
     if (!event) return replyEventNotFound(reply);
 
     const devices = await prisma.scannerDevice.findMany({
-      where: { event_id: eventId, is_active: true },
+      where: { event_id: params.eventId, is_active: true },
       orderBy: { last_active_at: 'desc' },
     });
 
@@ -134,16 +138,21 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
   });
 
   // GET /scanner/guests/:eventId - Get guest cache for offline use
-  app.get('/guests/:eventId', async (request: FastifyRequest, reply) => {
+  app.get('/guests/:eventId', async (request, reply) => {
     const user = request.user!;
-    const { eventId } = request.params as { eventId: string };
+    const paramsSchema = z.object({
+      eventId: z.string().uuid({ message: 'ID event tidak valid' }),
+    });
 
-    const event = await getTenantEvent(prisma, eventId, user.tenant_id);
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return;
+
+    const event = await getTenantEvent(prisma, params.eventId, user.tenant_id);
     if (!event) return replyEventNotFound(reply);
 
     // Return guest data for offline cache (name, QR payload, check-in status)
     const guests = await prisma.guest.findMany({
-      where: { event_id: eventId },
+      where: { event_id: params.eventId },
       include: {
         qr_codes: { where: { is_active: true }, take: 1 },
         check_ins: { take: 1 },

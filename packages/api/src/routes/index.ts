@@ -1,5 +1,5 @@
 export { authRoutes } from './auth';
-export { guestRoutes } from './guests';
+export { guestRoutes } from './guests/guests';
 export { eventRoutes } from './events';
 export { notificationRoutes } from './notifications';
 export { invitationRoutes } from './invitations';
@@ -8,6 +8,6 @@ export { rsvpRoutes } from './rsvp';
 export { cmsRoutes } from './cms';
 export { scannerRoutes } from './scanner';
 export { messageRoutes } from './messages';
-export { healthRoutes } from './health';
+export { healthRoutes } from './health/health';
 export { adminRoutes } from './admin';
 

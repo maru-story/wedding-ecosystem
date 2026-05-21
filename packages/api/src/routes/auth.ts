@@ -3,6 +3,8 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import { PrismaClient } from '@wedding/db';
+import { loginSchema, RefreshTokenPayload } from '@wedding/shared';
+import { validate } from '../middleware/validate';
 
 interface AuthRouteOptions extends FastifyPluginOptions {
   prisma: PrismaClient;
@@ -19,14 +21,10 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
 
   // POST /auth/login
   app.post('/login', async (request, reply) => {
-    const { email, password } = request.body as { email: string; password: string };
+    const body = validate(request.body, loginSchema, reply);
+    if (!body) return;
 
-    if (!email || !password) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: 'VAL_4001', message: 'Email dan password diperlukan' },
-      });
-    }
+    const { email, password } = body;
 
     // Find user by email (across all tenants for simplicity in dev)
     const user = await prisma.user.findFirst({
@@ -41,8 +39,8 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
     }
 
     // Verify password
-    const isValid = await bcrypt.compare(password, user.password_hash);
-    if (!isValid) {
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) {
       return reply.status(401).send({
         success: false,
         error: { code: 'AUTH_2001', message: 'Email atau password tidak valid' },
@@ -55,6 +53,7 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
       tenant_id: user.tenant_id,
       role: user.role,
       email: user.email,
+      name: user.name,
     };
 
     const access_token = jwt.sign(payload, jwtSecret, { expiresIn: ACCESS_TOKEN_EXPIRY });
@@ -92,7 +91,7 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
     }
 
     try {
-      const decoded = jwt.verify(refresh_token, refreshSecret) as { sub: string; jti: string };
+      const decoded = jwt.verify(refresh_token, refreshSecret) as RefreshTokenPayload;
 
       // Find user
       const user = await prisma.user.findFirst({
@@ -112,6 +111,7 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
         tenant_id: user.tenant_id,
         role: user.role,
         email: user.email,
+        name: user.name,
       };
 
       const access_token = jwt.sign(payload, jwtSecret, { expiresIn: ACCESS_TOKEN_EXPIRY });
@@ -126,7 +126,7 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
         refresh_token: new_refresh_token,
         expires_in: ACCESS_TOKEN_EXPIRY_SECONDS,
       });
-    } catch (err) {
+    } catch (_err) {
       return reply.status(401).send({
         success: false,
         error: { code: 'AUTH_2005', message: 'Sesi telah berakhir. Silakan login ulang.' },

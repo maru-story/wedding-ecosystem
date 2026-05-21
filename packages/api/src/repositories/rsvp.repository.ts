@@ -1,6 +1,6 @@
 import { PrismaClient } from '@wedding/db';
 import { AttendanceType } from '@wedding/shared';
-import { GuestForRsvp, RsvpRecord, RsvpRepository } from '../services/rsvp.service';
+import { GuestForRsvp, RsvpRecord, RsvpRepository } from '../services/rsvp/rsvp.service';
 
 export class PrismaRsvpRepository implements RsvpRepository {
   constructor(private readonly prisma: PrismaClient) {}

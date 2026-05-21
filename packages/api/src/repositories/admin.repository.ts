@@ -7,7 +7,7 @@
  * Scoped globally, bypassing standard tenant isolation checks.
  */
 
-import { PrismaClient } from '@wedding/db';
+import { PrismaClient, Prisma } from '@wedding/db';
 import { PlanType, UserRole } from '@wedding/shared';
 import type {
   AdminRepository,
@@ -15,7 +15,7 @@ import type {
   UserRecord,
   GlobalStats,
   AuditLogRecord,
-} from '../services/admin.service';
+} from '../services/admin/admin.service';
 
 export class PrismaAdminRepository implements AdminRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -26,8 +26,7 @@ export class PrismaAdminRepository implements AdminRepository {
     planType?: PlanType
   ): Promise<{ data: TenantRecord[]; total: number }> {
     const skip = (page - 1) * perPage;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {};
+    const where: Prisma.TenantWhereInput = {};
 
     if (planType) {
       where.plan_type = planType;
@@ -119,8 +118,7 @@ export class PrismaAdminRepository implements AdminRepository {
     role?: UserRole
   ): Promise<{ data: UserRecord[]; total: number }> {
     const skip = (page - 1) * perPage;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {};
+    const where: Prisma.UserWhereInput = {};
 
     if (role) {
       where.role = role;
@@ -210,8 +208,7 @@ export class PrismaAdminRepository implements AdminRepository {
     search?: string
   ): Promise<{ data: AuditLogRecord[]; total: number }> {
     const skip = (page - 1) * perPage;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {};
+    const where: Prisma.AuditLogWhereInput = {};
 
     if (action) {
       where.action = action;
@@ -239,30 +236,34 @@ export class PrismaAdminRepository implements AdminRepository {
       }),
     ]);
 
-    const tenantIds: string[] = Array.from(new Set(logs.map((l: any) => l.tenant_id).filter((id: any): id is string => id !== null)));
-    const userIds: string[] = Array.from(new Set(logs.map((l: any) => l.user_id).filter((id: any): id is string => id !== null)));
+    const foundTenantIds: string[] = Array.from(
+      new Set(logs.map((l) => l.tenant_id).filter((id): id is string => id !== null))
+    );
+    const foundUserIds: string[] = Array.from(
+      new Set(logs.map((l) => l.user_id).filter((id): id is string => id !== null))
+    );
 
     const [tenants, users] = await Promise.all([
-      tenantIds.length > 0
+      foundTenantIds.length > 0
         ? this.prisma.tenant.findMany({
-            where: { id: { in: tenantIds } },
+            where: { id: { in: foundTenantIds } },
             select: { id: true, name: true },
           })
         : Promise.resolve([]),
-      userIds.length > 0
+      foundUserIds.length > 0
         ? this.prisma.user.findMany({
-            where: { id: { in: userIds } },
+            where: { id: { in: foundUserIds } },
             select: { id: true, email: true, name: true },
           })
         : Promise.resolve([]),
     ]);
 
-    const tenantMap = new Map<string, string>(tenants.map(t => [t.id, t.name]));
+    const tenantMap = new Map<string, string>(tenants.map((t) => [t.id, t.name]));
     const userMap = new Map<string, { email: string; name: string }>(
-      users.map(u => [u.id, { email: u.email, name: u.name }])
+      users.map((u) => [u.id, { email: u.email, name: u.name }])
     );
 
-    const data = logs.map((log: any) => {
+    const data = logs.map((log) => {
       const tenantName = log.tenant_id ? tenantMap.get(log.tenant_id) || null : null;
       const user = log.user_id ? userMap.get(log.user_id) || null : null;
 
@@ -276,7 +277,7 @@ export class PrismaAdminRepository implements AdminRepository {
         tenant_name: tenantName,
         action: log.action,
         request_id: log.request_id,
-        metadata: log.metadata ?? null,
+        metadata: (log.metadata as Record<string, unknown>) || null,
       };
     });
 

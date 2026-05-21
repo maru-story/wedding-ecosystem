@@ -10,14 +10,14 @@ import {
   GuestRepository,
   GuestRecord,
   GuestListItem,
-} from './guest.service';
+} from './guest/guest.service';
 import {
   RsvpService,
   RsvpRepository,
   RsvpRecord,
   GuestForRsvp,
   RsvpBroadcaster,
-} from './rsvp.service';
+} from './rsvp/rsvp.service';
 import {
   CheckInService,
   CheckInRepository,
@@ -25,7 +25,7 @@ import {
   GuestInfo,
   RedisClient,
   CheckInBroadcaster,
-} from './checkin.service';
+} from './checkin/checkin.service';
 
 // --- Constants ---
 

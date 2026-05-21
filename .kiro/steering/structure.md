@@ -28,11 +28,13 @@ Monorepo with three frontend apps sharing a single backend API. Currently in ear
 
 ## Current State
 
-Early implementation. `.kiro/specs/wedding-digital-saas/` contains:
+Production-ready foundation. Backend refactored to align with ECC coding standards:
 
-- `requirements.md` — Functional and non-functional requirements
-- `design.md` — Technical architecture, data models, sequence diagrams
-- `tasks.md` — Implementation task list
+- **Type-safe routes**: All route handlers use `AuthenticatedRequest` context.
+- **Unified validation**: Standardized `validate` helper enforces shared Zod schemas.
+- **Modular plugins**: Core logic extracted into focused Fastify plugins.
+- **Clean repositories**: Removed all `any` casts, using explicit Prisma types.
+- **Standardized errors**: Centralized `ErrorCode` enum used across all packages.
 
 `packages/shared/src/types/` is implemented with:
 
@@ -55,4 +57,4 @@ Early implementation. `.kiro/specs/wedding-digital-saas/` contains:
 - Spec config: `.config.kiro` JSON files
 - Invitation URLs: `/{event-slug}?to={guest-slug}`
 - All dependency versions are pinned (no ^ or ~ ranges in app packages)
-- Node.js minimum: 22.0.0
+- Node.js minimum: 22.13.0

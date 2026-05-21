@@ -6,7 +6,17 @@ import {
   createProductionPrismaClient,
   calculatePoolSize,
   getPoolOptions,
-  type PrismaPoolOptions,
+  getDatabaseUrls,
+  getSSLConfig,
+  getDatabaseConfig,
+  getPoolConfig,
+} from './client';
+import type {
+  DatabaseUrls,
+  SSLConfig,
+  PrismaPoolOptions,
+  DatabaseConfig,
+  PoolConfig,
 } from './client';
 
 export const DB_VERSION = '0.1.0';
@@ -33,6 +43,15 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Re-export Prisma types, client class, and configuration utilities
-export { PrismaClient, createProductionPrismaClient, calculatePoolSize, getPoolOptions };
-export type { PrismaPoolOptions };
+export {
+  PrismaClient,
+  createProductionPrismaClient,
+  calculatePoolSize,
+  getPoolOptions,
+  getDatabaseUrls,
+  getSSLConfig,
+  getDatabaseConfig,
+  getPoolConfig,
+};
+export type { DatabaseUrls, SSLConfig, PrismaPoolOptions, DatabaseConfig, PoolConfig };
 export * from '@prisma/client';

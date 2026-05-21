@@ -11,6 +11,9 @@
 
 'use client';
 
+import { type AuthUser } from '@wedding/shared';
+export type { AuthUser };
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Storage keys
@@ -22,16 +25,6 @@ const STORAGE_KEYS = {
   EVENT_ID: 'scanner_event_id',
   DEVICE_ID: 'scanner_device_id',
 } as const;
-
-// --- Types ---
-
-export interface AuthUser {
-  id: string;
-  tenant_id: string;
-  email: string;
-  role: string;
-  name: string;
-}
 
 export interface AuthTokens {
   access_token: string;

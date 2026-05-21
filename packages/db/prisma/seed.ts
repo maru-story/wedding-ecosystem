@@ -1,8 +1,10 @@
+/* eslint-disable no-console */
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import 'dotenv/config';
+import { GuestGroup } from '@wedding/shared';
 
 // Guard: prevent running seed in production
 if (process.env.NODE_ENV === 'production') {
@@ -148,7 +150,7 @@ async function main() {
         slug,
         phone: g.phone,
         email: g.email,
-        group: g.group as any,
+        group: g.group as GuestGroup,
         type: 'invited',
         plus_one_count: 1,
         invitation_url: `/${event.slug}?to=${slug}`,

@@ -126,7 +126,7 @@
 7. **RSVP states** — `pending` | `confirmed` | `declined` | `checked_in`.
 8. **Real-time broadcast** — Check-in and RSVP updates broadcast via WebSocket, scoped to event room.
 9. **Offline queue** — Scanner stores actions in IndexedDB when offline, syncs on reconnect. Conflict resolution: server timestamp wins.
-10. **Event capacity** — Max 500 guests per event.
+10. **Event capacity** — Max 2000 guests per event.
 
 ---
 
@@ -146,7 +146,7 @@
 - `GET /guests` — List guests (paginated, filterable by group)
 - `POST /guests` — Create guest (auto-generates QR)
 - `PUT /guests/:id` — Update guest
-- `GET /guests/search?q=&event_id=` — Search by name (min 3 chars)
+- `GET /guests/search?q=&event_id=` — Search by name (min 2 chars)
 - `GET /guests/:id/qr` — Get QR code data
 - `POST /guests/import` — Bulk import from CSV
 
@@ -353,8 +353,10 @@ CI/CD via GitHub Actions:
 6. **Update README.md** — After adding/changing features, update the relevant README section.
 7. **Follow existing patterns** — Look at similar files before creating new ones.
 8. **Use Zod for validation** — All input validation uses Zod schemas from `@wedding/shared`.
-9. **Scope WebSocket broadcasts to event rooms** — Never broadcast globally.
-10. **Handle offline gracefully** — Scanner features must work without network.
+9. **Use standard validation helper** — Use the `validate(data, schema, reply)` helper in all Fastify routes to ensure consistent error handling and type safety.
+10. **Authenticated Request Pattern** — In protected routes, use `request.user!` to access the authenticated context. The `FastifyRequest` is augmented with `user?: AuthUser`, and the `onRequest` auth hook ensures it exists.
+11. **Scope WebSocket broadcasts to event rooms** — Never broadcast globally.
+11. **Handle offline gracefully** — Scanner features must work without network.
 
 ### MUST NOT DO
 

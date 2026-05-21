@@ -2,6 +2,7 @@
 
 import { VerificationStatus } from './enums';
 import { ApiError } from './errors';
+import { AuthTokens } from './auth';
 import {
   CheckIn,
   Event,
@@ -40,12 +41,6 @@ export interface PaginatedResponse<T> {
 export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
 // --- Auth responses ---
-
-export interface AuthTokens {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-}
 
 export interface LoginResponse {
   user: Omit<User, 'password_hash'>;

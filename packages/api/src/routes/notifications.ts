@@ -1,5 +1,8 @@
-import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { PrismaClient } from '@wedding/db';
+import { z } from 'zod';
+import { ErrorCode, MAX_BULK_SEND } from '@wedding/shared';
+import { validate } from '../middleware/validate';
 
 interface NotificationRouteOptions extends FastifyPluginOptions {
   prisma: PrismaClient;
@@ -9,47 +12,46 @@ export async function notificationRoutes(app: FastifyInstance, opts: Notificatio
   const { prisma } = opts;
 
   // Auth hook for all notification routes
-  app.addHook('onRequest', async (request, reply) => {
-    await (app as any).authenticate(request, reply);
-  });
+  app.addHook('onRequest', app.authenticate);
 
   // POST /notifications/send
-  app.post('/send', async (request: FastifyRequest, reply) => {
+  app.post('/send', async (request, reply) => {
     const user = request.user!;
-    const { guest_id, channel } = request.body as { guest_id: string; channel: string };
+    const bodySchema = z.object({
+      guest_id: z.string().uuid({ message: 'ID tamu tidak valid' }),
+      channel: z.enum(['whatsapp', 'email'], {
+        errorMap: () => ({ message: 'Channel harus whatsapp atau email' }),
+      }),
+    });
 
-    if (!guest_id || !channel) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: 'VAL_4001', message: 'guest_id dan channel diperlukan' },
-      });
-    }
+    const body = validate(request.body, bodySchema, reply);
+    if (!body) return;
 
     const guest = await prisma.guest.findFirst({
-      where: { id: guest_id, tenant_id: user.tenant_id },
+      where: { id: body.guest_id, tenant_id: user.tenant_id },
     });
 
     if (!guest) {
       return reply.status(404).send({
         success: false,
-        error: { code: 'GUEST_6001', message: 'Tamu tidak ditemukan' },
+        error: { code: ErrorCode.NOT_FOUND, message: 'Tamu tidak ditemukan' },
       });
     }
 
     // Check contact info
-    if (channel === 'whatsapp' && !guest.phone) {
+    if (body.channel === 'whatsapp' && !guest.phone) {
       return reply.send({
         guest_id: guest.id,
-        channel,
+        channel: body.channel,
         success: false,
         error: 'Nomor phone belum dilengkapi',
       });
     }
 
-    if (channel === 'email' && !guest.email) {
+    if (body.channel === 'email' && !guest.email) {
       return reply.send({
         guest_id: guest.id,
-        channel,
+        channel: body.channel,
         success: false,
         error: 'Alamat email belum dilengkapi',
       });
@@ -57,38 +59,35 @@ export async function notificationRoutes(app: FastifyInstance, opts: Notificatio
 
     // Simulate sending (dev mode - always succeeds)
     await prisma.guest.update({
-      where: { id: guest_id },
+      where: { id: body.guest_id },
       data: { delivery_status: 'sent' },
     });
 
     return reply.send({
       guest_id: guest.id,
-      channel,
+      channel: body.channel,
       success: true,
     });
   });
 
   // POST /notifications/send-bulk
-  app.post('/send-bulk', async (request: FastifyRequest, reply) => {
+  app.post('/send-bulk', async (request, reply) => {
     const user = request.user!;
-    const { guest_ids, channel } = request.body as { guest_ids: string[]; channel: string };
+    const bodySchema = z.object({
+      guest_ids: z
+        .array(z.string().uuid())
+        .min(1, { message: 'guest_ids tidak boleh kosong' })
+        .max(MAX_BULK_SEND, { message: `Maksimal ${MAX_BULK_SEND} tamu per batch` }),
+      channel: z.enum(['whatsapp', 'email'], {
+        errorMap: () => ({ message: 'Channel harus whatsapp atau email' }),
+      }),
+    });
 
-    if (!guest_ids || !Array.isArray(guest_ids) || guest_ids.length === 0) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: 'VAL_4001', message: 'guest_ids diperlukan' },
-      });
-    }
-
-    if (guest_ids.length > 500) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: 'VAL_4001', message: 'Maksimal 500 tamu per batch' },
-      });
-    }
+    const body = validate(request.body, bodySchema, reply);
+    if (!body) return;
 
     const guests = await prisma.guest.findMany({
-      where: { id: { in: guest_ids }, tenant_id: user.tenant_id },
+      where: { id: { in: body.guest_ids }, tenant_id: user.tenant_id },
     });
 
     const results: any[] = [];
@@ -96,14 +95,14 @@ export async function notificationRoutes(app: FastifyInstance, opts: Notificatio
     let failed = 0;
 
     for (const guest of guests) {
-      const hasContact = channel === 'whatsapp' ? !!guest.phone : !!guest.email;
+      const hasContact = body.channel === 'whatsapp' ? !!guest.phone : !!guest.email;
 
       if (!hasContact) {
         results.push({
           guest_id: guest.id,
-          channel,
+          channel: body.channel,
           success: false,
-          error: channel === 'whatsapp' ? 'Nomor phone belum dilengkapi' : 'Alamat email belum dilengkapi',
+          error: body.channel === 'whatsapp' ? 'Nomor phone belum dilengkapi' : 'Alamat email belum dilengkapi',
         });
         failed++;
         continue;
@@ -117,7 +116,7 @@ export async function notificationRoutes(app: FastifyInstance, opts: Notificatio
 
       results.push({
         guest_id: guest.id,
-        channel,
+        channel: body.channel,
         success: true,
       });
       sent++;
@@ -125,11 +124,11 @@ export async function notificationRoutes(app: FastifyInstance, opts: Notificatio
 
     // Add results for guests not found
     const foundIds = new Set(guests.map((g) => g.id));
-    for (const guestId of guest_ids) {
+    for (const guestId of body.guest_ids) {
       if (!foundIds.has(guestId)) {
         results.push({
           guest_id: guestId,
-          channel,
+          channel: body.channel,
           success: false,
           error: 'Tamu tidak ditemukan',
         });
@@ -138,7 +137,7 @@ export async function notificationRoutes(app: FastifyInstance, opts: Notificatio
     }
 
     return reply.send({
-      total: guest_ids.length,
+      total: body.guest_ids.length,
       sent,
       failed,
       results,

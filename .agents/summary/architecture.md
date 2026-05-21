@@ -56,24 +56,34 @@ sequenceDiagram
 
 ### Layered Backend Architecture
 
+The backend follows a strict 4-layer architecture with cross-cutting plugins for performance and security.
+
 ```mermaid
 graph TB
-    Routes["Routes Layer<br/>(Thin HTTP adapters, request parsing, auth hook)"]
-    Middleware["Middleware Layer<br/>(Auth, CORS, Rate Limit, RBAC, Tenant Isolation)"]
-    Services["Service Layer<br/>(Business logic, slug/QR generation, PII encryption, deduplication)"]
+    Plugins["Plugin Layer<br/>(Bootstrap: Audit logger, response cache, security headers, rate-limiter, auth-decorator)"]
+    Routes["Routes Layer<br/>(Thin HTTP adapters, request parsing using AuthenticatedRequest)"]
+    Middleware["Middleware Layer<br/>(RBAC, Tenant Isolation, Encryption, Validation helper)"]
+    Services["Service Layer<br/>(Pure business logic, slug/QR generation, PII encryption, deduplication)"]
     Repositories["Repository Layer<br/>(Prisma adapters — all queries tenant-scoped via tenant_id)"]
-    Plugins["Plugin Layer<br/>(Audit logger, response cache, security headers)"]
     Data["Data Layer<br/>(Prisma ORM, Redis client)"]
 
+    Plugins --> Routes
     Routes --> Middleware
     Middleware --> Services
     Services --> Repositories
     Repositories --> Data
-    Plugins -.->|cross-cutting| Routes
-    Plugins -.->|cross-cutting| Services
 ```
 
-**Domain coverage**: Guest and CheckIn domains use the full Route → Service → Repository stack. Other domains (CMS, RSVP, Events) still call Prisma from the service layer directly — migration is ongoing.
+**Domain coverage**: All core domains (Guest, Check-in, RSVP, CMS, Events, Admin) have been migrated to the full **Route → Service → Repository** stack. Direct Prisma calls from services are deprecated.
+
+**Request Lifecycle**:
+1.  **Bootstrap**: Plugins register global hooks (logger, rate-limit).
+2.  **Context**: `auth` plugin decorates request with `user` and `tenant_id`.
+3.  **Unified Auth**: The `AuthUser` interface in `@wedding/shared` is the single source of truth for user profile data (id, tenant_id, role, email, name).
+4.  **Entry**: Routes use `AuthenticatedRequest` to access type-safe user context.
+4.  **Enforcement**: Middleware applies RBAC and validates input against Zod schemas.
+5.  **Logic**: Services execute business rules without database awareness.
+6.  **Persistence**: Repositories interact with Prisma using explicit types (Zero-Cast policy).
 
 ### Frontend Architecture (per app)
 

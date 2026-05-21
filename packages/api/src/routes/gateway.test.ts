@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Fastify, { FastifyInstance } from 'fastify';
 import jwt from 'jsonwebtoken';
+import { AuthUser, UserRole } from '@wedding/shared';
 import {
   createCORSMiddleware,
   createDefaultCORSConfig,
@@ -15,8 +16,9 @@ function createTestToken(payload: {
   tenant_id: string;
   role: string;
   email: string;
+  name?: string;
 }) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+  return jwt.sign({ ...payload, name: payload.name || 'Test User' }, JWT_SECRET, { expiresIn: '15m' });
 }
 
 describe('API Gateway Routing', () => {
@@ -57,8 +59,9 @@ describe('API Gateway Routing', () => {
         request.user = {
           id: decoded.sub,
           tenant_id: decoded.tenant_id,
-          role: decoded.role,
+          role: decoded.role as UserRole,
           email: decoded.email,
+          name: decoded.name || 'Test User',
         };
       } catch {
         reply.status(401).send({ success: false, error: { code: 'AUTH_2003', message: 'Token tidak valid' } });

@@ -6,12 +6,9 @@
  * - Tenant ownership verification
  * - Calling the service
  * - Mapping service results to HTTP responses
- *
- * All business logic (duplicate detection, QR decryption, broadcasting)
- * lives in CheckInService with atomic Redis-based duplicate detection.
  */
 
-import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { PrismaClient } from '@wedding/db';
 import type { RealtimeServer } from '@wedding/realtime';
 import {
@@ -20,14 +17,14 @@ import {
   manualCheckInSchema,
   goShowSchema,
 } from '@wedding/shared';
-import { CheckInService, isServiceError } from '../services/checkin.service';
+import { CheckInService, isServiceError } from '../services/checkin/checkin.service';
 import {
   PrismaCheckInRepository,
   RealtimeCheckInBroadcaster,
   IoRedisCheckInClient,
   NoOpRedisCheckInClient,
 } from '../repositories';
-import { getCacheClient } from '../config/redis';
+import { getCacheClient } from '../config/redis/redis';
 import { validate } from '../middleware/validate';
 
 interface CheckInRouteOptions extends FastifyPluginOptions {
@@ -44,7 +41,7 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
 
   const redisClient = getCacheClient();
   const redisAdapter = redisClient
-    ? new IoRedisCheckInClient(redisClient as any)
+    ? new IoRedisCheckInClient(redisClient)
     : new NoOpRedisCheckInClient();
 
   const encryptionKey = process.env.AES_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
@@ -57,19 +54,17 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
   });
 
   // Auth hook for all check-in routes
-  app.addHook('onRequest', async (request, reply) => {
-    await (app as any).authenticate(request, reply);
-  });
+  app.addHook('onRequest', app.authenticate);
 
   // POST /checkin/scan - QR code scan verification
-  app.post('/scan', async (request: FastifyRequest, reply) => {
+  app.post('/scan', async (request, reply) => {
     const user = request.user!;
     const body = validate(request.body, qrCheckInSchema, reply);
     if (!body) return;
 
     const { qr_payload, event_id, scanner_device_id } = body;
 
-    // Delegate to service — handles QR decryption, atomic duplicate detection, DB write, broadcast
+    // Delegate to service
     const result = await checkInService.verifyQRScan(
       user.tenant_id,
       qr_payload,
@@ -77,7 +72,6 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
       scanner_device_id || null
     );
 
-    // Map service result to HTTP response
     return reply.send({
       status: result.status,
       guest_name: result.guest_name,
@@ -88,18 +82,13 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
   });
 
   // POST /checkin/manual - Manual check-in by guest ID
-  app.post('/manual', async (request: FastifyRequest, reply) => {
+  app.post('/manual', async (request, reply) => {
     const user = request.user!;
     const body = validate(request.body, manualCheckInSchema, reply);
     if (!body) return;
 
-    const { guest_id, event_id, scanner_device_id } = body as {
-      guest_id: string;
-      event_id: string;
-      scanner_device_id?: string;
-    };
+    const { guest_id, event_id, scanner_device_id } = body;
 
-    // Delegate to service — handles duplicate check, DB write, broadcast
     const result = await checkInService.manualCheckIn(
       user.tenant_id,
       guest_id,
@@ -123,14 +112,13 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
   });
 
   // POST /checkin/go-show - Register Go-Show guest
-  app.post('/go-show', async (request: FastifyRequest, reply) => {
+  app.post('/go-show', async (request, reply) => {
     const user = request.user!;
     const body = validate(request.body, goShowSchema, reply);
     if (!body) return;
 
     const { name, event_id, scanner_device_id } = body;
 
-    // Delegate to service — handles guest creation, check-in, broadcast
     const result = await checkInService.registerGoShow(
       user.tenant_id,
       name,
@@ -154,9 +142,9 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
   });
 
   // POST /checkin/sync - Sync offline check-in records
-  app.post('/sync', async (request: FastifyRequest, reply) => {
+  app.post('/sync', async (request, reply) => {
     const user = request.user!;
-    const { records } = request.body as {
+    const body = request.body as {
       records: Array<{
         guest_id: string;
         event_id: string;
@@ -166,7 +154,7 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
       }>;
     };
 
-    if (!records || !Array.isArray(records)) {
+    if (!body.records || !Array.isArray(body.records)) {
       return reply.status(400).send({
         success: false,
         error: { code: 'VAL_4001', message: 'records diperlukan' },
@@ -175,7 +163,7 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
 
     const syncResult = await checkInService.syncOfflineRecords(
       user.tenant_id,
-      records
+      body.records
     );
 
     return reply.send({
@@ -189,7 +177,7 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
   });
 
   // GET /checkin/search - Search guests for manual check-in
-  app.get('/search', async (request: FastifyRequest, reply) => {
+  app.get('/search', async (request, reply) => {
     const user = request.user!;
     const { q, event_id } = request.query as { q?: string; event_id?: string };
 

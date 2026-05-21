@@ -13,9 +13,9 @@ try {
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  console.error('[Prisma] DATABASE_URL environment variable is not set.');
-  console.error('  - In development: ensure .env.local exists at project root');
-  console.error('  - In CI: ensure DATABASE_URL is set as a secret/env var');
+  console.error('[Prisma] DATABASE_URL environment variable is not set.'); // eslint-disable-line no-console
+  console.error('  - In development: ensure .env.local exists at project root'); // eslint-disable-line no-console
+  console.error('  - In CI: ensure DATABASE_URL is set as a secret/env var'); // eslint-disable-line no-console
 }
 
 export default defineConfig({

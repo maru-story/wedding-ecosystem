@@ -58,15 +58,6 @@ const envSchema = z.object({
 
 export type EnvConfig = z.infer<typeof envSchema>;
 
-// --- Development Defaults ---
-// All dev values are expected to come from .env.local (not hardcoded in source).
-// These constants are only used for detecting accidental dev-default usage in production.
-
-const KNOWN_DEV_SECRETS = {
-  JWT_SECRET: process.env.JWT_SECRET,
-  REFRESH_SECRET: process.env.REFRESH_SECRET,
-} as const;
-
 // --- Validation ---
 
 /**
@@ -88,7 +79,7 @@ const PRODUCTION_RECOMMENDED_VARS = [
  * Validates environment variables and returns a typed config object.
  *
  * Behavior:
- * - Production: throws if required secrets are missing or still using dev defaults.
+ * - Production: throws if required secrets are missing.
  * - Development: uses fallback values with console warnings.
  * - Test: uses fallback values silently.
  */
@@ -96,60 +87,14 @@ export function validateEnv(): EnvConfig {
   const isProduction = process.env.NODE_ENV === 'production';
   const isTest = process.env.NODE_ENV === 'test';
 
-  // In production, enforce that critical secrets are set
-  if (isProduction) {
-    const missing: string[] = [];
-
-    for (const varName of PRODUCTION_REQUIRED_VARS) {
-      if (!process.env[varName]) {
-        missing.push(varName);
-      }
-    }
-
-    if (missing.length > 0) {
-      throw new Error(
-        `[ENV] Missing required environment variables in production:\n` +
-          missing.map((v) => `  - ${v}`).join('\n') +
-          `\n\nSet these variables before starting the server in production.`
-      );
-    }
-
-    // Warn about recommended vars
-    const missingRecommended: string[] = [];
-    for (const varName of PRODUCTION_RECOMMENDED_VARS) {
-      if (!process.env[varName]) {
-        missingRecommended.push(varName);
-      }
-    }
-
-    if (missingRecommended.length > 0) {
-      console.warn(
-        `[ENV] ⚠️  Recommended environment variables not set in production:\n` +
-          missingRecommended.map((v) => `  - ${v}`).join('\n')
-      );
-    }
-
-    // Warn if CORS origins are still localhost in production
-    const corsVars = ['DASHBOARD_ORIGIN', 'INVITATION_ORIGIN', 'SCANNER_ORIGIN'] as const;
-    for (const varName of corsVars) {
-      const value = process.env[varName];
-      if (value && value.includes('localhost')) {
-        console.warn(
-          `[ENV] ⚠️  ${varName} contains "localhost" in production. ` +
-            `This is likely a misconfiguration.`
-        );
-      }
-    }
-  }
-
-  // Build the config from process.env (values come from .env.local in development)
-  const config: EnvConfig = {
-    NODE_ENV: (process.env.NODE_ENV as EnvConfig['NODE_ENV']) || 'development',
+  // Extract variables from process.env with potential defaults for development
+  const rawData = {
+    NODE_ENV: process.env.NODE_ENV || 'development',
     PORT: process.env.PORT,
     HOST: process.env.HOST,
-    JWT_SECRET: process.env.JWT_SECRET || '',
-    REFRESH_SECRET: process.env.REFRESH_SECRET || '',
-    DATABASE_URL: process.env.DATABASE_URL || '',
+    JWT_SECRET: process.env.JWT_SECRET || (isProduction ? undefined : 'dev-jwt-secret'),
+    REFRESH_SECRET: process.env.REFRESH_SECRET || (isProduction ? undefined : 'dev-refresh-secret'),
+    DATABASE_URL: process.env.DATABASE_URL || (isProduction ? undefined : 'postgresql://postgres:postgres@localhost:5432/wedding'),
     DASHBOARD_ORIGIN: process.env.DASHBOARD_ORIGIN,
     INVITATION_ORIGIN: process.env.INVITATION_ORIGIN,
     SCANNER_ORIGIN: process.env.SCANNER_ORIGIN,
@@ -165,22 +110,40 @@ export function validateEnv(): EnvConfig {
     APP_VERSION: process.env.APP_VERSION,
   };
 
-  // Log warnings in development (not test) if critical vars are missing
-  if (!isProduction && !isTest) {
-    const missingVars: string[] = [];
-    if (!process.env.JWT_SECRET) missingVars.push('JWT_SECRET');
-    if (!process.env.REFRESH_SECRET) missingVars.push('REFRESH_SECRET');
-    if (!process.env.DATABASE_URL) missingVars.push('DATABASE_URL');
+  try {
+    const config = envSchema.parse(rawData);
 
-    if (missingVars.length > 0) {
-      console.warn(
-        `[ENV] ⚠️  Missing environment variables: ${missingVars.join(', ')}\n` +
-          `       Ensure .env.local is configured. See .env.example for reference.`
-      );
+    if (isProduction) {
+      // Warn about recommended vars
+      const missingRecommended = PRODUCTION_RECOMMENDED_VARS.filter(v => !process.env[v]);
+      if (missingRecommended.length > 0) {
+        console.warn(`[ENV] ⚠️  Recommended environment variables not set in production: ${missingRecommended.join(', ')}`); // eslint-disable-line no-console
+      }
+
+      // Warn if CORS origins are still localhost
+      const corsVars = ['DASHBOARD_ORIGIN', 'INVITATION_ORIGIN', 'SCANNER_ORIGIN'] as const;
+      for (const varName of corsVars) {
+        const value = process.env[varName];
+        if (value?.includes('localhost')) {
+          console.warn(`[ENV] ⚠️  ${varName} contains "localhost" in production.`); // eslint-disable-line no-console
+        }
+      }
+    } else if (!isTest) {
+      // Development warnings
+      const missingVars = PRODUCTION_REQUIRED_VARS.filter(v => !process.env[v]);
+      if (missingVars.length > 0) {
+        console.warn(`[ENV] ⚠️  Missing environment variables: ${missingVars.join(', ')}. Using dev fallbacks.`); // eslint-disable-line no-console
+      }
     }
-  }
 
-  return config;
+    return config;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const issues = error.issues.map(i => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
+      throw new Error(`[ENV] Environment validation failed:\n${issues}`);
+    }
+    throw error;
+  }
 }
 
 /**

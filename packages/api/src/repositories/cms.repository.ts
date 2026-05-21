@@ -5,9 +5,9 @@
  * translating domain operations into Prisma queries.
  */
 
-import { PrismaClient } from '@wedding/db';
+import { PrismaClient, Prisma } from '@wedding/db';
 import { SectionType } from '@wedding/shared';
-import type { CMSRepository, SectionRecord } from '../services/cms.service';
+import type { CMSRepository, SectionRecord } from '../services/cms/cms.service';
 
 export class PrismaCMSRepository implements CMSRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -27,7 +27,7 @@ export class PrismaCMSRepository implements CMSRepository {
         section_type: data.section_type,
         sort_order: data.sort_order,
         is_active: data.is_active,
-        content: data.content as any,
+        content: data.content as Prisma.InputJsonValue,
       },
     });
 
@@ -78,12 +78,14 @@ export class PrismaCMSRepository implements CMSRepository {
       updated_at: Date;
     }>
   ): Promise<SectionRecord | null> {
+    const updateData: Prisma.InvitationSectionUpdateInput = {
+      ...data,
+      content: data.content as Prisma.InputJsonValue | undefined,
+    };
+
     const result = await this.prisma.invitationSection.updateMany({
       where: { id: sectionId, event_id: eventId },
-      data: {
-        ...data,
-        content: data.content as any,
-      },
+      data: updateData,
     });
 
     if (result.count === 0) return null;
@@ -115,12 +117,10 @@ export class PrismaCMSRepository implements CMSRepository {
   }
 
   async findEventById(eventId: string, tenantId: string): Promise<{ id: string } | null> {
-    const event = await this.prisma.event.findFirst({
+    return this.prisma.event.findFirst({
       where: { id: eventId, tenant_id: tenantId },
       select: { id: true },
     });
-
-    return event;
   }
 
   async getMaxSortOrder(eventId: string): Promise<number> {
@@ -140,7 +140,7 @@ export class PrismaCMSRepository implements CMSRepository {
     section_type: string;
     sort_order: number;
     is_active: boolean;
-    content: any;
+    content: Prisma.JsonValue;
     updated_at: Date;
   }): SectionRecord {
     return {
@@ -149,7 +149,7 @@ export class PrismaCMSRepository implements CMSRepository {
       section_type: section.section_type as SectionType,
       sort_order: section.sort_order,
       is_active: section.is_active,
-      content: typeof section.content === 'object' && section.content !== null ? section.content : {},
+      content: typeof section.content === 'object' && section.content !== null ? (section.content as Record<string, unknown>) : {},
       updated_at: section.updated_at,
     };
   }

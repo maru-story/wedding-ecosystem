@@ -7,7 +7,7 @@
 - **Description**: Multi-tenant platform for digital wedding invitation management, targeting the Indonesian market
 - **License**: Private — All rights reserved
 - **Language**: TypeScript 5.9.3
-- **Node.js**: >=20.0.0
+- **Node.js**: >=22.13.0
 - **Package Manager**: npm 11.0.0
 
 ## Monorepo Structure

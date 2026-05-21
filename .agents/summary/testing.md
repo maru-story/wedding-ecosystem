@@ -11,7 +11,7 @@
 
 | Package | Tests | Type |
 |---------|-------|------|
-| `@wedding/api` | ~912 | Unit + Integration + Property-based |
+| `@wedding/api` | ~924 | Unit + Integration + Property-based |
 | `@wedding/shared` | ~63 | Unit + Property-based |
 | `@wedding/realtime` | ~87 | Unit + Integration + Property-based |
 | `@wedding/dashboard` | ~81 | Unit + Property-based |
@@ -35,8 +35,8 @@ npx turbo test --filter=@wedding/scanner
 
 ## Test File Conventions
 
-- Test files co-located with source: `{name}.test.ts`
-- Property-based tests: `{name}.property.test.ts`
+- **Local Grouping**: Test files are co-located with their source in a feature subfolder: `src/{layer}/{feature}/{name}.test.ts`
+- Property-based tests: `src/{layer}/{feature}/{name}.property.test.ts`
 - Integration tests: `tests/integration/{name}.integration.test.ts`
 
 ## Patterns
@@ -92,7 +92,25 @@ it('should always scope queries by tenant_id', async () => {
 
 **Rule**: If a domain does **not** yet have a `*.repository.ts` file, use Level 1 only (mock in service test). Once migrated, add Level 2 tests.
 
-### 2. Factory Functions for Test Data
+### 2. Modular Mocking Pattern (@wedding/db)
+
+When testing routes or plugins that depend on database connections (e.g., `audit-logger`), mock the `@wedding/db` package to avoid `DATABASE_URL` requirements during unit testing:
+
+```typescript
+vi.mock('@wedding/db', () => ({
+  createProductionPrismaClient: vi.fn(() => ({
+    $connect: vi.fn().mockResolvedValue(undefined),
+    $disconnect: vi.fn().mockResolvedValue(undefined),
+    auditLog: {
+      create: vi.fn().mockResolvedValue({ id: 'log-1' }),
+    },
+  })),
+}));
+```
+
+Always ensure the mock path in `vi.mock` exactly matches the import path to avoid `mockReturnValue is not a function` errors.
+
+### 3. Factory Functions for Test Data
 
 Each test file defines factory functions with sensible defaults and override support:
 

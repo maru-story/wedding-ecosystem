@@ -1,14 +1,6 @@
-// Authentication utilities for dashboard
-
+import { type AuthUser } from '@wedding/shared';
+export type { AuthUser };
 import { apiFetch, setTokens, clearTokens, startAutoRefresh, stopAutoRefresh, getAccessToken } from './api';
-
-export interface AuthUser {
-  id: string;
-  tenant_id: string;
-  email: string;
-  role: string;
-  name: string;
-}
 
 export interface LoginResponse {
   user: AuthUser;

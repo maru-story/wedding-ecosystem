@@ -1,9 +1,10 @@
-import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { PrismaClient } from '@wedding/db';
-import { AdminService } from '../services/admin.service';
+import { AdminService } from '../services/admin/admin.service';
 import { PrismaAdminRepository } from '../repositories/admin.repository';
-import { PlanType, UserRole, ErrorCode } from '@wedding/shared';
+import { PlanType, UserRole, ErrorCode, paginationSchema } from '@wedding/shared';
 import { z } from 'zod';
+import { validate } from '../middleware/validate';
 
 interface AdminRouteOptions extends FastifyPluginOptions {
   prisma: PrismaClient;
@@ -16,9 +17,9 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
 
   // Enforce authentication & global admin role
   app.addHook('onRequest', async (request, reply) => {
-    await (app as any).authenticate(request, reply);
+    await app.authenticate(request, reply);
     
-    if (request.user?.role !== 'admin') {
+    if (request.user?.role !== UserRole.ADMIN) {
       return reply.status(403).send({
         success: false,
         error: {
@@ -30,32 +31,29 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
   });
 
   // GET /admin/stats
-  app.get('/stats', async (request, reply) => {
+  app.get('/stats', async (_request, reply) => {
     const stats = await adminService.getGlobalStats();
     return reply.send({ success: true, data: stats });
   });
 
   // GET /admin/tenants
   app.get('/tenants', async (request, reply) => {
-    const query = request.query as {
-      page?: string;
-      per_page?: string;
-      plan_type?: PlanType;
-    };
+    const querySchema = paginationSchema.extend({
+      plan_type: z.nativeEnum(PlanType).optional(),
+    });
 
-    const page = parseInt(query.page || '1', 10);
-    const perPage = parseInt(query.per_page || '10', 10);
-    const planType = query.plan_type;
+    const query = validate(request.query, querySchema, reply);
+    if (!query) return;
 
-    const result = await adminService.listTenants(page, perPage, planType);
+    const result = await adminService.listTenants(query.page!, query.per_page!, query.plan_type);
     return reply.send({
       success: true,
       data: result.data,
       pagination: {
-        page,
-        per_page: perPage,
+        page: query.page!,
+        per_page: query.per_page!,
         total: result.total,
-        total_pages: Math.ceil(result.total / perPage),
+        total_pages: Math.ceil(result.total / query.per_page!),
       },
     });
   });
@@ -71,27 +69,19 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
       client_password: z.string().min(8, 'Password minimal 8 karakter'),
     });
 
-    const parsed = bodySchema.safeParse(request.body);
-    if (!parsed.success) {
-      return reply.status(400).send({
-        success: false,
-        error: {
-          code: ErrorCode.VALIDATION_FAILED,
-          message: parsed.error.errors[0].message,
-        },
-      });
-    }
+    const body = validate(request.body, bodySchema, reply);
+    if (!body) return;
 
     const result = await adminService.createTenant(
       {
-        name: parsed.data.name,
-        slug: parsed.data.slug,
-        plan_type: parsed.data.plan_type,
+        name: body.name,
+        slug: body.slug,
+        plan_type: body.plan_type,
       },
       {
-        email: parsed.data.client_email,
-        name: parsed.data.client_name,
-        passwordPlain: parsed.data.client_password,
+        email: body.client_email,
+        name: body.client_name,
+        passwordPlain: body.client_password,
       }
     );
 
@@ -113,23 +103,21 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
 
   // PATCH /admin/tenants/:id/status
   app.patch('/tenants/:id/status', async (request, reply) => {
-    const { id } = request.params as { id: string };
+    const paramsSchema = z.object({
+      id: z.string().uuid({ message: 'ID tenant tidak valid' }),
+    });
+
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return;
+
     const bodySchema = z.object({
       is_active: z.boolean({ required_error: 'Status aktif/nonaktif harus ditentukan' }),
     });
 
-    const parsed = bodySchema.safeParse(request.body);
-    if (!parsed.success) {
-      return reply.status(400).send({
-        success: false,
-        error: {
-          code: ErrorCode.VALIDATION_FAILED,
-          message: parsed.error.errors[0].message,
-        },
-      });
-    }
+    const body = validate(request.body, bodySchema, reply);
+    if (!body) return;
 
-    const result = await adminService.toggleTenantStatus(id, parsed.data.is_active);
+    const result = await adminService.toggleTenantStatus(params.id, body.is_active);
     if ('code' in result) {
       return reply.status(404).send({
         success: false,
@@ -148,87 +136,76 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
 
   // GET /admin/audit-logs
   app.get('/audit-logs', async (request, reply) => {
-    const query = request.query as {
-      page?: string;
-      per_page?: string;
-      action?: string;
-      tenant_id?: string;
-      user_id?: string;
-      search?: string;
-    };
+    const querySchema = paginationSchema.extend({
+      action: z.string().optional(),
+      tenant_id: z.string().optional(),
+      user_id: z.string().optional(),
+      search: z.string().optional(),
+    });
 
-    const page = parseInt(query.page || '1', 10);
-    const perPage = parseInt(query.per_page || '10', 10);
-    const action = query.action;
-    const tenantId = query.tenant_id;
-    const userId = query.user_id;
-    const search = query.search;
+    const query = validate(request.query, querySchema, reply);
+    if (!query) return;
 
     const result = await adminService.listAuditLogs(
-      page,
-      perPage,
-      action === 'ALL' || !action ? undefined : action,
-      tenantId === 'ALL' || !tenantId ? undefined : tenantId,
-      userId === 'ALL' || !userId ? undefined : userId,
-      search || undefined
+      query.page!,
+      query.per_page!,
+      query.action === 'ALL' || !query.action ? undefined : query.action,
+      query.tenant_id === 'ALL' || !query.tenant_id ? undefined : query.tenant_id,
+      query.user_id === 'ALL' || !query.user_id ? undefined : query.user_id,
+      query.search || undefined
     );
 
     return reply.send({
       success: true,
       data: result.data,
       pagination: {
-        page,
-        per_page: perPage,
+        page: query.page!,
+        per_page: query.per_page!,
         total: result.total,
-        total_pages: Math.ceil(result.total / perPage),
+        total_pages: Math.ceil(result.total / query.per_page!),
       },
     });
   });
 
   // GET /admin/users
   app.get('/users', async (request, reply) => {
-    const query = request.query as {
-      page?: string;
-      per_page?: string;
-      role?: UserRole;
-    };
+    const querySchema = paginationSchema.extend({
+      role: z.nativeEnum(UserRole).optional(),
+    });
 
-    const page = parseInt(query.page || '1', 10);
-    const perPage = parseInt(query.per_page || '10', 10);
-    const role = query.role;
+    const query = validate(request.query, querySchema, reply);
+    if (!query) return;
 
-    const result = await adminService.listUsers(page, perPage, role);
+    const result = await adminService.listUsers(query.page!, query.per_page!, query.role);
     return reply.send({
       success: true,
       data: result.data,
       pagination: {
-        page,
-        per_page: perPage,
+        page: query.page!,
+        per_page: query.per_page!,
         total: result.total,
-        total_pages: Math.ceil(result.total / perPage),
+        total_pages: Math.ceil(result.total / query.per_page!),
       },
     });
   });
 
   // PUT /admin/users/:id/reset-password
   app.put('/users/:id/reset-password', async (request, reply) => {
-    const { id } = request.params as { id: string };
+    const paramsSchema = z.object({
+      id: z.string().uuid({ message: 'ID user tidak valid' }),
+    });
+
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return;
+
     const bodySchema = z.object({
       password: z.string().min(8, 'Password minimal 8 karakter'),
     });
 
-    const parsed = bodySchema.safeParse(request.body);
-    if (!parsed.success) {
-      return reply.status(400).send({
-        success: false,
-        error: {
-          code: ErrorCode.VALIDATION_FAILED,
-          message: parsed.error.errors[0].message,
-        },
-      });
-    }
+    const body = validate(request.body, bodySchema, reply);
+    if (!body) return;
 
-    const result = await adminService.resetUserPassword(id, parsed.data.password);
+    const result = await adminService.resetUserPassword(params.id, body.password);
     if ('code' in result) {
       return reply.status(404).send({
         success: false,

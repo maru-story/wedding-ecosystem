@@ -8,7 +8,7 @@ Base URL: `http://localhost:4000` (dev) / `https://api.domain.railway.app` (prod
 
 | Method | Endpoint        | Auth          | Description               |
 | ------ | --------------- | ------------- | ------------------------- |
-| POST   | `/auth/login`   | None          | Login, returns JWT tokens |
+| POST   | `/auth/login`   | None          | Login, returns JWT tokens (payload includes `sub`, `tenant_id`, `role`, `email`, `name`) |
 | POST   | `/auth/refresh` | Refresh token | Refresh access token      |
 
 ### Events (prefix: `/events`)
@@ -215,14 +215,29 @@ graph LR
 
 ## Error Code Interface
 
-Error codes follow the pattern `{DOMAIN}_{NUMBER}`:
+The platform uses a centralized `ErrorCode` enum in `@wedding/shared` for standardized error handling across all apps. All API errors return a `4xx` or `5xx` status code with a consistent JSON envelope:
 
-| Prefix    | Domain           | Examples                                                        |
-| --------- | ---------------- | --------------------------------------------------------------- |
-| `AUTH_`   | Authentication   | `AUTH_2001` (invalid credentials), `AUTH_2003` (account locked) |
-| `VAL_`    | Validation       | `VAL_4001` (missing field), `VAL_4002` (invalid format)         |
-| `TENANT_` | Tenant isolation | `TENANT_5001` (access denied)                                   |
-| `GUEST_`  | Guest operations | `GUEST_6001` (not found), `GUEST_6002` (duplicate)              |
-| `SCAN_`   | Scanner/Check-in | `SCAN_7001` (invalid QR), `SCAN_7002` (already checked in)      |
-| `CMS_`    | CMS operations   | `CMS_8001` (section not found)                                  |
-| `RATE_`   | Rate limiting    | `RATE_9001` (too many requests)                                 |
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTH_INVALID_CREDENTIALS",
+    "message": "Email atau password tidak valid",
+    "details": []
+  }
+}
+```
+
+### Common Error Codes
+
+| Category | Prefix | Examples |
+| --------- | ------ | --------------------------------------------------------------- |
+| **Authentication** | `AUTH_` | `INVALID_CREDENTIALS`, `ACCOUNT_LOCKED`, `SESSION_EXPIRED`, `TOKEN_EXPIRED` |
+| **Validation** | `VAL_` | `VALIDATION_FAILED` (Standard Zod error response) |
+| **Authorization** | `ROLE_` | `ROLE_INSUFFICIENT` (RBAC failure) |
+| **Tenant Isolation** | `TENANT_` | `TENANT_ACCESS_DENIED`, `TENANT_NOT_FOUND` |
+| **Domain: Guest** | `GUEST_` | `GUEST_NOT_FOUND`, `GUEST_ALREADY_EXISTS`, `IMPORT_FAILED` |
+| **Domain: Event** | `EVENT_` | `EVENT_NOT_FOUND`, `EVENT_NOT_PUBLISHED` |
+| **Domain: Check-in** | `SCAN_` | `ALREADY_CHECKED_IN`, `INVALID_QR_PAYLOAD`, `DEVICE_NOT_FOUND` |
+| **System** | `SYS_` | `INTERNAL_ERROR`, `DATABASE_ERROR`, `RATE_LIMIT_EXCEEDED` |
+| **Storage** | `STOR_` | `STORAGE_QUOTA_EXCEEDED`, `UPLOAD_FAILED` |

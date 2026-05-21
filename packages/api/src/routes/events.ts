@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { PrismaClient } from '@wedding/db';
 
 interface EventRouteOptions extends FastifyPluginOptions {
@@ -9,12 +9,10 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
   const { prisma } = opts;
 
   // Auth hook for all event routes
-  app.addHook('onRequest', async (request, reply) => {
-    await (app as any).authenticate(request, reply);
-  });
+  app.addHook('onRequest', app.authenticate);
 
   // GET /events/current
-  app.get('/current', async (request: FastifyRequest, reply) => {
+  app.get('/current', async (request, reply) => {
     const user = request.user!;
 
     const event = await prisma.event.findFirst({
@@ -33,7 +31,7 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
   });
 
   // GET /events/:id/stats
-  app.get('/:id/stats', async (request: FastifyRequest, reply) => {
+  app.get('/:id/stats', async (request, reply) => {
     const user = request.user!;
     const { id } = request.params as { id: string };
 
@@ -48,21 +46,20 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
       });
     }
 
-    const total_guests = await prisma.guest.count({
-      where: { event_id: id },
-    });
-
-    const total_rsvp = await prisma.rSVP.count({
-      where: { guest: { event_id: id } },
-    });
-
-    const total_checked_in = await prisma.checkIn.count({
-      where: { guest: { event_id: id } },
-    });
-
-    const total_go_show = await prisma.guest.count({
-      where: { event_id: id, type: 'go_show' },
-    });
+    const [total_guests, total_rsvp, total_checked_in, total_go_show] = await Promise.all([
+      prisma.guest.count({
+        where: { event_id: id },
+      }),
+      prisma.rSVP.count({
+        where: { guest: { event_id: id } },
+      }),
+      prisma.checkIn.count({
+        where: { guest: { event_id: id } },
+      }),
+      prisma.guest.count({
+        where: { event_id: id, type: 'go_show' },
+      }),
+    ]);
 
     return reply.send({
       total_guests,
@@ -73,7 +70,7 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
   });
 
   // GET /events/:id/rsvp
-  app.get('/:id/rsvp', async (request: FastifyRequest, reply) => {
+  app.get('/:id/rsvp', async (request, reply) => {
     const user = request.user!;
     const { id } = request.params as { id: string };
 
@@ -105,11 +102,8 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
     return reply.send({ data });
   });
 
-  // NOTE: Section management (content, toggle, reorder) lives in /cms routes.
-  // Use GET /cms/sections/:eventId, PUT /cms/sections/:eventId/:sectionId/content, etc.
-
   // POST /events/:id/media/upload
-  app.post('/:id/media/upload', async (request: FastifyRequest, reply) => {
+  app.post('/:id/media/upload', async (request, reply) => {
     const user = request.user!;
     const { id } = request.params as { id: string };
 
@@ -125,8 +119,7 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
       });
     }
 
-    // TODO: Implement real file upload via StorageService (presigned URL flow)
-    // For now, return a proper error in production or a placeholder in development
+    // TODO: Implement real file upload via StorageService
     const isProduction = process.env.NODE_ENV === 'production';
     if (isProduction) {
       return reply.status(501).send({
