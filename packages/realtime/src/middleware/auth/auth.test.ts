@@ -148,6 +148,7 @@ describe('createAuthMiddleware', () => {
       tenant_id: 'tenant-456',
       role: UserRole.CLIENT,
       email: 'user@example.com',
+      name: 'User',
     });
   });
 
