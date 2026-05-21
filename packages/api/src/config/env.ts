@@ -94,7 +94,7 @@ export function validateEnv(): EnvConfig {
     HOST: process.env.HOST,
     JWT_SECRET: process.env.JWT_SECRET || (isProduction ? undefined : 'dev-jwt-secret'),
     REFRESH_SECRET: process.env.REFRESH_SECRET || (isProduction ? undefined : 'dev-refresh-secret'),
-    DATABASE_URL: process.env.DATABASE_URL || (isProduction ? undefined : 'postgresql://postgres:postgres@localhost:5432/wedding'),
+    DATABASE_URL: process.env.DATABASE_URL || (isProduction ? undefined : 'postgresql://postgres:postgres@localhost:5432/wedding'), // nosecret
     DASHBOARD_ORIGIN: process.env.DASHBOARD_ORIGIN,
     INVITATION_ORIGIN: process.env.INVITATION_ORIGIN,
     SCANNER_ORIGIN: process.env.SCANNER_ORIGIN,
