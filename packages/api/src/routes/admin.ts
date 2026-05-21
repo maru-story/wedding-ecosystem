@@ -43,7 +43,7 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
     });
 
     const query = validate(request.query, querySchema, reply);
-    if (!query) return;
+    if (!query) return reply;
 
     const result = await adminService.listTenants(query.page!, query.per_page!, query.plan_type);
     return reply.send({
@@ -70,7 +70,7 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
     });
 
     const body = validate(request.body, bodySchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     const result = await adminService.createTenant(
       {
@@ -108,14 +108,14 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
     });
 
     const params = validate(request.params, paramsSchema, reply);
-    if (!params) return;
+    if (!params) return reply;
 
     const bodySchema = z.object({
       is_active: z.boolean({ required_error: 'Status aktif/nonaktif harus ditentukan' }),
     });
 
     const body = validate(request.body, bodySchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     const result = await adminService.toggleTenantStatus(params.id, body.is_active);
     if ('code' in result) {
@@ -144,7 +144,7 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
     });
 
     const query = validate(request.query, querySchema, reply);
-    if (!query) return;
+    if (!query) return reply;
 
     const result = await adminService.listAuditLogs(
       query.page!,
@@ -174,7 +174,7 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
     });
 
     const query = validate(request.query, querySchema, reply);
-    if (!query) return;
+    if (!query) return reply;
 
     const result = await adminService.listUsers(query.page!, query.per_page!, query.role);
     return reply.send({
@@ -196,14 +196,14 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
     });
 
     const params = validate(request.params, paramsSchema, reply);
-    if (!params) return;
+    if (!params) return reply;
 
     const bodySchema = z.object({
       password: z.string().min(8, 'Password minimal 8 karakter'),
     });
 
     const body = validate(request.body, bodySchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     const result = await adminService.resetUserPassword(params.id, body.password);
     if ('code' in result) {

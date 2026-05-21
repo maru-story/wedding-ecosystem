@@ -62,7 +62,7 @@ const securityHeadersPlugin: FastifyPluginCallback<SecurityHeadersOptions> = (
   const permissionsPolicy = opts.permissionsPolicy ?? DEFAULT_PERMISSIONS_POLICY;
 
   // Add security headers to every response (Req 12.1)
-  fastify.addHook('onSend', async (_request: FastifyRequest, reply: FastifyReply) => {
+  fastify.addHook('onSend', async (_request: FastifyRequest, reply: FastifyReply, payload) => {
     reply.header('Content-Security-Policy', csp);
     reply.header('X-Content-Type-Options', 'nosniff');
     reply.header('X-Frame-Options', 'DENY');
@@ -72,6 +72,8 @@ const securityHeadersPlugin: FastifyPluginCallback<SecurityHeadersOptions> = (
     // Remove headers that expose server information (Req 12.2)
     reply.removeHeader('X-Powered-By');
     reply.removeHeader('Server');
+
+    return payload;
   });
 
   // Disable stack traces in production error responses (Req 12.2)

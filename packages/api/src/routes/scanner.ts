@@ -19,7 +19,7 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
   app.post('/devices/register', async (request, reply) => {
     const user = request.user!;
     const body = validate(request.body, registerScannerSchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     // Verify event belongs to tenant
     const event = await getTenantEvent(prisma, body.event_id, user.tenant_id);
@@ -64,7 +64,7 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
     });
 
     const params = validate(request.params, paramsSchema, reply);
-    if (!params) return;
+    if (!params) return reply;
 
     const device = await prisma.scannerDevice.findFirst({
       where: { id: params.deviceId },
@@ -94,7 +94,7 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
     });
 
     const params = validate(request.params, paramsSchema, reply);
-    if (!params) return;
+    if (!params) return reply;
 
     const device = await prisma.scannerDevice.findFirst({
       where: { id: params.deviceId },
@@ -124,7 +124,7 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
     });
 
     const params = validate(request.params, paramsSchema, reply);
-    if (!params) return;
+    if (!params) return reply;
 
     const event = await getTenantEvent(prisma, params.eventId, user.tenant_id);
     if (!event) return replyEventNotFound(reply);
@@ -145,7 +145,7 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
     });
 
     const params = validate(request.params, paramsSchema, reply);
-    if (!params) return;
+    if (!params) return reply;
 
     const event = await getTenantEvent(prisma, params.eventId, user.tenant_id);
     if (!event) return replyEventNotFound(reply);

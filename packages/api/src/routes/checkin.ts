@@ -29,15 +29,18 @@ import { validate } from '../middleware/validate';
 
 interface CheckInRouteOptions extends FastifyPluginOptions {
   prisma: PrismaClient;
-  realtime: RealtimeServer | null;
+  realtime?: RealtimeServer | null;
+  getRealtimeServer?: () => RealtimeServer | null;
 }
 
 export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOptions) {
-  const { prisma, realtime } = opts;
+  const { prisma, realtime, getRealtimeServer } = opts;
 
   // --- Wire up CheckInService with its adapters ---
   const repository = new PrismaCheckInRepository(prisma);
-  const broadcaster = new RealtimeCheckInBroadcaster(() => realtime);
+  const broadcaster = new RealtimeCheckInBroadcaster(
+    getRealtimeServer || (() => realtime ?? null)
+  );
 
   const redisClient = getCacheClient();
   const redisAdapter = redisClient
@@ -60,7 +63,7 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
   app.post('/scan', async (request, reply) => {
     const user = request.user!;
     const body = validate(request.body, qrCheckInSchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     const { qr_payload, event_id, scanner_device_id } = body;
 
@@ -85,7 +88,7 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
   app.post('/manual', async (request, reply) => {
     const user = request.user!;
     const body = validate(request.body, manualCheckInSchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     const { guest_id, event_id, scanner_device_id } = body;
 
@@ -115,7 +118,7 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
   app.post('/go-show', async (request, reply) => {
     const user = request.user!;
     const body = validate(request.body, goShowSchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     const { name, event_id, scanner_device_id } = body;
 

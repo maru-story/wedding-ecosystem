@@ -22,7 +22,7 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
   // POST /auth/login
   app.post('/login', async (request, reply) => {
     const body = validate(request.body, loginSchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     const { email, password } = body;
 

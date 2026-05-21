@@ -11,7 +11,7 @@ test.describe('Check-in API E2E', () => {
       },
     });
     expect(guestResponse.status()).toBe(201);
-    const guest = (await guestResponse.json()).data;
+    const guest = await guestResponse.json();
     const guestId = guest.id;
 
     // 2. Fetch the guest QR payload
@@ -30,7 +30,7 @@ test.describe('Check-in API E2E', () => {
     });
     expect(scan1Response.status()).toBe(200);
     const scan1Body = await scan1Response.json();
-    expect(scan1Body.status).toBe('GREEN');
+    expect(scan1Body.status).toBe('green');
     expect(scan1Body.checked_in_at).not.toBeNull();
 
     // 4. Perform second scan (YELLOW - Duplicate check-in warning)
@@ -42,7 +42,7 @@ test.describe('Check-in API E2E', () => {
     });
     expect(scan2Response.status()).toBe(200);
     const scan2Body = await scan2Response.json();
-    expect(scan2Body.status).toBe('YELLOW');
+    expect(scan2Body.status).toBe('yellow');
     expect(scan2Body.checked_in_at).toBe(scan1Body.checked_in_at);
   });
 
@@ -72,7 +72,7 @@ test.describe('Check-in API E2E', () => {
       },
     });
     expect(guestResponse.status()).toBe(201);
-    const guestId = (await guestResponse.json()).data.id;
+    const guestId = (await guestResponse.json()).id;
 
     // 2. Perform manual check-in
     const checkinResponse = await tenantA.request.post('/checkin/manual', {

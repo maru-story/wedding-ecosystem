@@ -16,8 +16,8 @@ test.describe('Guests API E2E', () => {
 
     expect(createResponse.status()).toBe(201);
     const createBody = await createResponse.json();
-    expect(createBody.data.name).toBe('John Doe');
-    const guestId = createBody.data.id;
+    expect(createBody.name).toBe('John Doe');
+    const guestId = createBody.id;
 
     // 2. Fetch the created guest
     const getResponse = await tenantA.request.get(`/guests`);
@@ -37,8 +37,8 @@ test.describe('Guests API E2E', () => {
 
     expect(updateResponse.status()).toBe(200);
     const updateBody = await updateResponse.json();
-    expect(updateBody.data.name).toBe('John Doe Updated');
-    expect(updateBody.data.group).toBe('vip');
+    expect(updateBody.name).toBe('John Doe Updated');
+    expect(updateBody.group).toBe('vip');
 
     // 4. Delete the guest
     const deleteResponse = await tenantA.request.delete(`/guests/${guestId}`);
@@ -62,7 +62,7 @@ test.describe('Guests API E2E', () => {
       },
     });
     expect(createResponse.status()).toBe(201);
-    const guestId = (await createResponse.json()).data.id;
+    const guestId = (await createResponse.json()).id;
 
     // Tenant B attempts to fetch Tenant A's guest details (should be isolated via tenant context)
     const getResponse = await tenantB.request.get(`/guests/${guestId}/qr`);
@@ -79,13 +79,17 @@ test.describe('Guests API E2E', () => {
     expect(deleteResponse.status()).toBe(404);
   });
 
-  test('should enforce search query constraint of minimum 2 characters', async ({ tenantA }) => {
+  test('should enforce search query constraint of minimum 3 characters', async ({ tenantA }) => {
     // Try to search with 1 character
     const responseShort = await tenantA.request.get('/guests/search?q=a');
     expect(responseShort.status()).toBe(400);
 
-    // Try to search with 2 characters
-    const responseValid = await tenantA.request.get('/guests/search?q=ab');
+    // Try to search with 2 characters (should still fail since min is 3)
+    const responseTwo = await tenantA.request.get('/guests/search?q=ab');
+    expect(responseTwo.status()).toBe(400);
+
+    // Try to search with 3 characters
+    const responseValid = await tenantA.request.get('/guests/search?q=abc');
     expect(responseValid.status()).toBe(200);
     const body = await responseValid.json();
     expect(Array.isArray(body.data)).toBe(true);

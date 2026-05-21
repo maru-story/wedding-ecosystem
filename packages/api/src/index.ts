@@ -111,11 +111,19 @@ app.register(adminRoutes, { prefix: '/admin', prisma });
 
 // Realtime-enabled
 app.register(async (instance) => {
-  instance.register(checkinRoutes, { prefix: '/checkin', prisma, realtime });
+  instance.register(checkinRoutes, {
+    prefix: '/checkin',
+    prisma,
+    getRealtimeServer: () => realtime,
+  });
 }, {});
 
 app.register(async (instance) => {
-  instance.register(rsvpRoutes, { prefix: '/rsvp', prisma, realtime });
+  instance.register(rsvpRoutes, {
+    prefix: '/rsvp',
+    prisma,
+    getRealtimeServer: () => realtime,
+  });
 }, {});
 
 // --- WebSocket Authorization Helper ---

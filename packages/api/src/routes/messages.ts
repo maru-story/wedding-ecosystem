@@ -18,7 +18,7 @@ export async function messageRoutes(app: FastifyInstance, opts: MessageRouteOpti
     });
 
     const body = validate(request.body, fullSchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     // Verify event exists
     const event = await prisma.event.findFirst({
@@ -55,10 +55,10 @@ export async function messageRoutes(app: FastifyInstance, opts: MessageRouteOpti
     });
 
     const params = validate(request.params, paramsSchema, reply);
-    if (!params) return;
+    if (!params) return reply;
 
     const query = validate(request.query, paginationSchema, reply);
-    if (!query) return;
+    if (!query) return reply;
 
     const skip = (query.page! - 1) * query.per_page!;
 

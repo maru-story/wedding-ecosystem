@@ -9,15 +9,18 @@ import { validate } from '../middleware/validate';
 
 interface RsvpRouteOptions extends FastifyPluginOptions {
   prisma: PrismaClient;
-  realtime: RealtimeServer | null;
+  realtime?: RealtimeServer | null;
+  getRealtimeServer?: () => RealtimeServer | null;
 }
 
 export async function rsvpRoutes(app: FastifyInstance, opts: RsvpRouteOptions) {
-  const { prisma, realtime } = opts;
+  const { prisma, realtime, getRealtimeServer } = opts;
 
   // Wire up service
   const repository = new PrismaRsvpRepository(prisma);
-  const broadcaster = new RealtimeRsvpBroadcaster(() => realtime);
+  const broadcaster = new RealtimeRsvpBroadcaster(
+    getRealtimeServer || (() => realtime ?? null)
+  );
   const rsvpService = new RsvpService({ repository, broadcaster });
 
   // POST /rsvp - Submit or update RSVP (public route, no auth required)
@@ -29,7 +32,7 @@ export async function rsvpRoutes(app: FastifyInstance, opts: RsvpRouteOptions) {
     }).and(createRsvpSchema);
 
     const body = validate(request.body, fullSchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     const result = await rsvpService.submitRsvp(body.guest_id, body.event_id, {
       attendance: body.attendance,
@@ -63,7 +66,7 @@ export async function rsvpRoutes(app: FastifyInstance, opts: RsvpRouteOptions) {
     });
 
     const params = validate(request.params, paramsSchema, reply);
-    if (!params) return;
+    if (!params) return reply;
 
     const rsvp = await repository.findRsvpByGuestId(params.guestId);
 

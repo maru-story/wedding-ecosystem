@@ -25,7 +25,7 @@ export async function notificationRoutes(app: FastifyInstance, opts: Notificatio
     });
 
     const body = validate(request.body, bodySchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     const guest = await prisma.guest.findFirst({
       where: { id: body.guest_id, tenant_id: user.tenant_id },
@@ -84,7 +84,7 @@ export async function notificationRoutes(app: FastifyInstance, opts: Notificatio
     });
 
     const body = validate(request.body, bodySchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     const guests = await prisma.guest.findMany({
       where: { id: { in: body.guest_ids }, tenant_id: user.tenant_id },

@@ -47,7 +47,7 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
     }), reply);
     
     // Fallback if validation failed (reply already sent)
-    if (!query) return;
+    if (!query) return reply;
 
     // Resolve the current event for this tenant
     const event = await getCurrentTenantEvent(prisma, user.tenant_id);
@@ -100,7 +100,7 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
       event_id: z.string().uuid().optional()
     }), reply);
 
-    if (!body) return;
+    if (!body) return reply;
 
     // Resolve event
     let eventId = body.event_id;
@@ -134,7 +134,7 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
     const user = request.user!;
     const { id } = request.params as { id: string };
     const body = validate(request.body, updateGuestSchema, reply);
-    if (!body) return;
+    if (!body) return reply;
 
     const result = await guestService.updateGuest(id, user.tenant_id, body);
 
@@ -193,7 +193,7 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
     const query = validate(request.query, guestSearchSchema.omit({ event_id: true }).extend({
       event_id: z.string().uuid().optional()
     }), reply);
-    if (!query) return;
+    if (!query) return reply;
 
     // Resolve event context
     let eventId = query.event_id;

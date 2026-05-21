@@ -1,0 +1,32 @@
+import { defineConfig } from '@playwright/test';
+import path from 'path';
+import dotenv from 'dotenv';
+
+// Load test environment variables for the test runner and webServer
+dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
+
+export default defineConfig({
+  testDir: './tests/e2e',
+  timeout: 30000,
+  expect: {
+    timeout: 5000,
+  },
+  fullyParallel: false, // Run E2E tests sequentially to avoid database/realtime conflicts
+  workers: 1,
+  reporter: [
+    ['json', { outputFile: 'test-results/results.json' }],
+    ['html', { open: 'never' }]
+  ],
+  use: {
+    baseURL: 'http://localhost:4005',
+    trace: 'on-first-retry',
+  },
+  webServer: {
+    command: 'npx tsx --env-file=../../.env.test src/index.ts',
+    url: 'http://localhost:4005/health',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  },
+});

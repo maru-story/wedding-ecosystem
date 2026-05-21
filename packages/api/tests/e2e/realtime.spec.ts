@@ -25,7 +25,7 @@ test.describe('Real-time Socket.io API E2E', () => {
     });
 
     // 2. Join the event room
-    socket.emit('join_event', { eventId: tenantA.eventId });
+    socket.emit('join_event', tenantA.eventId);
 
     // 3. Set up event listener for guest_checked_in
     const checkedInPromise = new Promise<any>((resolve, reject) => {
@@ -45,7 +45,7 @@ test.describe('Real-time Socket.io API E2E', () => {
       },
     });
     expect(guestResponse.status()).toBe(201);
-    const guest = (await guestResponse.json()).data;
+    const guest = await guestResponse.json();
 
     const checkinResponse = await tenantA.request.post('/checkin/manual', {
       data: {

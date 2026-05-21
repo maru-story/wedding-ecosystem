@@ -24,7 +24,7 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
     });
 
     const params = validate(request.params, paramsSchema, reply);
-    if (!params) return;
+    if (!params) return reply;
 
     // Find event by slug
     const event = await prisma.event.findFirst({
@@ -117,7 +117,7 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
     });
 
     const params = validate(request.params, paramsSchema, reply);
-    if (!params) return;
+    if (!params) return reply;
 
     const event = await prisma.event.findFirst({
       where: { slug: params.eventSlug, status: 'published' },
