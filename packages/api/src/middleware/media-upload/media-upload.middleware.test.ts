@@ -24,7 +24,7 @@ function createMockVirusScanner(): VirusScanner {
 
 function createMockRequest(overrides: Record<string, unknown> = {}) {
   return {
-    tenantId: 'tenant-001',
+    user: { tenant_id: 'tenant-001' },
     params: { eventId: 'event-001' },
     file: {
       fieldname: 'file',
@@ -148,7 +148,7 @@ describe('Media Upload Middleware', () => {
     });
 
     it('should return 401 when tenant context is missing', async () => {
-      const request = createMockRequest({ tenantId: undefined });
+      const request = createMockRequest({ user: undefined });
       const reply = createMockReply();
 
       await handler(request as never, reply as never);

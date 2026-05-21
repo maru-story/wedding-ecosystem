@@ -109,3 +109,19 @@ export function createRBACMiddleware(config: RBACConfig) {
     }
   };
 }
+
+/** Check if the authenticated user has a specific role */
+export function hasRole(request: FastifyRequest, role: UserRole): boolean {
+  return request.user?.role === role;
+}
+
+/** Check if the authenticated user has any of the specified roles */
+export function hasAnyRole(request: FastifyRequest, roles: UserRole[]): boolean {
+  const userRole = request.user?.role;
+  return userRole ? roles.includes(userRole as UserRole) : false;
+}
+
+/** Get the role of the authenticated user, or null if unauthenticated */
+export function getUserRole(request: FastifyRequest): UserRole | null {
+  return (request.user?.role as UserRole) || null;
+}
