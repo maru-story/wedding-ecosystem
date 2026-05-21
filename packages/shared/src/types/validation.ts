@@ -281,9 +281,9 @@ export const updateInvitationThemeSchema = z.object({
 
 /** Pagination input */
 export const paginationSchema = z.object({
-  page: z.number().int().min(1, { message: 'Halaman minimal 1' }).optional().default(1),
+  page: z.coerce.number().int().min(1, { message: 'Halaman minimal 1' }).optional().default(1),
   per_page: z
-    .number()
+    .coerce.number()
     .int()
     .min(1, { message: 'Item per halaman minimal 1' })
     .max(100, { message: 'Item per halaman maksimal 100' })
