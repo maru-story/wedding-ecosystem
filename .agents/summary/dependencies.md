@@ -117,6 +117,8 @@ graph TB
 |---------|---------|---------|
 | `typescript` | 5.9.3 | Type system |
 | `vitest` | 3.2.4 | Test runner |
+| `@playwright/test` | 1.50.1 | Playwright E2E test runner (API/real-time) |
+| `playwright` | 1.50.1 | Playwright browser binaries and core automation |
 | `fast-check` | 4.8.0 | Property-based testing |
 | `tailwindcss` | 4.3.0 | Utility-first CSS |
 | `@tailwindcss/postcss` | 4.3.0 | PostCSS integration |

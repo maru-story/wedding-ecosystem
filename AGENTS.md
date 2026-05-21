@@ -15,12 +15,13 @@ apps/
 
 packages/
 ├── api/              → Fastify REST + WebSocket server (port 4000)
-│   └── src/
-│       ├── routes/      → Feature subfolders with thin HTTP adapters (guests/, health/, etc.)
-│       ├── services/    → Feature subfolders with business logic (auth/, guest/, checkin/, etc.)
-│       ├── repositories/ → Feature subfolders with Prisma adapters (guest/, admin.repository.ts)
-│       ├── middleware/  → Feature subfolders (rbac/, tenant-isolation/, encryption/, etc.)
-│       └── plugins/     → Feature subfolders (audit-logger/, response-cache/, etc.)
+│   ├── src/
+│   │   ├── routes/      → Feature subfolders with thin HTTP adapters (guests/, health/, etc.)
+│   │   ├── services/    → Feature subfolders with business logic (auth/, guest/, checkin/, etc.)
+│   │   ├── repositories/ → Feature subfolders with Prisma adapters (guest/, admin.repository.ts)
+│   │   ├── middleware/  → Feature subfolders (rbac/, tenant-isolation/, encryption/, etc.)
+│   │   └── plugins/     → Feature subfolders (audit-logger/, response-cache/, etc.)
+│   └── tests/e2e/    → Playwright REST API & Socket.io real-time E2E tests
 ├── db/               → Prisma 7 schema (12 models, 10 enums), migrations, client factory
 ├── shared/           → Zod schemas, TypeScript interfaces, enums, error codes, sanitization
 └── realtime/         → Socket.io 4.8 server, feature subfolders (stats/, middleware/auth/, etc.)
@@ -84,8 +85,9 @@ The `AuthUser` interface is exclusively defined in `@wedding/shared`. Frontend a
 ## Testing
 
 - ~1218 tests across all packages (Vitest + fast-check property-based)
+- Playwright E2E integration tests for REST API & Socket.io WebSocket server under `packages/api/tests/e2e/`
 - Property-based tests cover: QR validation, RSVP invariants, duplicate detection, tenant isolation, offline sync, room isolation
-- Run: `npm run test` (all) or `npx turbo test --filter=@wedding/{package}`
+- Run: `npm run test` (all), `npm run test:e2e --workspace=packages/api` (E2E tests), or `npx turbo test --filter=@wedding/{package}`
 
 ## Detailed Documentation
 

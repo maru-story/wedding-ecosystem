@@ -2,16 +2,17 @@
 
 ## Overview
 
-- **Framework**: Vitest 3.2.4
+- **Unit/Integration Framework**: Vitest 3.2.4
+- **E2E Testing Framework**: Playwright 1.50.1 (API & Socket.io WebSocket)
 - **Property-Based Testing**: fast-check 4.8.0
-- **Total Tests**: ~1218 across all packages
+- **Total Tests**: ~1218 + 11 Playwright E2E cases across all packages
 - **Coverage Target**: 80% minimum for business logic
 
 ## Test Distribution
 
 | Package | Tests | Type |
 |---------|-------|------|
-| `@wedding/api` | ~924 | Unit + Integration + Property-based |
+| `@wedding/api` | ~924 + 11 E2E | Unit + Integration + Property-based + Playwright E2E |
 | `@wedding/shared` | ~63 | Unit + Property-based |
 | `@wedding/realtime` | ~87 | Unit + Integration + Property-based |
 | `@wedding/dashboard` | ~81 | Unit + Property-based |
@@ -21,10 +22,13 @@
 ## Running Tests
 
 ```bash
-# All tests
+# All unit/integration tests
 npm run test
 
-# Per package
+# Playwright E2E tests (specifically for @wedding/api / @wedding/realtime)
+npm run test:e2e --workspace=packages/api
+
+# Per package (unit tests)
 npx turbo test --filter=@wedding/api
 npx turbo test --filter=@wedding/shared
 npx turbo test --filter=@wedding/realtime
@@ -267,16 +271,21 @@ Tests verify that:
 
 ## Vitest Configuration
 
-Each package has its own `vitest.config.ts`:
+Each package has its own `vitest.config.ts`. To isolate Vitest from Playwright E2E test files (which import `@playwright/test` and cause environment/compilation conflicts), Playwright tests are excluded from Vitest via the `exclude` configuration option:
 
 ```typescript
-import { defineConfig } from 'vitest/config';
+import { defineConfig, configDefaults } from 'vitest/config';
 
 export default defineConfig({
   test: {
     globals: false,        // Explicit imports (describe, it, expect)
     environment: 'node',   // Node environment (backend packages)
+    exclude: [...configDefaults.exclude, 'tests/e2e/**/*'], // Exclude Playwright tests
     // environment: 'jsdom' // For frontend packages
   },
 });
 ```
+
+## E2E Playwright Configuration
+
+Playwright is configured under `packages/api/playwright.config.ts`. It manages starting the backend server synchronously using the `webServer` config block, targets the dedicated test database, and runs the E2E specs in sequential mode to ensure database integrity during test state assertions.

@@ -84,6 +84,7 @@
 | Auth       | JWT (jsonwebtoken) + bcrypt | 9.0 / 6.0                                     |
 | Validation | Zod                         | 3.25                                          |
 | Testing    | Vitest + fast-check         | 3.2 / 4.8                                     |
+| E2E Test   | Playwright                  | 1.50.1                                        |
 | Language   | TypeScript                  | 5.9                                           |
 | Monorepo   | npm workspaces + Turborepo  | 2.4                                           |
 | Node.js    | Minimum                     | 20.0.0                                        |
@@ -258,6 +259,7 @@ npm install                    # Install all dependencies
 npm run dev                    # Run all apps + API via Turborepo
 npm run build                  # Build all packages
 npm run test                   # Run all tests
+npm run test:e2e --workspace=packages/api # Run Playwright E2E tests
 npm run lint                   # Lint all packages
 
 # Per-package
@@ -424,6 +426,8 @@ CI/CD via GitHub Actions:
 | Error codes              | `packages/shared/src/types/errors.ts`            |
 | WebSocket server         | `packages/realtime/src/index.ts`                 |
 | WS auth middleware       | `packages/realtime/src/middleware/auth.ts`       |
+| Playwright E2E Config    | `packages/api/playwright.config.ts`              |
+| Playwright E2E Tests     | `packages/api/tests/e2e/`                        |
 | Scanner auth             | `apps/scanner/src/lib/auth.ts`                   |
 | Scanner offline queue    | `apps/scanner/src/lib/offline-queue.ts`          |
 | Dashboard socket hook    | `apps/dashboard/src/hooks/use-socket.ts`         |
