@@ -21,12 +21,28 @@ export default defineConfig({
     baseURL: 'http://localhost:4005',
     trace: 'on-first-retry',
   },
-  webServer: {
-    command: 'npx tsx --env-file=../../.env.test src/index.ts',
-    url: 'http://localhost:4005/health',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  },
+  webServer: [
+    {
+      command: 'npx tsx --env-file=../../.env.test src/index.ts',
+      url: 'http://localhost:4005/health',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+    {
+      command: 'npx next dev --port 3000',
+      cwd: path.resolve(__dirname, '../../apps/dashboard'),
+      env: {
+        NEXT_PUBLIC_API_URL: 'http://localhost:4005',
+        NEXT_PUBLIC_WS_URL: 'http://localhost:4005',
+        NEXT_PUBLIC_CDN_URL: 'http://localhost:4005',
+      },
+      url: 'http://localhost:3000',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    }
+  ],
 });

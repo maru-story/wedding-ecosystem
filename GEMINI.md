@@ -141,6 +141,9 @@
 ### Events (Auth required)
 
 - `GET /events` — List events for tenant
+- `POST /events` — Create a new wedding event
+- `GET /events/current` — Get current tenant's latest event
+- `GET /events/current/stats` — Get current event statistics
 
 ### Guests (Auth required)
 

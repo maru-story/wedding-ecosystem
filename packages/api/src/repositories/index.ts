@@ -2,6 +2,7 @@ export { PrismaCheckInRepository } from './checkin.repository';
 export { RealtimeCheckInBroadcaster } from './checkin.broadcaster';
 export { IoRedisCheckInClient, NoOpRedisCheckInClient } from './checkin.redis';
 export { PrismaGuestRepository } from './guest/guest.repository';
+export { PrismaEventRepository } from './event/event.repository';
 export { PrismaCMSRepository } from './cms.repository';
 export { PrismaRsvpRepository } from './rsvp.repository';
 export { RealtimeRsvpBroadcaster } from './rsvp.broadcaster';

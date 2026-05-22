@@ -31,9 +31,6 @@ import {
   Search, 
   Plus, 
   RefreshCw, 
-  ShieldAlert, 
-  Check, 
-  X, 
   Calendar,
   Lock,
   Mail,
@@ -148,7 +145,7 @@ export default function AdminTenantsPage() {
         );
         toast.success(`Status keaktifan tenant berhasil diperbarui`);
       }
-    } catch (err) {
+    } catch {
       toast.error('Gagal memperbarui status tenant');
     }
   };

@@ -1,14 +1,29 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, ApiError } from '@/lib/api';
 
 /**
  * Hook to fetch the primary event associated with the current tenant.
- * Uses role-based logic internally via API tenant isolation.
+ * Automatically identifies if the user is a "new user" (no event found).
  */
 export function useEvent() {
   return useQuery({
     queryKey: ['event'],
-    queryFn: () => apiFetch<any>('/events/my-event'),
+    queryFn: async () => {
+      try {
+        return await apiFetch<any>('/events/current');
+      } catch (err) {
+        // If 404 (RES_5001), it means tenant has no event yet
+        if (err instanceof ApiError && err.status === 404) {
+          return null;
+        }
+        throw err;
+      }
+    },
+    // Don't retry on 404, as it's a valid empty state for new tenants
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 404) return false;
+      return failureCount < 2;
+    }
   });
 }
 
@@ -74,13 +89,30 @@ export function useUpdateGuest() {
 }
 
 /**
+ * Mutation hook to delete a guest.
+ */
+export function useDeleteGuest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<any>(`/guests/${id}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+  });
+}
+
+/**
  * Hook to fetch realtime statistics for the dashboard.
  */
 export function useDashboardStats() {
   return useQuery({
     queryKey: ['dashboard-stats'],
-    queryFn: () => apiFetch<any>('/events/stats'),
+    queryFn: () => apiFetch<any>('/events/current/stats'),
     // Refetch more frequently for "realtime" feel
-    refetchInterval: 30000, 
+    refetchInterval: 30000,
   });
 }

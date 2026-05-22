@@ -1,0 +1,9 @@
+nama,grup,tipe,telepon,email,tambahan_orang
+"Budi Santoso",family,invited,081234567890,budi.santoso@example.com,2
+"Siti Aminah",family,invited,081298765432,siti.aminah@example.com,1
+"Aditya Pratama",friend,invited,085711223344,aditya.p@example.com,0
+"Dewi Lestari",friend,invited,085699887766,dewi.l@example.com,1
+"Bp. Ahmad Subagjo",vip,invited,081122334455,ahmad.s@example.com,1
+"Ibu Ratna Sari",vip,invited,081155443322,ratna.s@example.com,1
+"Doni Setiadi",colleague,invited,081344556677,doni.s@example.com,0
+"Maya Putri",colleague,invited,081399887766,maya.p@example.com,0

@@ -6,7 +6,7 @@
  * Shows a user-friendly error with retry option.
  */
 export default function InvitationError({
-  error,
+  error: _error,
   reset,
 }: {
   error: Error & { digest?: string };

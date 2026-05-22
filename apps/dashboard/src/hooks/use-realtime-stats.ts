@@ -72,7 +72,7 @@ export function useRealtimeStats({
     });
   }, []);
 
-  const handleGoShowAdded = useCallback((payload: { guest_id: string; guest_name: string; checked_in_at: string }) => {
+  const handleGoShowAdded = useCallback((_payload: { guest_id: string; guest_name: string; checked_in_at: string }) => {
     setStats((prev) => ({
       ...prev,
       total_guests: prev.total_guests + 1,

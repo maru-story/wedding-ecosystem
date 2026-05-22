@@ -25,7 +25,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   Search,
   Send,
-  Check,
   AlertCircle,
   X,
   MessageSquare,

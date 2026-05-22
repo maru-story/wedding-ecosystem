@@ -6,10 +6,10 @@
  * Provides retry functionality for the PWA context.
  */
 export default function ScannerError({
-  error,
+  _error,
   reset,
 }: {
-  error: Error & { digest?: string };
+  _error: Error & { digest?: string };
   reset: () => void;
 }) {
   return (

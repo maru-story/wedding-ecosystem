@@ -7,7 +7,6 @@ import {
   type EventCreationInput,
   type EventRepository,
   type ThemeApplicator,
-  type ThemeConfig,
 } from './event-creation';
 import { DEFAULT_THEME } from './theme';
 

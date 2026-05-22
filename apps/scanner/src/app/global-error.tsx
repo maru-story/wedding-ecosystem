@@ -6,10 +6,10 @@
  * Critical for PWA: ensures the app can recover from fatal errors.
  */
 export default function GlobalError({
-  error,
+  _error,
   reset,
 }: {
-  error: Error & { digest?: string };
+  _error: Error & { digest?: string };
   reset: () => void;
 }) {
   return (

@@ -16,6 +16,8 @@ Base URL: `http://localhost:4000` (dev) / `https://api.domain.railway.app` (prod
 | Method | Endpoint                   | Auth | Description                                     |
 | ------ | -------------------------- | ---- | ----------------------------------------------- |
 | GET    | `/events/current`          | JWT  | Get current tenant's latest event               |
+| POST   | `/events`                  | JWT  | Create a new wedding event                      |
+| GET    | `/events/current/stats`    | JWT  | Get current event statistics                    |
 | GET    | `/events/:id/stats`        | JWT  | Get event statistics (guests, RSVPs, check-ins) |
 | GET    | `/events/:id/rsvp`         | JWT  | Get RSVP summary for event                      |
 | POST   | `/events/:id/media/upload` | JWT  | Upload media for event                          |

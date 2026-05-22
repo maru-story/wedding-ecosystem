@@ -35,8 +35,6 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { toast } from 'sonner';
-
 interface AuditLogRecord {
   id: string;
   timestamp: string;

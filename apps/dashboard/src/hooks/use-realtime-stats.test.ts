@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useRealtimeStats, type EventStats, type RsvpTrackingItem } from './use-realtime-stats';
+import { describe, it, expect } from 'vitest';
+import { type EventStats, type RsvpTrackingItem } from './use-realtime-stats';
 
 // Mock a minimal Socket-like event emitter for testing
 class MockSocket {

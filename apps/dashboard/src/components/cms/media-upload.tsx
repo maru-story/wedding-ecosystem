@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { validateMediaFile, type MediaValidationError } from '@/lib/cms';
+import { validateMediaFile } from '@/lib/cms';
 
 interface MediaUploadProps {
   mediaType: 'image' | 'video';

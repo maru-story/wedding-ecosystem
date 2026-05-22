@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react';
 import { SectionList } from '@/components/cms/section-list';
 import type { InvitationSection } from '@/lib/cms';
-import { SECTION_TYPE_LABELS, SECTION_TYPE_ICONS } from '@/lib/cms';
 import Link from 'next/link';
 
 // Mock data for initial development (will be replaced with API calls)
@@ -143,7 +142,7 @@ const MOCK_SECTIONS: InvitationSection[] = [
 
 export default function CMSPage() {
   const [sections, setSections] = useState<InvitationSection[]>(MOCK_SECTIONS);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
   const handleReorder = useCallback((reorderedSections: InvitationSection[]) => {
     const updated = reorderedSections.map((section, index) => ({

@@ -16,9 +16,12 @@ export async function apiFetch<T>(endpoint: string, options: ApiOptions = {}): P
   const { method = 'GET', body, headers = {}, skipAuth = false } = options;
 
   const requestHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...headers,
   };
+
+  if (body !== undefined) {
+    requestHeaders['Content-Type'] = 'application/json';
+  }
 
   if (!skipAuth) {
     const token = getAccessToken();

@@ -3,14 +3,14 @@
 import { Suspense } from 'react';
 import { DashboardStats } from './components/dashboard-stats';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { 
-  Users, 
-  Palette, 
-  QrCode, 
-  FileText, 
+import {
+  Users,
+  Palette,
+  QrCode,
+  FileText,
   Mail,
   ArrowRight,
   ShieldCheck,
@@ -64,20 +64,6 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Banner */}
-      <FadeIn>
-        <div className="rounded-2xl border border-border/45 bg-gradient-to-r from-secondary/50 via-accent/5 to-background p-6 lg:p-8 shadow-sm">
-          <div className="max-w-3xl">
-            <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Selamat Datang di Portal Undangan Digital Anda
-            </h1>
-            <p className="mt-3 text-base text-muted-foreground leading-relaxed">
-              Kelola seluruh kebutuhan undangan pernikahan digital Anda dari sini. Atur informasi acara, desain visual, daftar tamu, pantau konfirmasi RSVP secara real-time, hingga kelola check-in tamu pada hari bahagia Anda.
-            </p>
-          </div>
-        </div>
-      </FadeIn>
-
       {/* Stats Cards Section */}
       <div className="space-y-3">
         <FadeIn delay={0.05}>
@@ -90,7 +76,7 @@ export default function HomePage() {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        
+
         {/* Left Span: Preparation Checklist */}
         <div className="lg:col-span-2 space-y-6">
           <FadeIn delay={0.1}>
@@ -107,7 +93,7 @@ export default function HomePage() {
                     Kemajuan: 60%
                   </Badge>
                 </div>
-                
+
                 {/* Visual Progress Bar */}
                 <div className="mt-4 h-2 w-full rounded-full bg-secondary overflow-hidden">
                   <div className="h-full w-[60%] rounded-full bg-primary transition-all duration-500" />
@@ -118,30 +104,28 @@ export default function HomePage() {
                   {preparationSteps.map((step, idx) => {
                     const isCompleted = step.status === 'completed';
                     const isCurrent = step.status === 'current';
-                    
+
                     return (
                       <div key={idx} className="relative group">
                         {/* Status Icon Indicator */}
-                        <span className={`absolute -left-[35px] top-0 flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold transition-colors duration-200 ${
-                          isCompleted 
-                            ? 'bg-primary border-primary text-primary-foreground' 
+                        <span className={`absolute -left-[35px] top-0 flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold transition-colors duration-200 ${isCompleted
+                            ? 'bg-primary border-primary text-primary-foreground'
                             : isCurrent
                               ? 'bg-background border-ring text-ring ring-4 ring-ring/10 animate-pulse'
                               : 'bg-background border-border text-muted-foreground'
-                        }`}>
+                          }`}>
                           {isCompleted ? (
                             <Check className="h-3.5 w-3.5 stroke-[3]" />
                           ) : (
                             <span>{idx + 1}</span>
                           )}
                         </span>
-                        
+
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2.5">
-                              <h3 className={`font-semibold text-base transition-colors ${
-                                isCompleted ? 'text-muted-foreground line-through decoration-muted-foreground/30' : 'text-foreground'
-                              }`}>
+                              <h3 className={`font-semibold text-base transition-colors ${isCompleted ? 'text-muted-foreground line-through decoration-muted-foreground/30' : 'text-foreground'
+                                }`}>
                                 {step.title}
                               </h3>
                               <Badge variant="outline" className={`${step.badgeClass} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider`}>
@@ -152,19 +136,18 @@ export default function HomePage() {
                               {step.description}
                             </p>
                           </div>
-                          <Link href={step.href} passHref legacyBehavior>
-                            <Button 
-                              variant={isCurrent ? 'default' : 'outline'}
-                              size="sm" 
-                              className={`border-border/60 hover:bg-accent text-sm transition-all duration-200 cursor-pointer ${
-                                isCurrent 
-                                  ? 'bg-primary hover:bg-primary/95 text-primary-foreground font-semibold shadow-sm' 
-                                  : 'text-muted-foreground hover:text-foreground'
+                          <Link
+                            href={step.href}
+                            className={`${buttonVariants({
+                              variant: isCurrent ? 'default' : 'outline',
+                              size: 'sm'
+                            })} border-border/60 hover:bg-accent text-sm transition-all duration-200 cursor-pointer ${isCurrent
+                                ? 'bg-primary hover:bg-primary/95 text-primary-foreground font-semibold shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
                               }`}
-                            >
-                              Atur
-                              <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                            </Button>
+                          >
+                            Atur
+                            <ArrowRight className="ml-1 h-3.5 w-3.5" />
                           </Link>
                         </div>
                       </div>
@@ -229,7 +212,7 @@ export default function HomePage() {
                     <strong className="text-foreground">Maksimal 2 Perangkat Scanner:</strong> Setiap acara dibatasi untuk maksimal 2 perangkat scanner aktif secara bersamaan demi keamanan data.
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-2.5">
                   <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-ring/10 text-[10px] font-bold text-ring border border-ring/25">2</span>
                   <div>

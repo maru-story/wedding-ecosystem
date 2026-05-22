@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 /**
  * Custom 404 page for the invitation app (Next.js best practice).
  * Shown when a route doesn't match any page.

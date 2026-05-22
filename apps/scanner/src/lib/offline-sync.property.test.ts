@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import fc from 'fast-check';
 
 /**
@@ -384,10 +384,8 @@ describe('Property 15: Offline Sync Completeness', () => {
 
           // Simulate a very short timeout (1ms) to force timeout behavior
           const veryShortTimeout = 1;
-          let callCount = 0;
 
           const fetchFn = async (batch: QueuedCheckIn[]) => {
-            callCount++;
             // Simulate slow network — each call takes longer than timeout
             await new Promise((resolve) => setTimeout(resolve, 10));
             return { ok: true, status: 200, synced: batch.length, duplicatesIgnored: 0 };

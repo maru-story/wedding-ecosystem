@@ -60,13 +60,25 @@ export function CsvImportModal({ onClose, onComplete }: CsvImportModalProps) {
 
       setProgress(50);
 
-      const importResult = await apiFetch<ImportResult>('/guests/import', {
+      const response = await apiFetch<{
+        imported: number;
+        errors: number;
+        details: { row: number; reason: string }[];
+      }>('/guests/import', {
         method: 'POST',
         body: { csv_text: csvText },
       });
 
       setProgress(100);
-      setResult(importResult);
+      setResult({
+        total_rows: response.imported + response.errors,
+        success_count: response.imported,
+        failed_count: response.errors,
+        failed_rows: response.details.map((d) => ({
+          row_number: d.row,
+          errors: [d.reason],
+        })),
+      });
       setState('done');
     } catch (err) {
       if (err instanceof ApiError) {

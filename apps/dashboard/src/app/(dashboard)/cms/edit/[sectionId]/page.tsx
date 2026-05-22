@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
 import { SectionEditorForm } from '@/components/cms/section-editor-form';
 import { SECTION_TYPE_LABELS, SECTION_TYPE_ICONS } from '@/lib/cms';
 import type { InvitationSection } from '@/lib/cms';
@@ -151,7 +150,6 @@ const MOCK_SECTIONS: Record<string, InvitationSection> = {
  */
 export default function SectionEditPage({ params }: { params: Promise<{ sectionId: string }> }) {
   const { sectionId } = use(params);
-  const router = useRouter();
 
   const [section, setSection] = useState<InvitationSection | null>(null);
   const [saving, setSaving] = useState(false);

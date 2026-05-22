@@ -12,7 +12,9 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit2, QrCode } from 'lucide-react';
+import { Edit2, QrCode, Trash2 } from 'lucide-react';
+import { useDeleteGuest } from '@/hooks/queries';
+import { toast } from 'sonner';
 
 interface GuestTableProps {
   guests: GuestListItem[];
@@ -66,6 +68,18 @@ export function GuestTable({
   onEdit,
   onShowQr,
 }: GuestTableProps) {
+  const deleteGuest = useDeleteGuest();
+
+  async function handleDelete(id: string, name: string) {
+    if (confirm(`Apakah Anda yakin ingin menghapus tamu ${name}?`)) {
+      try {
+        await deleteGuest.mutateAsync(id);
+        toast.success(`Tamu ${name} berhasil dihapus`);
+      } catch (err) {
+        toast.error(`Gagal menghapus tamu`);
+      }
+    }
+  }
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -178,6 +192,17 @@ export function GuestTable({
                         className="h-8 w-8 hover:bg-accent text-muted-foreground hover:text-foreground"
                       >
                         <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(guest.id, guest.name)}
+                        disabled={deleteGuest.isPending}
+                        title="Hapus tamu"
+                        aria-label={`Hapus ${guest.name}`}
+                        className="h-8 w-8 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>

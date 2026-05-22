@@ -5,7 +5,7 @@
  * Must include <html> and <body> tags since it replaces the root layout.
  */
 export default function GlobalError({
-  error,
+  error: _error,
   reset,
 }: {
   error: Error & { digest?: string };

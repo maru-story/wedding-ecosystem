@@ -25,39 +25,6 @@ const SECTION_TYPES = [
 /** All section types including cover */
 const ALL_SECTION_TYPES = ['cover', ...SECTION_TYPES] as const;
 
-/** Generates a valid section type */
-const arbSectionType = fc.constantFrom(...ALL_SECTION_TYPES);
-
-/** Generates a valid sort_order (positive integer) */
-const arbSortOrder = fc.integer({ min: 1, max: 100 });
-
-/** Generates a single SectionData object */
-const arbSection: fc.Arbitrary<SectionData> = fc.record({
-  id: fc.uuid(),
-  event_id: fc.uuid(),
-  section_type: arbSectionType as fc.Arbitrary<string>,
-  sort_order: arbSortOrder,
-  is_active: fc.boolean(),
-  content: fc.constant({}),
-});
-
-/** Generates a list of sections with unique sort_orders */
-const arbSectionsWithUniqueSortOrders: fc.Arbitrary<SectionData[]> = fc
-  .uniqueArray(fc.integer({ min: 1, max: 100 }), { minLength: 0, maxLength: 14 })
-  .chain((sortOrders) =>
-    fc.tuple(
-      ...sortOrders.map((sortOrder) =>
-        fc.record({
-          id: fc.uuid(),
-          event_id: fc.uuid(),
-          section_type: arbSectionType as fc.Arbitrary<string>,
-          sort_order: fc.constant(sortOrder),
-          is_active: fc.boolean(),
-          content: fc.constant({}),
-        })
-      )
-    )
-  );
 
 /** Generates a realistic event configuration with all 14 section types */
 const arbEventSections: fc.Arbitrary<SectionData[]> = fc
@@ -170,7 +137,7 @@ describe('Property 7: Active Section Rendering', () => {
       fc.property(
         arbEventSections,
         fc.context(),
-        (sections, ctx) => {
+        (sections, _ctx) => {
           // Render with original order
           const rendered1 = getActiveSectionsForRendering(sections);
 

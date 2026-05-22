@@ -33,7 +33,6 @@ import {
   Calendar,
   Lock,
   Mail,
-  User,
   Sparkles,
   Clipboard,
   Check,
