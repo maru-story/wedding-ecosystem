@@ -10,11 +10,11 @@ export function Header({ onMenuToggle }: HeaderProps) {
   const { user, logout } = useAuth();
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-white px-4 lg:px-6">
+    <header className="flex h-16 items-center justify-between border-b border-border/40 bg-white/80 backdrop-blur-md px-4 lg:px-6 sticky top-0 z-30">
       {/* Mobile menu button */}
       <button
         onClick={onMenuToggle}
-        className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 lg:hidden"
+        className="rounded-lg p-2 text-muted-foreground hover:bg-accent lg:hidden"
         aria-label="Toggle menu"
       >
         <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -24,7 +24,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
 
       {/* Page title area */}
       <div className="hidden lg:block">
-        <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
+        <h1 className="text-lg font-medium text-foreground tracking-wide font-heading">Dashboard</h1>
       </div>
 
       {/* User info and logout */}
@@ -32,17 +32,17 @@ export function Header({ onMenuToggle }: HeaderProps) {
         {user && (
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium text-gray-800">{user.name}</p>
-              <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+              <p className="text-sm font-medium text-foreground">{user.name}</p>
+              <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
             </div>
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-copper/10 text-sm font-semibold text-copper">
               {user.name.charAt(0).toUpperCase()}
             </div>
           </div>
         )}
         <button
           onClick={logout}
-          className="rounded-lg px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800"
+          className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           aria-label="Keluar"
         >
           Keluar

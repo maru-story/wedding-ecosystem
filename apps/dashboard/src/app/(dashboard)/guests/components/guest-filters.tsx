@@ -1,6 +1,14 @@
 'use client';
 
 import { GuestGroup } from '@wedding/shared';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 type GuestStatusFilter = 'belum_rsvp' | 'confirmed' | 'declined' | 'checked_in';
 
@@ -34,53 +42,60 @@ export function GuestFilters({
   return (
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
       <div className="flex items-center gap-2">
-        <label htmlFor="filter-group" className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium text-muted-foreground">
           Grup:
-        </label>
-        <select
-          id="filter-group"
-          value={groupFilter}
-          onChange={(e) => onGroupChange(e.target.value as GuestGroup | '')}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        </span>
+        <Select
+          value={groupFilter || 'all'}
+          onValueChange={(val) => onGroupChange(val === 'all' ? '' : val as GuestGroup)}
         >
-          <option value="">Semua Grup</option>
-          {GROUP_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-[160px] bg-card border-border/60 hover:bg-muted/30">
+            <SelectValue placeholder="Semua Grup" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Grup</SelectItem>
+            {GROUP_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex items-center gap-2">
-        <label htmlFor="filter-status" className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium text-muted-foreground">
           Status:
-        </label>
-        <select
-          id="filter-status"
-          value={statusFilter}
-          onChange={(e) => onStatusChange(e.target.value as GuestStatusFilter | '')}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        </span>
+        <Select
+          value={statusFilter || 'all'}
+          onValueChange={(val) => onStatusChange(val === 'all' ? '' : val as GuestStatusFilter)}
         >
-          <option value="">Semua Status</option>
-          {STATUS_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-[160px] bg-card border-border/60 hover:bg-muted/30">
+            <SelectValue placeholder="Semua Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Status</SelectItem>
+            {STATUS_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {(groupFilter || statusFilter) && (
-        <button
+        <Button
+          variant="ghost"
           onClick={() => {
             onGroupChange('');
             onStatusChange('');
           }}
-          className="text-sm text-gray-500 hover:text-gray-700"
+          className="h-9 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent"
         >
           Reset Filter
-        </button>
+        </Button>
       )}
     </div>
   );

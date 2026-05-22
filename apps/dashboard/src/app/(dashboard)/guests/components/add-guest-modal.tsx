@@ -2,8 +2,25 @@
 
 import { useState } from 'react';
 import { GuestGroup } from '@wedding/shared';
-import { apiFetch, ApiError } from '@/lib/api';
+import { ApiError } from '@/lib/api';
 import type { GuestListItem } from '../page';
+import { useCreateGuest, useUpdateGuest } from '@/hooks/queries';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface AddGuestModalProps {
   guest: GuestListItem | null;
@@ -26,13 +43,15 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
   const [phone, setPhone] = useState(guest?.phone || '');
   const [email, setEmail] = useState(guest?.email || '');
   const [plusOneCount, setPlusOneCount] = useState(guest?.plus_one_count ?? 0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const createGuest = useCreateGuest();
+  const updateGuest = useUpdateGuest();
+  const isSubmitting = createGuest.isPending || updateGuest.isPending;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    setIsSubmitting(true);
 
     const payload = {
       name: name.trim(),
@@ -44,15 +63,9 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
 
     try {
       if (isEditing) {
-        await apiFetch(`/guests/${guest.id}`, {
-          method: 'PUT',
-          body: payload,
-        });
+        await updateGuest.mutateAsync({ id: guest.id, payload });
       } else {
-        await apiFetch('/guests', {
-          method: 'POST',
-          body: payload,
-        });
+        await createGuest.mutateAsync(payload);
       }
       onSaved();
     } catch (err) {
@@ -62,46 +75,21 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
       } else {
         setError('Terjadi kesalahan. Silakan coba lagi.');
       }
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="guest-modal-title"
-    >
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 id="guest-modal-title" className="font-heading text-lg font-bold">
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md bg-card border-border/40">
+        <DialogHeader>
+          <DialogTitle className="font-heading text-xl tracking-wide text-foreground">
             {isEditing ? 'Edit Tamu' : 'Tambah Tamu Baru'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="rounded p-1 text-gray-400 hover:text-gray-600"
-            aria-label="Tutup"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
         {error && (
           <div
-            className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
             role="alert"
           >
             {error}
@@ -109,106 +97,103 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="guest-name" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Nama <span className="text-red-500">*</span>
-            </label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="guest-name" className="text-foreground">
+              Nama <span className="text-destructive">*</span>
+            </Label>
+            <Input
               id="guest-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nama lengkap tamu"
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
             />
           </div>
 
-          <div>
-            <label htmlFor="guest-group" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Grup <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="guest-group"
+          <div className="space-y-1.5">
+            <Label htmlFor="guest-group" className="text-foreground">
+              Grup <span className="text-destructive">*</span>
+            </Label>
+            <Select
               value={group}
-              onChange={(e) => setGroup(e.target.value as GuestGroup)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              onValueChange={(val) => setGroup(val as GuestGroup)}
             >
-              {GROUP_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full bg-card border-border/60 hover:bg-muted/10 transition-colors">
+                <SelectValue placeholder="Pilih Grup" />
+              </SelectTrigger>
+              <SelectContent>
+                {GROUP_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div>
-            <label htmlFor="guest-phone" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Nomor Telepon
-            </label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="guest-phone" className="text-foreground">Nomor Telepon</Label>
+            <Input
               id="guest-phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+62812345678"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
             />
           </div>
 
-          <div>
-            <label htmlFor="guest-email" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="guest-email" className="text-foreground">Email</Label>
+            <Input
               id="guest-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tamu@email.com"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="guest-plus-one"
-              className="mb-1.5 block text-sm font-medium text-gray-700"
-            >
+          <div className="space-y-1.5">
+            <Label htmlFor="guest-plus-one" className="text-foreground">
               Jumlah Tamu Tambahan (Plus One)
-            </label>
-            <input
+            </Label>
+            <Input
               id="guest-plus-one"
               type="number"
               min={0}
               max={10}
               value={plusOneCount}
               onChange={(e) => setPlusOneCount(parseInt(e.target.value, 10) || 0)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="text-[11px] text-muted-foreground">
               Jumlah orang tambahan yang boleh dibawa tamu (0–10)
             </p>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground"
             >
               Batal
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSubmitting || !name.trim()}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="bg-primary hover:bg-primary/95 text-primary-foreground font-medium"
             >
               {isSubmitting ? 'Menyimpan...' : isEditing ? 'Simpan Perubahan' : 'Tambah Tamu'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

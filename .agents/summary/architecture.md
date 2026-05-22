@@ -193,6 +193,9 @@ graph TB
     end
 ```
 
+> [!NOTE]
+> **Production 2-Role System**: For the MVP in production, the RBAC model is simplified to **Admin** and **Client** roles. The **WO** and **Scanner Operator** roles are preserved in the TypeScript type definitions for backward compatibility, but they are denied access to all specific system features (except `ALL_ROLES`). The **Client** role now has full scanner access (QR scan verification and device registration).
+
 ## Deployment Architecture
 
 ```mermaid

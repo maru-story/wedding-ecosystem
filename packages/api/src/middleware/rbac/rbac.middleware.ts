@@ -19,14 +19,13 @@ export interface RBACConfig {
 
 /**
  * Predefined permission sets for common access patterns.
- * Based on the RBAC matrix from the design document:
+ * Simplified for 2-role system (Admin and Client) as per MVP strategy.
+ * Roles WO and SCANNER are kept in enum but temporarily removed from access sets.
  *
  * | Role             | Dashboard      | CMS            | Scanner                          | Guest Data       |
  * |------------------|----------------|----------------|----------------------------------|------------------|
- * | Admin            | Scoped Access  | Scoped Access  | Scoped Access                    | Scoped per assign|
- * | Client           | Own Event      | Own Event      | View Only                        | Own Event        |
- * | WO               | Assigned Events| Assigned Events| Full Access                      | Assigned Events  |
- * | Scanner Operator | -              | -              | QR Scan + Manual Check-in (both) | Read Only        |
+ * | Admin            | Full Access    | Full Access    | Full Access                      | Full Access      |
+ * | Client           | Own Event      | Own Event      | Full Access (Own Event)          | Own Event        |
  */
 export const PERMISSIONS = {
   /** All authenticated roles can access */
@@ -34,19 +33,19 @@ export const PERMISSIONS = {
     allowedRoles: [UserRole.ADMIN, UserRole.CLIENT, UserRole.WO, UserRole.SCANNER],
   },
 
-  /** Admin, Client, and WO can manage dashboard resources */
+  /** Admin and Client can manage dashboard resources */
   DASHBOARD_ACCESS: {
-    allowedRoles: [UserRole.ADMIN, UserRole.CLIENT, UserRole.WO],
+    allowedRoles: [UserRole.ADMIN, UserRole.CLIENT],
   },
 
-  /** Admin, Client, and WO can manage CMS */
+  /** Admin and Client can manage CMS */
   CMS_ACCESS: {
-    allowedRoles: [UserRole.ADMIN, UserRole.CLIENT, UserRole.WO],
+    allowedRoles: [UserRole.ADMIN, UserRole.CLIENT],
   },
 
-  /** Admin, WO, and Scanner Operator can use scanner */
+  /** Admin and Client can use scanner (Client uses for their own event) */
   SCANNER_ACCESS: {
-    allowedRoles: [UserRole.ADMIN, UserRole.WO, UserRole.SCANNER],
+    allowedRoles: [UserRole.ADMIN, UserRole.CLIENT],
   },
 
   /** Only Admin and Client can manage events */
@@ -54,19 +53,19 @@ export const PERMISSIONS = {
     allowedRoles: [UserRole.ADMIN, UserRole.CLIENT],
   },
 
-  /** Admin, Client, and WO can manage guests */
+  /** Admin and Client can manage guests */
   GUEST_MANAGEMENT: {
-    allowedRoles: [UserRole.ADMIN, UserRole.CLIENT, UserRole.WO],
+    allowedRoles: [UserRole.ADMIN, UserRole.CLIENT],
   },
 
-  /** All roles can read guest data (Scanner has read-only) */
+  /** All primary roles can read guest data */
   GUEST_READ: {
-    allowedRoles: [UserRole.ADMIN, UserRole.CLIENT, UserRole.WO, UserRole.SCANNER],
+    allowedRoles: [UserRole.ADMIN, UserRole.CLIENT],
   },
 
-  /** Scanner Operator can perform check-in operations (QR scan + manual) */
+  /** Admin and Client can perform check-in operations */
   CHECKIN_ACCESS: {
-    allowedRoles: [UserRole.ADMIN, UserRole.WO, UserRole.SCANNER],
+    allowedRoles: [UserRole.ADMIN, UserRole.CLIENT],
   },
 
   /** Only Admin can perform system-level operations */
@@ -97,7 +96,7 @@ export function createRBACMiddleware(config: RBACConfig) {
 
     // Check if user's role is in the allowed roles list
     if (!config.allowedRoles.includes(userRole)) {
-      // Return 403 without revealing resource existence (Req 1.3, 2.6, 2.7, 2.8)
+      // Return 403 without revealing resource existence
       reply.status(403).send({
         success: false,
         error: {

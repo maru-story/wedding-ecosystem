@@ -2,45 +2,49 @@
 
 import { useTheme } from '@/contexts/theme-context';
 import type { ThemeColors } from '@/lib/theme';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 const COLOR_FIELDS: { key: keyof ThemeColors; label: string }[] = [
-  { key: 'primary', label: 'Primary' },
-  { key: 'secondary', label: 'Secondary' },
-  { key: 'accent', label: 'Accent' },
-  { key: 'surface', label: 'Surface' },
-  { key: 'text', label: 'Text' },
+  { key: 'primary', label: 'Primary (Sage)' },
+  { key: 'secondary', label: 'Secondary (Cream)' },
+  { key: 'accent', label: 'Accent (Blush)' },
+  { key: 'surface', label: 'Surface (White)' },
+  { key: 'text', label: 'Text (Charcoal)' },
 ];
 
 export default function ThemePage() {
   const { colors, presets, errors, updateColor, applyPreset, resetToDefault } = useTheme();
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <div className="mb-6">
+    <div className="mx-auto max-w-4xl space-y-8">
+      <div>
         <h1 className="font-heading text-2xl font-bold">Pengaturan Tema</h1>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-muted-foreground">
           Kustomisasi warna dashboard sesuai tema pernikahan Anda
         </p>
       </div>
 
       {/* Preset Palettes */}
-      <section className="mb-8">
-        <h2 className="mb-4 font-heading text-lg font-semibold">Preset Palette</h2>
+      <section>
+        <h2 className="mb-4 font-heading text-lg font-semibold text-foreground">Preset Palette</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {presets.map((preset) => (
             <button
               key={preset.id}
               onClick={() => applyPreset(preset.id)}
-              className="rounded-xl border-2 border-gray-200 p-4 text-left transition-all hover:border-primary hover:shadow-md"
+              className="rounded-xl border border-border/80 bg-card p-4 text-left transition-all hover:border-primary hover:shadow-md hover:-translate-y-0.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring"
             >
-              <p className="mb-3 text-sm font-medium">{preset.name}</p>
+              <p className="mb-3 text-sm font-semibold text-foreground">{preset.name}</p>
               <div className="flex gap-1.5">
-                {Object.values(preset.colors).map((color, i) => (
+                {Object.entries(preset.colors).map(([key, color]) => (
                   <div
-                    key={i}
-                    className="h-8 w-8 rounded-full border border-gray-200"
+                    key={key}
+                    className="h-8 w-8 rounded-full border border-border/60 shadow-inner"
                     style={{ backgroundColor: color }}
-                    aria-label={`Warna ${Object.keys(preset.colors)[i]}: ${color}`}
+                    aria-label={`Warna ${key}: ${color}`}
                   />
                 ))}
               </div>
@@ -50,87 +54,100 @@ export default function ThemePage() {
       </section>
 
       {/* Custom Color Inputs */}
-      <section className="mb-8">
-        <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg font-semibold">Warna Kustom</h2>
-          <button onClick={resetToDefault} className="text-sm text-gray-500 hover:text-gray-700">
-            Reset ke default
-          </button>
-        </div>
-        <p className="mb-4 mt-1 text-sm text-gray-500">
-          Masukkan kode warna hex (#RRGGBB atau #RGB)
-        </p>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <Card className="border-border/60 shadow-sm bg-card">
+        <CardHeader>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <CardTitle className="font-heading text-lg font-semibold">Warna Kustom</CardTitle>
+              <CardDescription className="mt-1">
+                Masukkan kode warna hex (#RRGGBB atau #RGB) untuk kustomisasi manual
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetToDefault}
+              className="border-border/60 text-muted-foreground hover:text-foreground"
+            >
+              Reset ke Default
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {COLOR_FIELDS.map(({ key, label }) => (
-            <div key={key}>
-              <label
+            <div key={key} className="space-y-2">
+              <Label
                 htmlFor={`color-${key}`}
-                className="mb-1.5 block text-sm font-medium text-gray-700"
+                className="text-sm font-medium text-foreground"
               >
                 {label}
-              </label>
+              </Label>
               <div className="flex items-center gap-2">
                 <div
-                  className="h-10 w-10 shrink-0 rounded-lg border border-gray-200"
+                  className="h-10 w-10 shrink-0 rounded-lg border border-border shadow-inner"
                   style={{ backgroundColor: colors[key] }}
                 />
-                <input
+                <Input
                   id={`color-${key}`}
                   type="text"
                   value={colors[key]}
                   onChange={(e) => updateColor(key, e.target.value)}
                   placeholder="#RRGGBB"
-                  className={`w-full rounded-lg border px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${
+                  className={
                     errors?.[key]
-                      ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
-                      : 'border-gray-300 focus:border-primary focus:ring-primary/20'
-                  }`}
+                      ? 'border-destructive focus-visible:ring-destructive bg-background'
+                      : 'border-border/60 focus-visible:ring-ring bg-background font-sans text-sm'
+                  }
                   aria-invalid={!!errors?.[key]}
                   aria-describedby={errors?.[key] ? `error-${key}` : undefined}
                 />
               </div>
               {errors?.[key] && (
-                <p id={`error-${key}`} className="mt-1 text-xs text-red-600" role="alert">
+                <p id={`error-${key}`} className="text-xs text-destructive font-semibold" role="alert">
                   {errors[key]}
                 </p>
               )}
             </div>
           ))}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Preview */}
-      <section>
-        <h2 className="mb-4 font-heading text-lg font-semibold">Preview</h2>
-        <div className="rounded-xl border p-6" style={{ backgroundColor: colors.surface }}>
-          <h3 className="font-heading text-xl font-bold" style={{ color: colors.primary }}>
-            Contoh Heading
-          </h3>
-          <p className="mt-2 text-sm" style={{ color: colors.text }}>
-            Ini adalah contoh teks body dengan warna tema yang dipilih.
-          </p>
-          <div className="mt-4 flex gap-3">
-            <button
-              className="rounded-lg px-4 py-2 text-sm font-medium text-white"
-              style={{ backgroundColor: colors.primary }}
-            >
-              Tombol Primary
-            </button>
-            <button
-              className="rounded-lg px-4 py-2 text-sm font-medium text-white"
-              style={{ backgroundColor: colors.accent }}
-            >
-              Tombol Accent
-            </button>
-          </div>
-          <div className="mt-4 rounded-lg p-4" style={{ backgroundColor: colors.secondary }}>
-            <p className="text-sm" style={{ color: colors.text }}>
-              Ini adalah contoh card dengan warna secondary sebagai background.
+      <Card className="border-border/60 shadow-sm overflow-hidden bg-card">
+        <CardHeader>
+          <CardTitle className="font-heading text-lg font-semibold">Preview</CardTitle>
+          <CardDescription>Visualisasi tampilan dashboard dengan tema warna saat ini</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-xl border border-border/80 p-6 shadow-inner" style={{ backgroundColor: colors.surface }}>
+            <h3 className="font-heading text-xl font-bold" style={{ color: colors.primary }}>
+              Contoh Heading
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed" style={{ color: colors.text }}>
+              Ini adalah contoh teks body dengan warna tema yang dipilih.
             </p>
+            <div className="mt-4 flex gap-3">
+              <button
+                className="rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
+                style={{ backgroundColor: colors.primary }}
+              >
+                Tombol Primary
+              </button>
+              <button
+                className="rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
+                style={{ backgroundColor: colors.accent }}
+              >
+                Tombol Accent
+              </button>
+            </div>
+            <div className="mt-4 rounded-lg p-4 border border-border/40" style={{ backgroundColor: colors.secondary }}>
+              <p className="text-sm font-medium" style={{ color: colors.text }}>
+                Ini adalah contoh card dengan warna secondary sebagai background.
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -2,6 +2,17 @@
 
 import { GuestGroup } from '@wedding/shared';
 import type { GuestListItem } from '../page';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Edit2, QrCode } from 'lucide-react';
 
 interface GuestTableProps {
   guests: GuestListItem[];
@@ -26,24 +37,24 @@ const GROUP_LABELS: Record<GuestGroup, string> = {
 };
 
 const GROUP_COLORS: Record<GuestGroup, string> = {
-  [GuestGroup.FAMILY]: 'bg-blue-100 text-blue-700',
-  [GuestGroup.FRIEND]: 'bg-green-100 text-green-700',
-  [GuestGroup.COLLEAGUE]: 'bg-purple-100 text-purple-700',
-  [GuestGroup.VIP]: 'bg-amber-100 text-amber-700',
+  [GuestGroup.FAMILY]: 'bg-primary/15 text-foreground border-transparent hover:bg-primary/20',
+  [GuestGroup.FRIEND]: 'bg-accent/40 text-foreground border-transparent hover:bg-accent/50',
+  [GuestGroup.COLLEAGUE]: 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80',
+  [GuestGroup.VIP]: 'bg-copper/15 text-copper border-transparent font-semibold hover:bg-copper/20',
 };
 
 function getRsvpLabel(status: string | null): { label: string; className: string } {
   switch (status) {
     case 'akad':
-      return { label: 'Hadir (Akad)', className: 'bg-green-100 text-green-700' };
+      return { label: 'Hadir (Akad)', className: 'bg-success/15 text-success border-transparent hover:bg-success/20' };
     case 'resepsi':
-      return { label: 'Hadir (Resepsi)', className: 'bg-green-100 text-green-700' };
+      return { label: 'Hadir (Resepsi)', className: 'bg-success/15 text-success border-transparent hover:bg-success/20' };
     case 'both':
-      return { label: 'Hadir (Keduanya)', className: 'bg-green-100 text-green-700' };
+      return { label: 'Hadir (Keduanya)', className: 'bg-success/15 text-success border-transparent hover:bg-success/20' };
     case 'decline':
-      return { label: 'Menolak', className: 'bg-red-100 text-red-700' };
+      return { label: 'Menolak', className: 'bg-destructive/10 text-destructive border-transparent hover:bg-destructive/15' };
     default:
-      return { label: 'Belum RSVP', className: 'bg-gray-100 text-gray-600' };
+      return { label: 'Belum RSVP', className: 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80' };
   }
 }
 
@@ -60,7 +71,7 @@ export function GuestTable({
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-gray-500">Memuat daftar tamu...</p>
+          <p className="mt-3 text-sm text-muted-foreground">Memuat daftar tamu...</p>
         </div>
       </div>
     );
@@ -68,9 +79,9 @@ export function GuestTable({
 
   if (guests.length === 0) {
     return (
-      <div className="rounded-xl bg-white p-12 text-center shadow-sm">
+      <div className="rounded-xl border border-border/40 bg-card p-12 text-center shadow-sm">
         <svg
-          className="mx-auto h-12 w-12 text-gray-400"
+          className="mx-auto h-12 w-12 text-muted-foreground/60"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -82,56 +93,52 @@ export function GuestTable({
             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
           />
         </svg>
-        <p className="mt-4 text-gray-600">Belum ada tamu terdaftar</p>
-        <p className="mt-1 text-sm text-gray-500">Tambahkan tamu baru atau import dari file CSV</p>
+        <p className="mt-4 text-foreground font-medium">Belum ada tamu terdaftar</p>
+        <p className="mt-1 text-sm text-muted-foreground">Tambahkan tamu baru atau import dari file CSV</p>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
-            <tr>
-              <th className="px-4 py-3">Nama</th>
-              <th className="px-4 py-3">Grup</th>
-              <th className="px-4 py-3">RSVP</th>
-              <th className="px-4 py-3">Check-in</th>
-              <th className="px-4 py-3">Plus One</th>
-              <th className="px-4 py-3 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
+      <div className="overflow-hidden rounded-xl border border-border/40 bg-card shadow-sm">
+        <Table>
+          <TableHeader className="bg-muted/40">
+            <TableRow>
+              <TableHead className="px-4 py-3">Nama</TableHead>
+              <TableHead className="px-4 py-3">Grup</TableHead>
+              <TableHead className="px-4 py-3">RSVP</TableHead>
+              <TableHead className="px-4 py-3">Check-in</TableHead>
+              <TableHead className="px-4 py-3">Plus One</TableHead>
+              <TableHead className="px-4 py-3 text-right">Aksi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {guests.map((guest) => {
               const rsvp = getRsvpLabel(guest.rsvp_status);
               return (
-                <tr key={guest.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
+                <TableRow key={guest.id} className="hover:bg-muted/30 transition-colors">
+                  <TableCell className="px-4 py-3">
                     <div>
-                      <p className="font-medium text-gray-900">{guest.name}</p>
+                      <p className="font-medium text-foreground">{guest.name}</p>
                       {(guest.phone || guest.email) && (
-                        <p className="text-xs text-gray-500">{guest.phone || guest.email}</p>
+                        <p className="text-xs text-muted-foreground">{guest.phone || guest.email}</p>
                       )}
                     </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${GROUP_COLORS[guest.group]}`}
-                    >
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <Badge variant="outline" className={GROUP_COLORS[guest.group]}>
                       {GROUP_LABELS[guest.group]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${rsvp.className}`}
-                    >
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <Badge variant="outline" className={rsvp.className}>
                       {rsvp.label}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     {guest.check_in_status ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-success">
                         <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                           <path
                             fillRule="evenodd"
@@ -142,90 +149,74 @@ export function GuestTable({
                         Hadir
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-400">—</span>
+                      <span className="text-xs text-muted-foreground/60">—</span>
                     )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-sm text-gray-600">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <span className="text-sm text-muted-foreground">
                       {guest.plus_one_count > 0 ? `+${guest.plus_one_count}` : '—'}
                     </span>
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => onShowQr(guest)}
-                        className="rounded p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
                         title="Lihat QR Code"
                         aria-label={`Lihat QR Code ${guest.name}`}
+                        className="h-8 w-8 hover:bg-accent text-muted-foreground hover:text-foreground"
                       >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
-                          />
-                        </svg>
-                      </button>
-                      <button
+                        <QrCode className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => onEdit(guest)}
-                        className="rounded p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
                         title="Edit tamu"
                         aria-label={`Edit ${guest.name}`}
+                        className="h-8 w-8 hover:bg-accent text-muted-foreground hover:text-foreground"
                       >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                      </button>
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               );
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* Pagination */}
       {pagination.total_pages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-gray-600">
-            Menampilkan {(pagination.page - 1) * pagination.per_page + 1}–
-            {Math.min(pagination.page * pagination.per_page, pagination.total)} dari{' '}
-            {pagination.total} tamu
+        <div className="mt-4 flex items-center justify-between px-1">
+          <p className="text-sm text-muted-foreground">
+            Menampilkan <span className="font-medium text-foreground">{(pagination.page - 1) * pagination.per_page + 1}</span>–
+            <span className="font-medium text-foreground">{Math.min(pagination.page * pagination.per_page, pagination.total)}</span> dari{' '}
+            <span className="font-medium text-foreground">{pagination.total}</span> tamu
           </p>
-          <div className="flex gap-1">
-            <button
+          <div className="flex gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => onPageChange(pagination.page - 1)}
               disabled={pagination.page <= 1}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Halaman sebelumnya"
+              className="h-8 hover:bg-accent border-border/60 hover:text-foreground"
             >
-              ←
-            </button>
-            <button
+              ← Sebelumnya
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => onPageChange(pagination.page + 1)}
               disabled={pagination.page >= pagination.total_pages}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Halaman berikutnya"
+              className="h-8 hover:bg-accent border-border/60 hover:text-foreground"
             >
-              →
-            </button>
+              Berikutnya →
+            </Button>
           </div>
         </div>
       )}

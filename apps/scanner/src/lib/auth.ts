@@ -178,8 +178,8 @@ export async function login(email: string, password: string): Promise<LoginRespo
 
   const data = await response.json();
 
-  // Validate role — only scanner and wo roles can use the scanner app
-  const allowedRoles = ['scanner', 'wo', 'admin'];
+  // Validate role — only client and admin roles can use the scanner app
+  const allowedRoles = ['client', 'admin'];
   if (!allowedRoles.includes(data.user.role)) {
     throw new AuthError(
       'Akun Anda tidak memiliki akses ke Scanner. Hubungi admin.',

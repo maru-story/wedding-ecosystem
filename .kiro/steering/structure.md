@@ -11,7 +11,7 @@ Monorepo with three frontend apps sharing a single backend API. Currently in ear
 ```
 /
 ├── apps/
-│   ├── dashboard/        # Client & WO Dashboard (Next.js 16, responsive)
+│   ├── dashboard/        # Client & Admin Dashboard (Next.js 16, responsive)
 │   ├── invitation/       # Guest-facing invitation app (Next.js 16, mobile-first)
 │   └── scanner/          # Scanner PWA (Next.js 16)
 ├── packages/

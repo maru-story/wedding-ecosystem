@@ -35,7 +35,7 @@ graph TB
 
 | Package | Path | Purpose |
 |---------|------|---------|
-| `@wedding/dashboard` | `apps/dashboard` | Client & WO management dashboard |
+| `@wedding/dashboard` | `apps/dashboard` | Client & Admin management dashboard |
 | `@wedding/invitation` | `apps/invitation` | Guest-facing digital invitation |
 | `@wedding/scanner` | `apps/scanner` | PWA for QR check-in at venue |
 | `@wedding/api` | `packages/api` | REST API + WebSocket backend |

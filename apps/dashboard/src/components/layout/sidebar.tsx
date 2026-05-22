@@ -1,122 +1,40 @@
 'use client';
 
+import React, { createContext, useContext } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
+import { cn } from '@/lib/utils';
+import { 
+  Home, 
+  Users, 
+  Mail, 
+  FileText, 
+  Bell, 
+  Palette, 
+  Settings, 
+  BarChart3, 
+  ShieldCheck, 
+  QrCode 
+} from 'lucide-react';
 
-interface NavItem {
-  label: string;
-  href: string;
-  icon: React.ReactNode;
+// --- Context ---
+const SidebarContext = createContext<{ isOpen: boolean; onClose: () => void } | undefined>(undefined);
+
+function useSidebarContext() {
+  const context = useContext(SidebarContext);
+  if (!context) throw new Error('Sidebar components must be used within <Sidebar />');
+  return context;
 }
 
-const navItems: NavItem[] = [
-  {
-    label: 'Dashboard',
-    href: '/',
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Tamu',
-    href: '/guests',
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'RSVP',
-    href: '/rsvp',
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Undangan',
-    href: '/cms',
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Notifikasi',
-    href: '/notifications',
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Tema',
-    href: '/theme',
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-      </svg>
-    ),
-  },
-];
+// --- Components ---
 
-const adminNavItems: NavItem[] = [
-  {
-    label: 'Statistik Global',
-    href: '/admin/overview',
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Manajemen Tenant',
-    href: '/admin/tenants',
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Semua User',
-    href: '/admin/users',
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Log Aktivitas',
-    href: '/admin/audit-logs',
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
-];
-
-interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const pathname = usePathname();
-  const { user } = useAuth();
-
+/**
+ * Main Sidebar Container (Compound Component Root)
+ */
+export function Sidebar({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) {
   return (
-    <>
+    <SidebarContext.Provider value={{ isOpen, onClose }}>
       {/* Mobile overlay */}
       {isOpen && (
         <div
@@ -126,77 +44,87 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar Panel */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white shadow-lg transition-transform duration-300 lg:static lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        role="navigation"
-        aria-label="Menu utama"
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-sidebar border-r border-border/40 shadow-sm transition-transform duration-300 lg:static lg:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        )}
       >
-        {/* Logo */}
-        <div className="flex h-16 items-center border-b px-6">
-          <h2 className="font-heading text-xl font-bold text-primary">
-            Wedding Digital
+        <div className="flex h-16 items-center border-b border-border/40 px-6">
+          <h2 className="font-heading text-2xl font-semibold tracking-wide text-copper">
+            Wedding <span className="font-normal text-primary">Digital</span>
           </h2>
         </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
-          <ul className="space-y-1">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={onClose}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                    aria-current={isActive ? 'page' : undefined}
-                  >
-                    {item.icon}
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-
-          {user?.role === 'admin' && (
-            <div className="mt-6 pt-6 border-t border-gray-100">
-              <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Platform Admin
-              </p>
-              <ul className="space-y-1">
-                {adminNavItems.map((item) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        onClick={onClose}
-                        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                          isActive
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                        aria-current={isActive ? 'page' : undefined}
-                      >
-                        {item.icon}
-                        {item.label}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
+        
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+          {children}
         </nav>
       </aside>
-    </>
+    </SidebarContext.Provider>
   );
 }
+
+/**
+ * Sidebar Group for logical separation
+ */
+Sidebar.Group = function SidebarGroup({ label, children }: { label?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      {label && (
+        <p className="px-3 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider mb-2">
+          {label}
+        </p>
+      )}
+      <ul className="space-y-1">{children}</ul>
+    </div>
+  );
+};
+
+/**
+ * Atomic Sidebar Item with Role Filtering
+ */
+Sidebar.Item = function SidebarItem({ 
+  href, 
+  label, 
+  icon: Icon, 
+  roles 
+}: { 
+  href: string; 
+  label: string; 
+  icon: any; 
+  roles?: string[] 
+}) {
+  const pathname = usePathname();
+  const { onClose } = useSidebarContext();
+  const { user } = useAuth();
+  
+  // RBAC Filter: Only show if user role matches or no roles specified
+  if (roles && !roles.includes(user?.role || '')) return null;
+
+  const isActive = pathname === href;
+
+  return (
+    <li>
+      <Link
+        href={href}
+        onClick={onClose}
+        className={cn(
+          "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 border-l-2",
+          isActive 
+            ? "bg-primary/15 text-foreground border-ring font-semibold" 
+            : "text-muted-foreground border-transparent hover:bg-accent/40 hover:text-foreground"
+        )}
+        aria-current={isActive ? 'page' : undefined}
+      >
+        <Icon className={cn(
+          "h-5 w-5 transition-all duration-200", 
+          isActive 
+            ? "text-ring scale-110" 
+            : "text-muted-foreground/80 group-hover:text-ring group-hover:scale-105"
+        )} />
+        {label}
+      </Link>
+    </li>
+  );
+};

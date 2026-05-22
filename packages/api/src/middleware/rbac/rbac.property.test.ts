@@ -82,9 +82,11 @@ describe('Property 3: Role-Based Data Access', () => {
       'GUEST_MANAGEMENT',
       'GUEST_READ',
       'EVENT_MANAGEMENT',
+      'SCANNER_ACCESS',
+      'CHECKIN_ACCESS',
       'ALL_ROLES',
     ];
-    const deniedPermissions: (keyof typeof PERMISSIONS)[] = ['SCANNER_ACCESS', 'ADMIN_ONLY'];
+    const deniedPermissions: (keyof typeof PERMISSIONS)[] = ['ADMIN_ONLY'];
 
     fc.assert(
       fc.property(arbRequestMetadata, (metadata) => {
@@ -144,17 +146,20 @@ describe('Property 3: Role-Based Data Access', () => {
    * DASHBOARD_ACCESS, CMS_ACCESS, SCANNER_ACCESS, GUEST_MANAGEMENT, GUEST_READ, CHECKIN_ACCESS
    * but deny EVENT_MANAGEMENT and ADMIN_ONLY.
    */
-  it('WO sees only assigned events — allowed and denied permissions are correct', () => {
+  it('WO has restricted access in 2-role system — allowed and denied permissions are correct', () => {
     const allowedPermissions: (keyof typeof PERMISSIONS)[] = [
+      'ALL_ROLES',
+    ];
+    const deniedPermissions: (keyof typeof PERMISSIONS)[] = [
       'DASHBOARD_ACCESS',
       'CMS_ACCESS',
       'SCANNER_ACCESS',
       'GUEST_MANAGEMENT',
       'GUEST_READ',
       'CHECKIN_ACCESS',
-      'ALL_ROLES',
+      'EVENT_MANAGEMENT',
+      'ADMIN_ONLY',
     ];
-    const deniedPermissions: (keyof typeof PERMISSIONS)[] = ['EVENT_MANAGEMENT', 'ADMIN_ONLY'];
 
     fc.assert(
       fc.property(arbRequestMetadata, (metadata) => {
@@ -188,18 +193,18 @@ describe('Property 3: Role-Based Data Access', () => {
    * should be denied DASHBOARD_ACCESS, CMS_ACCESS, EVENT_MANAGEMENT, GUEST_MANAGEMENT,
    * ADMIN_ONLY but allowed GUEST_READ, SCANNER_ACCESS, CHECKIN_ACCESS, ALL_ROLES.
    */
-  it('Scanner Operator has both QR scan AND manual check-in capabilities', () => {
+  it('Scanner Operator has restricted access in 2-role system', () => {
     const allowedPermissions: (keyof typeof PERMISSIONS)[] = [
-      'GUEST_READ',
-      'SCANNER_ACCESS',
-      'CHECKIN_ACCESS',
       'ALL_ROLES',
     ];
     const deniedPermissions: (keyof typeof PERMISSIONS)[] = [
       'DASHBOARD_ACCESS',
       'CMS_ACCESS',
-      'EVENT_MANAGEMENT',
+      'SCANNER_ACCESS',
       'GUEST_MANAGEMENT',
+      'GUEST_READ',
+      'CHECKIN_ACCESS',
+      'EVENT_MANAGEMENT',
       'ADMIN_ONLY',
     ];
 
@@ -207,7 +212,7 @@ describe('Property 3: Role-Based Data Access', () => {
       fc.property(arbRequestMetadata, (metadata) => {
         const request = createAuthenticatedRequest(UserRole.SCANNER, metadata);
 
-        // Scanner should be allowed for these permissions (both QR scan and manual check-in)
+        // Scanner should be allowed for these permissions
         for (const permKey of allowedPermissions) {
           const reply = createMockReply();
           const middleware = createRBACMiddleware(PERMISSIONS[permKey]);

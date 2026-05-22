@@ -128,34 +128,34 @@ describe('RBAC Middleware', () => {
       expect(reply.statusCode).toBe(403);
     });
 
-    it('should allow Scanner Operator access to CHECKIN_ACCESS resources', async () => {
+    it('should deny Scanner Operator access to CHECKIN_ACCESS resources', async () => {
       const middleware = createRBACMiddleware(PERMISSIONS.CHECKIN_ACCESS);
       const request = createAuthenticatedRequest(UserRole.SCANNER);
       const reply = createMockReply();
 
       await middleware(request, reply);
 
-      expect(reply.statusCode).toBe(0);
+      expect(reply.statusCode).toBe(403);
     });
 
-    it('should allow WO access to SCANNER_ACCESS resources', async () => {
+    it('should deny WO access to SCANNER_ACCESS resources', async () => {
       const middleware = createRBACMiddleware(PERMISSIONS.SCANNER_ACCESS);
       const request = createAuthenticatedRequest(UserRole.WO);
       const reply = createMockReply();
 
       await middleware(request, reply);
 
-      expect(reply.statusCode).toBe(0);
+      expect(reply.statusCode).toBe(403);
     });
 
-    it('should deny Client access to SCANNER_ACCESS resources', async () => {
+    it('should allow Client access to SCANNER_ACCESS resources', async () => {
       const middleware = createRBACMiddleware(PERMISSIONS.SCANNER_ACCESS);
       const request = createAuthenticatedRequest(UserRole.CLIENT);
       const reply = createMockReply();
 
       await middleware(request, reply);
 
-      expect(reply.statusCode).toBe(403);
+      expect(reply.statusCode).toBe(0);
     });
 
     it('should allow all roles access to ALL_ROLES resources', async () => {
@@ -238,18 +238,18 @@ describe('RBAC Middleware', () => {
   });
 
   describe('PERMISSIONS predefined sets', () => {
-    it('GUEST_MANAGEMENT should include Admin, Client, and WO', () => {
+    it('GUEST_MANAGEMENT should include Admin and Client', () => {
       expect(PERMISSIONS.GUEST_MANAGEMENT.allowedRoles).toContain(UserRole.ADMIN);
       expect(PERMISSIONS.GUEST_MANAGEMENT.allowedRoles).toContain(UserRole.CLIENT);
-      expect(PERMISSIONS.GUEST_MANAGEMENT.allowedRoles).toContain(UserRole.WO);
+      expect(PERMISSIONS.GUEST_MANAGEMENT.allowedRoles).not.toContain(UserRole.WO);
       expect(PERMISSIONS.GUEST_MANAGEMENT.allowedRoles).not.toContain(UserRole.SCANNER);
     });
 
-    it('GUEST_READ should include all roles (Scanner has read-only)', () => {
+    it('GUEST_READ should include Admin and Client', () => {
       expect(PERMISSIONS.GUEST_READ.allowedRoles).toContain(UserRole.ADMIN);
       expect(PERMISSIONS.GUEST_READ.allowedRoles).toContain(UserRole.CLIENT);
-      expect(PERMISSIONS.GUEST_READ.allowedRoles).toContain(UserRole.WO);
-      expect(PERMISSIONS.GUEST_READ.allowedRoles).toContain(UserRole.SCANNER);
+      expect(PERMISSIONS.GUEST_READ.allowedRoles).not.toContain(UserRole.WO);
+      expect(PERMISSIONS.GUEST_READ.allowedRoles).not.toContain(UserRole.SCANNER);
     });
 
     it('CMS_ACCESS should not include Scanner Operator', () => {

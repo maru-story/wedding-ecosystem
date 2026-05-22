@@ -109,10 +109,10 @@
 
 | Role             | Scope           | Can Do                                   | Cannot Do             |
 | ---------------- | --------------- | ---------------------------------------- | --------------------- |
-| Admin            | All tenants     | Full CRUD, tenant management             | —                     |
-| Client           | Own tenant      | Manage own events, guests, CMS, themes   | Access other tenants  |
-| WO               | Assigned events | Manage assigned events, guests, check-in | Create/delete events  |
-| Scanner Operator | Assigned event  | QR scan, manual check-in, Go-Show        | Guest management, CMS |
+| Admin            | All tenants     | Full CRUD, tenant management, QR scanner | —                     |
+| Client           | Own tenant      | Manage events, guests, CMS, QR scanner   | Access other tenants  |
+| WO               | Disabled (MVP)  | None (restricted in MVP)                 | All actions           |
+| Scanner Operator | Disabled (MVP)  | None (restricted in MVP)                 | All actions           |
 
 ---
 
