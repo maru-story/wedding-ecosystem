@@ -113,37 +113,37 @@ h6 {
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #181715;
+  --foreground: #f3efe6;
+  --card: #22201d;
+  --card-foreground: #f3efe6;
+  --popover: #22201d;
+  --popover-foreground: #f3efe6;
+  --primary: oklch(0.65 0.06 145); /* dark sage */
+  --primary-foreground: #181715;
+  --secondary: #2d2a25;
+  --secondary-foreground: #f3efe6;
+  --muted: #2a2823;
+  --muted-foreground: #a49e94;
+  --accent: oklch(0.35 0.05 20); /* dark blush */
+  --accent-foreground: #f3efe6;
+  --destructive: oklch(0.60 0.18 25);
+  --border: #38342e;
+  --input: #38342e;
+  --ring: #c9935f; /* copper ring */
+  --chart-1: oklch(0.65 0.06 145);
+  --chart-2: #c9935f;
+  --chart-3: oklch(0.35 0.05 20);
+  --chart-4: #4a453d;
+  --chart-5: #635b50;
+  --sidebar: #22201d;
+  --sidebar-foreground: #f3efe6;
+  --sidebar-primary: oklch(0.65 0.06 145);
+  --sidebar-primary-foreground: #181715;
+  --sidebar-accent: #2d2a25;
+  --sidebar-accent-foreground: #f3efe6;
+  --sidebar-border: #38342e;
+  --sidebar-ring: #c9935f;
 }
 
 @layer base {
@@ -156,4 +156,57 @@ h6 {
   html {
     @apply font-sans;
   }
+  
+  /* Action elements hoverable pointer cursor */
+  a,
+  button,
+  select,
+  input[type="submit"],
+  input[type="button"],
+  [role="button"],
+  [role="tab"],
+  [role="checkbox"],
+  [role="menuitem"],
+  [role="switch"] {
+    cursor: pointer;
+  }
+}
+
+/* ─── Custom Sonner Toast Overrides ──────────────────────────────────────── */
+/* Matches the wedding dashboard design system: sage/copper/blush palette,   */
+/* Poppins font, warm borders, and type-specific left accent bars.            */
+
+[data-sonner-toaster] {
+  font-family: var(--font-body), sans-serif;
+}
+
+[data-sonner-toast] {
+  --tw-shadow: 0 4px 16px -2px rgb(0 0 0 / 0.08), 0 2px 6px -1px rgb(0 0 0 / 0.06);
+  box-shadow: var(--tw-shadow) !important;
+  border-width: 1px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Left accent bar — 3px stripe on the left edge colored by toast type */
+[data-sonner-toast]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--toast-icon, var(--muted-foreground));
+  border-radius: 0.75rem 0 0 0.75rem;
+}
+
+/* Ensure content doesn't sit behind the accent bar */
+[data-sonner-toast] > * {
+  padding-left: 0.25rem;
+}
+
+/* Close button positioned cleanly */
+[data-sonner-toast] [data-close-button] {
+  top: 50%;
+  transform: translateY(-50%);
 }

@@ -38,7 +38,6 @@ function createMockRepository(): GuestRepository {
       name: data.name,
       slug: data.slug,
       phone: data.phone,
-      email: data.email,
       group: data.group,
       type: data.type,
       plus_one_count: data.plus_one_count,
@@ -53,7 +52,6 @@ function createMockRepository(): GuestRepository {
         id: data.id,
         guest_id: data.guest_id,
         qr_payload: data.qr_payload,
-        qr_image_url: null,
         is_active: data.is_active,
         generated_at: new Date(),
       };

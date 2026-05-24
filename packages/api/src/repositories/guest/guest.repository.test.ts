@@ -43,7 +43,6 @@ const BASE_GUEST = {
   name: 'Budi Santoso',
   slug: 'budi-santoso',
   phone: '+6281234567890',
-  email: 'budi@example.com',
   group: 'family',
   type: 'invited',
   plus_one_count: 1,
@@ -56,7 +55,6 @@ const BASE_QR = {
   id: 'qr-001',
   guest_id: 'guest-001',
   qr_payload: 'abc:encrypted123',
-  qr_image_url: null,
   is_active: true,
   generated_at: new Date('2024-01-15'),
 };
@@ -85,7 +83,6 @@ describe('PrismaGuestRepository', () => {
         name: 'Budi Santoso',
         slug: 'budi-santoso',
         phone: '+6281234567890',
-        email: 'budi@example.com',
         group: GuestGroup.FAMILY,
         type: GuestType.INVITED,
         plus_one_count: 1,
@@ -116,7 +113,6 @@ describe('PrismaGuestRepository', () => {
 
       expect(result.id).toBe('qr-001');
       expect(result.is_active).toBe(true);
-      expect(result.qr_image_url).toBeNull();
     });
   });
 

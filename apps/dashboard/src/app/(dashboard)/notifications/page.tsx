@@ -1,8 +1,13 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { apiFetch, ApiError } from '@/lib/api';
+import { useState, useEffect } from 'react';
+import { ApiError } from '@/lib/api';
 import { DeliveryStatus } from '@wedding/shared';
+import {
+  useGuestsWithDeliveryStatus,
+  useSendNotification,
+  useSendBulkNotifications,
+} from '@/hooks/queries';
 import {
   Table,
   TableBody,
@@ -42,12 +47,11 @@ interface NotificationGuest {
   name: string;
   slug: string;
   phone: string | null;
-  email: string | null;
   delivery_status: DeliveryStatus;
   invitation_url: string | null;
 }
 
-type NotificationChannel = 'whatsapp' | 'email';
+type NotificationChannel = 'whatsapp';
 
 interface SendResult {
   guest_id: string;
@@ -91,63 +95,72 @@ const DELIVERY_STATUS_STYLES: Record<DeliveryStatus, string> = {
 // --- Helper Functions ---
 
 function canSendToGuest(guest: NotificationGuest): boolean {
-  return !!(guest.phone || guest.email);
+  return !!guest.phone;
 }
 
 function getAvailableChannels(guest: NotificationGuest): NotificationChannel[] {
   const channels: NotificationChannel[] = [];
   if (guest.phone) channels.push('whatsapp');
-  if (guest.email) channels.push('email');
   return channels;
 }
 
 // --- Component ---
 
 export default function NotificationsPage() {
-  const [guests, setGuests] = useState<NotificationGuest[]>([]);
   const [selectedGuestIds, setSelectedGuestIds] = useState<Set<string>>(new Set());
   const [bulkChannel, setBulkChannel] = useState<NotificationChannel>('whatsapp');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSending, setIsSending] = useState(false);
   const [sendingGuestId, setSendingGuestId] = useState<string | null>(null);
   const [failures, setFailures] = useState<FailureNotification[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<DeliveryStatus | 'all'>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // --- Data Fetching ---
+  // --- Data Fetching via TanStack Query ---
 
-  const loadGuests = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await apiFetch<{ guests: NotificationGuest[] }>(
-        '/guests?include=delivery_status'
-      );
-      setGuests(data.guests);
-    } catch (error) {
-      if (error instanceof ApiError) {
-        addFailure(
-          'Sistem',
-          'email',
-          `Gagal memuat data tamu: ${(error.data as { message?: string })?.message || 'Unknown error'}`
-        );
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const {
+    data: guestsData,
+    isLoading,
+    error,
+  } = useGuestsWithDeliveryStatus();
 
+  const guests: NotificationGuest[] = guestsData?.guests || [];
+
+  // --- Mutations ---
+
+  const sendNotificationMutation = useSendNotification();
+  const sendBulkNotificationsMutation = useSendBulkNotifications();
+
+  const isSending = sendBulkNotificationsMutation.isPending;
+
+  const addFailure = (guestName: string, channel: NotificationChannel, errorMsg: string) => {
+    setFailures((prev) => [
+      { id: `${Date.now()}-${Math.random()}`, guestName, channel, error: errorMsg, timestamp: new Date() },
+      ...prev,
+    ]);
+  };
+
+  const dismissFailure = (id: string) => {
+    setFailures((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  // Add system failure notification if query fails
   useEffect(() => {
-    loadGuests();
-  }, [loadGuests]);
+    if (error) {
+      const msg =
+        error instanceof ApiError
+          ? (error.data as { message?: string })?.message || 'Unknown error'
+          : 'Terjadi kesalahan jaringan';
+      addFailure('Sistem', 'whatsapp', `Gagal memuat data tamu: ${msg}`);
+    }
+  }, [error]);
 
   // --- Filtering & Pagination ---
 
-  const filteredGuests = guests?.filter((guest) => {
+  const filteredGuests = guests.filter((guest) => {
     const matchesSearch = guest.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || guest.delivery_status === statusFilter;
     return matchesSearch && matchesStatus;
-  }) || [];
+  });
 
   const totalPages = Math.ceil(filteredGuests.length / ITEMS_PER_PAGE);
   const paginatedGuests = filteredGuests.slice(
@@ -190,49 +203,28 @@ export default function NotificationsPage() {
 
   // --- Sending ---
 
-  const addFailure = (guestName: string, channel: NotificationChannel, error: string) => {
-    setFailures((prev) => [
-      { id: `${Date.now()}-${Math.random()}`, guestName, channel, error, timestamp: new Date() },
-      ...prev,
-    ]);
-  };
-
-  const dismissFailure = (id: string) => {
-    setFailures((prev) => prev.filter((f) => f.id !== id));
-  };
-
   const sendIndividual = async (guest: NotificationGuest, channel: NotificationChannel) => {
     setSendingGuestId(guest.id);
-    try {
-      const result = await apiFetch<SendResult>('/notifications/send', {
-        method: 'POST',
-        body: { guest_id: guest.id, channel },
-      });
-
-      if (result.success) {
-        setGuests((prev) =>
-          prev.map((g) => (g.id === guest.id ? { ...g, delivery_status: DeliveryStatus.SENT } : g))
-        );
-      } else {
-        setGuests((prev) =>
-          prev.map((g) =>
-            g.id === guest.id ? { ...g, delivery_status: DeliveryStatus.FAILED } : g
-          )
-        );
-        addFailure(guest.name, channel, result.error || 'Pengiriman gagal');
+    sendNotificationMutation.mutate(
+      { guest_id: guest.id, channel },
+      {
+        onSuccess: (result) => {
+          if (!result.success) {
+            addFailure(guest.name, channel, result.error || 'Pengiriman gagal');
+          }
+        },
+        onError: (err) => {
+          const errorMessage =
+            err instanceof ApiError
+              ? (err.data as { message?: string })?.message || 'Terjadi kesalahan'
+              : 'Terjadi kesalahan jaringan';
+          addFailure(guest.name, channel, errorMessage);
+        },
+        onSettled: () => {
+          setSendingGuestId(null);
+        },
       }
-    } catch (error) {
-      setGuests((prev) =>
-        prev.map((g) => (g.id === guest.id ? { ...g, delivery_status: DeliveryStatus.FAILED } : g))
-      );
-      const errorMessage =
-        error instanceof ApiError
-          ? (error.data as { message?: string })?.message || 'Terjadi kesalahan'
-          : 'Terjadi kesalahan jaringan';
-      addFailure(guest.name, channel, errorMessage);
-    } finally {
-      setSendingGuestId(null);
-    }
+    );
   };
 
   const sendBulk = async () => {
@@ -242,43 +234,27 @@ export default function NotificationsPage() {
       return;
     }
 
-    setIsSending(true);
-    try {
-      const result = await apiFetch<BulkSendResult>('/notifications/send-bulk', {
-        method: 'POST',
-        body: { guest_ids: Array.from(selectedGuestIds), channel: bulkChannel },
-      });
-
-      setGuests((prev) =>
-        prev.map((g) => {
-          const sendResult = result.results.find((r) => r.guest_id === g.id);
-          if (sendResult) {
-            return {
-              ...g,
-              delivery_status: sendResult.success ? DeliveryStatus.SENT : DeliveryStatus.FAILED,
-            };
-          }
-          return g;
-        })
-      );
-
-      result.results
-        .filter((r) => !r.success)
-        .forEach((r) => {
-          const guest = guests.find((g) => g.id === r.guest_id);
-          if (guest) addFailure(guest.name, r.channel, r.error || 'Pengiriman gagal');
-        });
-
-      setSelectedGuestIds(new Set());
-    } catch (error) {
-      const errorMessage =
-        error instanceof ApiError
-          ? (error.data as { message?: string })?.message || 'Terjadi kesalahan'
-          : 'Terjadi kesalahan jaringan';
-      addFailure('Bulk Send', bulkChannel, errorMessage);
-    } finally {
-      setIsSending(false);
-    }
+    sendBulkNotificationsMutation.mutate(
+      { guest_ids: Array.from(selectedGuestIds), channel: bulkChannel },
+      {
+        onSuccess: (result) => {
+          setSelectedGuestIds(new Set());
+          result.results
+            .filter((r) => !r.success)
+            .forEach((r) => {
+              const guest = guests.find((g) => g.id === r.guest_id);
+              if (guest) addFailure(guest.name, r.channel, r.error || 'Pengiriman gagal');
+            });
+        },
+        onError: (err) => {
+          const errorMessage =
+            err instanceof ApiError
+              ? (err.data as { message?: string })?.message || 'Terjadi kesalahan'
+              : 'Terjadi kesalahan jaringan';
+          addFailure('Bulk Send', bulkChannel, errorMessage);
+        },
+      }
+    );
   };
 
   // --- Render ---
@@ -294,7 +270,7 @@ export default function NotificationsPage() {
       <div>
         <h1 className="font-heading text-2xl font-bold">Kirim Undangan</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Kirim undangan digital ke tamu melalui WhatsApp atau Email
+          Kirim undangan digital ke tamu melalui WhatsApp
         </p>
       </div>
 
@@ -310,8 +286,7 @@ export default function NotificationsPage() {
                 <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-destructive">
-                    Gagal mengirim ke {failure.guestName} (
-                    {failure.channel === 'whatsapp' ? 'WhatsApp' : 'Email'})
+                    Gagal mengirim ke {failure.guestName} (WhatsApp)
                   </p>
                   <p className="text-xs text-destructive/80 mt-0.5">{failure.error}</p>
                 </div>
@@ -341,18 +316,9 @@ export default function NotificationsPage() {
               <span className="text-sm text-muted-foreground">
                 Kirim via:
               </span>
-              <Select
-                value={bulkChannel}
-                onValueChange={(val) => setBulkChannel(val as NotificationChannel)}
-              >
-                <SelectTrigger className="w-[130px] bg-card border-border/65">
-                  <SelectValue placeholder="WhatsApp" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                </SelectContent>
-              </Select>
+              <Badge variant="outline" className="border-border/60 bg-background text-foreground font-sans">
+                WhatsApp
+              </Badge>
             </div>
             <Button
               onClick={sendBulk}
@@ -444,10 +410,10 @@ export default function NotificationsPage() {
                       checked={
                         paginatedGuests.filter(canSendToGuest).length > 0 &&
                         paginatedGuests
-                          .filter(canSendToGuest)
-                          .every((g) => selectedGuestIds.has(g.id))
+                           .filter(canSendToGuest)
+                           .every((g) => selectedGuestIds.has(g.id))
                       }
-                      className="h-4 w-4 rounded border-gray-300 accent-ring cursor-pointer"
+                      className="h-4 w-4 rounded border-border/60 accent-ring cursor-pointer bg-card"
                       aria-label="Pilih semua tamu"
                     />
                   </TableHead>
@@ -460,13 +426,13 @@ export default function NotificationsPage() {
               <TableBody>
                 {paginatedGuests.map((guest) => (
                   <GuestRow
-                    key={guest.id}
-                    guest={guest}
-                    isSelected={selectedGuestIds.has(guest.id)}
-                    isSending={sendingGuestId === guest.id}
-                    onToggleSelect={() => toggleSelectGuest(guest.id)}
-                    onSend={sendIndividual}
-                  />
+                      key={guest.id}
+                      guest={guest}
+                      isSelected={selectedGuestIds.has(guest.id)}
+                      isSending={sendingGuestId === guest.id}
+                      onToggleSelect={() => toggleSelectGuest(guest.id)}
+                      onSend={sendIndividual}
+                    />
                 ))}
               </TableBody>
             </Table>
@@ -530,7 +496,7 @@ function GuestRow({ guest, isSelected, isSending, onToggleSelect, onSend }: Gues
           checked={isSelected}
           onChange={onToggleSelect}
           disabled={!canSend}
-          className="h-4 w-4 rounded border-gray-300 disabled:opacity-50 accent-ring cursor-pointer"
+          className="h-4 w-4 rounded border-border/60 disabled:opacity-50 accent-ring cursor-pointer bg-card"
           aria-label={`Pilih ${guest.name}`}
         />
       </TableCell>
@@ -539,10 +505,9 @@ function GuestRow({ guest, isSelected, isSending, onToggleSelect, onSend }: Gues
         {canSend ? (
           <div className="space-y-0.5">
             {guest.phone && <p className="text-xs text-muted-foreground font-sans">{guest.phone}</p>}
-            {guest.email && <p className="text-xs text-muted-foreground font-sans">{guest.email}</p>}
           </div>
         ) : (
-          <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5">
+          <p className="text-xs text-warning font-medium flex items-center gap-1.5">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
             Data kontak harus dilengkapi
           </p>
@@ -572,24 +537,6 @@ function GuestRow({ guest, isSelected, isSending, onToggleSelect, onSend }: Gues
                 ) : (
                   <>
                     <MessageSquare className="mr-1.5 h-3.5 w-3.5" /> WA
-                  </>
-                )}
-              </Button>
-            )}
-            {availableChannels.includes('email') && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onSend(guest, 'email')}
-                disabled={isSending}
-                className="border-border/60 hover:bg-muted h-8 px-3 text-muted-foreground hover:text-foreground"
-                aria-label={`Kirim ke ${guest.name} via Email`}
-              >
-                {isSending ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <>
-                    <Mail className="mr-1.5 h-3.5 w-3.5" /> Email
                   </>
                 )}
               </Button>

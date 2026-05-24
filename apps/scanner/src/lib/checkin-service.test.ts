@@ -51,8 +51,11 @@ describe('verifyQRCode', () => {
         ok: true,
         status: 200,
         json: async () => ({
-          status: 'valid',
-          guest: { name: 'Ahmad Fauzi', group: 'family' },
+          status: 'green',
+          guest_name: 'Ahmad Fauzi',
+          guest_group: 'family',
+          message: null,
+          checked_in_at: null,
         }),
       } as Response);
 
@@ -67,26 +70,28 @@ describe('verifyQRCode', () => {
         guestGroup: 'family',
       });
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:3100/check-in',
+        'http://localhost:3100/checkin/scan',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({
-            qrPayload: 'encrypted-qr-payload',
-            eventId: 'event-123',
+            qr_payload: 'encrypted-qr-payload',
+            event_id: 'event-123',
           }),
         })
       );
     });
 
-    it('returns duplicate result with previous check-in time on 409', async () => {
+    it('returns duplicate result with previous check-in time on yellow status', async () => {
       const mockFetch = vi.mocked(global.fetch);
       mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 409,
+        ok: true,
+        status: 200,
         json: async () => ({
-          status: 'duplicate',
-          guest: { name: 'Siti Rahayu', group: 'vip' },
-          checkedInAt: '2025-01-15T10:30:00.000Z',
+          status: 'yellow',
+          guest_name: 'Siti Rahayu',
+          guest_group: 'vip',
+          message: 'Tamu sudah check-in',
+          checked_in_at: '2025-01-15T10:30:00.000Z',
         }),
       } as Response);
 
@@ -103,14 +108,14 @@ describe('verifyQRCode', () => {
       });
     });
 
-    it('returns invalid result on 404 (QR not found)', async () => {
+    it('returns invalid result on red status', async () => {
       const mockFetch = vi.mocked(global.fetch);
       mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 404,
+        ok: true,
+        status: 200,
         json: async () => ({
-          status: 'invalid',
-          error: 'QR code tidak ditemukan',
+          status: 'red',
+          message: 'QR code tidak ditemukan',
         }),
       } as Response);
 

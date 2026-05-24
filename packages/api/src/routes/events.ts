@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { PrismaClient } from '@wedding/db';
-import { createEventSchema } from '@wedding/shared';
+import { createEventSchema, ErrorCode, EventStatus } from '@wedding/shared';
 import { EventService, isEventError } from '../services/event/event.service';
 import { PrismaEventRepository } from '../repositories';
 import { validate } from '../middleware/validate';
@@ -30,10 +30,13 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
     const body = validate(request.body, createEventSchema, reply);
     if (!body) return reply;
 
-    const result = await eventService.createEvent(user.tenant_id, body);
+    const result = await eventService.createEvent(user.tenant_id, {
+      ...body,
+      status: body.status ?? EventStatus.DRAFT,
+    });
 
     if (isEventError(result)) {
-      return reply.status(result.code === 'ALREADY_EXISTS' ? 409 : 400).send({
+      return reply.status(result.code === ErrorCode.ALREADY_EXISTS ? 409 : 400).send({
         success: false,
         error: { code: result.code, message: result.message },
       });

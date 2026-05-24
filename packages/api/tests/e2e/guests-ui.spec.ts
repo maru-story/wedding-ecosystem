@@ -5,7 +5,10 @@ test.describe('Guests UI E2E', () => {
     // Add logging for browser console and request failures
     page.on('console', msg => console.log(`[BROWSER CONSOLE] ${msg.type()}: ${msg.text()}`));
     page.on('requestfailed', req => console.log(`[BROWSER REQ FAILED] ${req.method()} ${req.url()}: ${req.failure()?.errorText}`));
-    page.on('requestfinished', req => console.log(`[BROWSER REQ SUCCESS] ${req.method()} ${req.url()}`));
+    page.on('requestfinished', async (req) => {
+      const resp = await req.response();
+      console.log(`[BROWSER REQ] ${req.method()} ${req.url()} -> ${resp?.status()}`);
+    });
 
     // Navigate to local dashboard login page context first to allow setting localStorage
     await page.goto('http://localhost:3000/login');
@@ -41,7 +44,6 @@ test.describe('Guests UI E2E', () => {
     await page.click('span:has-text("VIP")'); // Dropdown item
     
     await page.fill('#guest-phone', '628123456789');
-    await page.fill('#guest-email', 'e2eui@test.com');
     await page.fill('#guest-plus-one', '2');
     
     await page.click('button[type="submit"]:has-text("Tambah Tamu")');
@@ -69,7 +71,7 @@ test.describe('Guests UI E2E', () => {
     await expect(page.locator('#import-modal-title')).toContainText('Import Tamu dari CSV');
 
     // Prepare CSV data matching Bahasa Indonesia headers
-    const csvContent = 'nama,grup,telepon,email\nAgus Budi E2E,family,628111222333,agus@e2e.com\nCici Cantika E2E,vip,628222333444,cici@e2e.com';
+    const csvContent = 'nama,grup,telepon\nAgus Budi E2E,family,628111222333\nCici Cantika E2E,vip,628222333444';
     
     // Mock the file input selection using Playwright
     const buffer = Buffer.from(csvContent, 'utf-8');
@@ -94,12 +96,8 @@ test.describe('Guests UI E2E', () => {
 
     // 5. Delete Guest
     // Handle confirmation dialog before clicking delete button
-    page.once('dialog', async dialog => {
-      expect(dialog.message()).toContain('Apakah Anda yakin ingin menghapus tamu Guest E2E UI Test Edited?');
-      await dialog.accept();
-    });
-    
     await editedRow.locator('button[title="Hapus tamu"]').click();
+    await page.click('button:has-text("Hapus Tamu")');
 
     // Verify deleted guest is no longer visible
     await expect(page.locator('tr:has-text("Guest E2E UI Test Edited")')).not.toBeVisible();

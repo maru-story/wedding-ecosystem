@@ -44,7 +44,6 @@ function createMockGuestRecord(name: string): GuestRecord {
     name,
     slug: name.toLowerCase().replace(/\s/g, '-'),
     phone: null,
-    email: null,
     group: GuestGroup.FRIEND,
     type: GuestType.INVITED,
     plus_one_count: 0,
@@ -59,7 +58,6 @@ function createMockQRCode(guestId: string): QRCodeRecord {
     id: `qr-${guestId}`,
     guest_id: guestId,
     qr_payload: 'abc123:encrypted_data',
-    qr_image_url: null,
     is_active: true,
     generated_at: new Date('2024-01-01'),
   };
@@ -85,7 +83,6 @@ function setupMockService(): { service: GuestService; repository: GuestRepositor
   }));
   vi.mocked(repository.createQRCode).mockImplementation(async (data) => ({
     ...data,
-    qr_image_url: null,
     generated_at: new Date(),
   }));
 
@@ -111,6 +108,33 @@ describe('Guest CSV Import Service', () => {
         nama: 'Jane Smith',
         grup: 'family',
       });
+    });
+
+    it('should parse semicolon delimited CSV with headers and data rows', () => {
+      const csv = 'nama;grup;phone\nJohn Doe;friend;+6281234567890\nJane Smith;family;';
+      const result = parseCSV(csv);
+
+      expect(result.headers).toEqual(['nama', 'grup', 'phone']);
+      expect(result.rows).toHaveLength(2);
+      expect(result.rows[0]).toEqual({
+        nama: 'John Doe',
+        grup: 'friend',
+        phone: '+6281234567890',
+      });
+      expect(result.rows[1]).toEqual({
+        nama: 'Jane Smith',
+        grup: 'family',
+      });
+    });
+
+    it('should ignore sep= configuration lines in CSV', () => {
+      const csv = 'sep=,\nnama,grup\nJohn Doe,friend\nJane Smith,family';
+      const result = parseCSV(csv);
+
+      expect(result.headers).toEqual(['nama', 'grup']);
+      expect(result.rows).toHaveLength(2);
+      expect(result.rows[0].nama).toBe('John Doe');
+      expect(result.rows[1].nama).toBe('Jane Smith');
     });
 
     it('should handle quoted fields with commas', () => {
@@ -166,14 +190,13 @@ describe('Guest CSV Import Service', () => {
     });
 
     it('should handle all optional columns', () => {
-      const csv = 'nama,grup,phone,email,plus_one_count\nJohn,friend,+62812,john@test.com,2';
+      const csv = 'nama,grup,phone,plus_one_count\nJohn,friend,+62812,2';
       const result = parseCSV(csv);
 
       expect(result.rows[0]).toEqual({
         nama: 'John',
         grup: 'friend',
         phone: '+62812',
-        email: 'john@test.com',
         plus_one_count: '2',
       });
     });
@@ -220,6 +243,24 @@ describe('Guest CSV Import Service', () => {
       expect(typeof result).toBe('string');
       expect(result as string).toContain('Grup tidak valid');
       expect(result as string).toContain('invalid_group');
+    });
+
+    it('should map Indonesian group synonyms to standard enums', () => {
+      const rowKeluarga: CSVRow = { nama: 'Budi', grup: 'Keluarga' };
+      const rowTeman: CSVRow = { nama: 'Siti', grup: 'teman' };
+      const rowRekan: CSVRow = { nama: 'Andi', grup: 'rekan kerja' };
+
+      const resKeluarga = validateRow(rowKeluarga, new Set());
+      const resTeman = validateRow(rowTeman, new Set());
+      const resRekan = validateRow(rowRekan, new Set());
+
+      expect(typeof resKeluarga).not.toBe('string');
+      expect(typeof resTeman).not.toBe('string');
+      expect(typeof resRekan).not.toBe('string');
+
+      if (typeof resKeluarga !== 'string') expect(resKeluarga.group).toBe('family');
+      if (typeof resTeman !== 'string') expect(resTeman.group).toBe('friend');
+      if (typeof resRekan !== 'string') expect(resRekan.group).toBe('colleague');
     });
 
     it('should accept all valid group values', () => {
@@ -285,13 +326,12 @@ describe('Guest CSV Import Service', () => {
     });
 
     it('should handle optional fields gracefully', () => {
-      const row: CSVRow = { nama: 'John', grup: 'vip', phone: '+62812', email: 'j@t.com' };
+      const row: CSVRow = { nama: 'John', grup: 'vip', phone: '+62812' };
       const result = validateRow(row, new Set());
 
       expect(typeof result).not.toBe('string');
       if (typeof result !== 'string') {
         expect(result.phone).toBe('+62812');
-        expect(result.email).toBe('j@t.com');
       }
     });
 
@@ -427,7 +467,7 @@ describe('Guest CSV Import Service', () => {
 
     it('should handle all optional columns in CSV', async () => {
       const csv =
-        'nama,grup,phone,email,plus_one_count\nJohn Doe,friend,+6281234567890,john@test.com,2';
+        'nama,grup,phone,plus_one_count\nJohn Doe,friend,+6281234567890,2';
 
       const report = await bulkImportGuests(
         { eventId: 'event-001', tenantId: 'tenant-001', csvText: csv },
@@ -441,7 +481,6 @@ describe('Guest CSV Import Service', () => {
           name: 'John Doe',
           group: GuestGroup.FRIEND,
           phone: '+6281234567890',
-          email: 'john@test.com',
           plus_one_count: 2,
         })
       );

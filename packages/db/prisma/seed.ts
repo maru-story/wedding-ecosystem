@@ -123,11 +123,11 @@ async function main() {
 
   // 5. Create 5 sample guests with QR codes
   const guestData = [
-    { name: 'Budi Santoso', group: 'family', phone: '+6281234567890', email: 'budi@example.com' },
-    { name: 'Siti Rahayu', group: 'family', phone: '+6281234567891', email: 'siti@example.com' },
-    { name: 'Ahmad Fauzi', group: 'friend', phone: '+6281234567892', email: null },
-    { name: 'Dewi Lestari', group: 'colleague', phone: null, email: 'dewi@example.com' },
-    { name: 'Rudi Hermawan', group: 'vip', phone: '+6281234567894', email: 'rudi@example.com' },
+    { name: 'Budi Santoso', group: 'family', phone: '+6281234567890' },
+    { name: 'Siti Rahayu', group: 'family', phone: '+6281234567891' },
+    { name: 'Ahmad Fauzi', group: 'friend', phone: '+6281234567892' },
+    { name: 'Dewi Lestari', group: 'colleague', phone: null },
+    { name: 'Rudi Hermawan', group: 'vip', phone: '+6281234567894' },
   ];
 
   const guestIds: string[] = [];
@@ -149,7 +149,6 @@ async function main() {
         name: g.name,
         slug,
         phone: g.phone,
-        email: g.email,
         group: g.group as GuestGroup,
         type: 'invited',
         plus_one_count: 1,

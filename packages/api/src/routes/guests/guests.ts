@@ -83,7 +83,6 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
           name: guest.name,
           slug: guest.slug,
           phone: guest.phone,
-          email: guest.email,
           delivery_status: guest.delivery_status,
           invitation_url: guest.invitation_url,
         })),
@@ -115,7 +114,6 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
       group: body.group,
       type: body.type!,
       phone: body.phone,
-      email: body.email,
       plus_one_count: body.plus_one_count!,
     });
 
@@ -180,9 +178,9 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
     }
 
     const qr = result.qr_code;
+    const qr_payload = qr?.qr_payload ?? null;
     return reply.send({
-      qr_image_url: qr?.qr_image_url ?? null,
-      qr_payload: qr?.qr_payload ?? null,
+      qr_payload,
       is_active: qr?.is_active ?? false,
     });
   });

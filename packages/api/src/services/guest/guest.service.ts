@@ -26,7 +26,6 @@ export interface GuestRecord {
   name: string;
   slug: string;
   phone: string | null;
-  email: string | null;
   group: GuestGroup;
   type: GuestType;
   plus_one_count: number;
@@ -39,7 +38,6 @@ export interface QRCodeRecord {
   id: string;
   guest_id: string;
   qr_payload: string;
-  qr_image_url: string | null;
   is_active: boolean;
   generated_at: Date;
 }
@@ -56,7 +54,6 @@ export interface GuestListItem {
   type: GuestType;
   plus_one_count: number;
   phone: string | null;
-  email: string | null;
   invitation_url: string | null;
   delivery_status: DeliveryStatus;
   rsvp_status: string | null;
@@ -94,7 +91,6 @@ export interface GuestRepository {
     name: string;
     slug: string;
     phone: string | null;
-    email: string | null;
     group: GuestGroup;
     type: GuestType;
     plus_one_count: number;
@@ -130,7 +126,6 @@ export interface GuestRepository {
       name: string;
       slug: string;
       phone: string | null;
-      email: string | null;
       group: GuestGroup;
       plus_one_count: number;
       invitation_url: string | null;
@@ -220,7 +215,6 @@ export class GuestService {
       name: input.name,
       slug,
       phone: input.phone || null,
-      email: input.email || null,
       group: input.group,
       type: input.type ?? GuestType.INVITED,
       plus_one_count: input.plus_one_count ?? 0,
@@ -286,7 +280,6 @@ export class GuestService {
       name: string;
       slug: string;
       phone: string | null;
-      email: string | null;
       group: GuestGroup;
       plus_one_count: number;
       invitation_url: string | null;
@@ -314,10 +307,6 @@ export class GuestService {
 
     if (input.phone !== undefined) {
       updateData.phone = input.phone || null;
-    }
-
-    if (input.email !== undefined) {
-      updateData.email = input.email || null;
     }
 
     if (input.group !== undefined) {

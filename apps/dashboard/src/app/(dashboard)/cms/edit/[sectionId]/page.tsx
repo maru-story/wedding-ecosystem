@@ -192,7 +192,7 @@ export default function SectionEditPage({ params }: { params: Promise<{ sectionI
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-gray-500">Memuat section...</p>
+          <p className="mt-3 text-sm text-muted-foreground">Memuat section...</p>
         </div>
       </div>
     );
@@ -204,7 +204,7 @@ export default function SectionEditPage({ params }: { params: Promise<{ sectionI
       <div className="mb-6">
         <Link
           href="/cms"
-          className="mb-3 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <svg
             className="h-4 w-4"
@@ -225,12 +225,12 @@ export default function SectionEditPage({ params }: { params: Promise<{ sectionI
             <h1 className="font-heading text-2xl font-bold">
               {SECTION_TYPE_LABELS[section.section_type]}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Section #{section.sort_order} •{' '}
               {section.is_active ? (
-                <span className="text-green-600">Aktif</span>
+                <span className="text-success font-medium">Aktif</span>
               ) : (
-                <span className="text-gray-400">Nonaktif</span>
+                <span className="text-muted-foreground">Nonaktif</span>
               )}
             </p>
           </div>
@@ -240,7 +240,7 @@ export default function SectionEditPage({ params }: { params: Promise<{ sectionI
       {/* Success message */}
       {saveSuccess && (
         <div
-          className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700"
+          className="mb-4 rounded-lg border border-success/20 bg-success/10 p-3 text-sm text-success"
           role="status"
         >
           ✓ Perubahan berhasil disimpan
@@ -250,7 +250,7 @@ export default function SectionEditPage({ params }: { params: Promise<{ sectionI
       {/* Error message */}
       {error && (
         <div
-          className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive"
           role="alert"
         >
           {error}
@@ -258,7 +258,7 @@ export default function SectionEditPage({ params }: { params: Promise<{ sectionI
       )}
 
       {/* Section Editor Form */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-xl border border-border/40 bg-card p-6 shadow-sm">
         <SectionEditorForm
           sectionType={section.section_type}
           content={section.content}

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { SECTION_TYPE_LABELS, SECTION_TYPE_ICONS } from '@/lib/cms';
 import type { InvitationSection } from '@/lib/cms';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 // Mock active sections for preview (in production, fetch from API)
 const MOCK_ACTIVE_SECTIONS: InvitationSection[] = [
@@ -112,16 +113,16 @@ function PreviewSection({ section }: { section: InvitationSection }) {
         };
         return (
           <div className="flex flex-col items-center justify-center py-16 text-center bg-gradient-to-b from-primary/10 to-transparent">
-            <p className="text-sm uppercase tracking-widest text-gray-500">
+            <p className="text-sm uppercase tracking-widest text-muted-foreground">
               {title || 'The Wedding of'}
             </p>
-            <h2 className="mt-2 font-heading text-3xl font-bold text-gray-900">
+            <h2 className="mt-2 font-heading text-3xl font-bold text-foreground">
               {subtitle || 'Nama Mempelai'}
             </h2>
-            <p className="mt-1 text-sm text-gray-500">Kepada Yth. Nama Tamu</p>
-            <button className="mt-6 rounded-full bg-primary px-6 py-2 text-sm font-medium text-white">
+            <p className="mt-1 text-sm text-muted-foreground">Kepada Yth. Nama Tamu</p>
+            <Button className="mt-6 rounded-full" size="default">
               {opening_text || 'Buka Undangan'}
-            </button>
+            </Button>
           </div>
         );
       }
@@ -133,18 +134,18 @@ function PreviewSection({ section }: { section: InvitationSection }) {
         return (
           <div className="grid grid-cols-2 gap-6 py-8 text-center">
             <div>
-              <div className="mx-auto h-24 w-24 rounded-full bg-gray-200" />
+              <div className="mx-auto h-24 w-24 rounded-full bg-muted" />
               <p className="mt-3 font-heading text-lg font-semibold">
                 {bride?.name || 'Mempelai Wanita'}
               </p>
-              <p className="text-xs text-gray-500">{bride?.parent_info || 'Putri dari ...'}</p>
+              <p className="text-xs text-muted-foreground">{bride?.parent_info || 'Putri dari ...'}</p>
             </div>
             <div>
-              <div className="mx-auto h-24 w-24 rounded-full bg-gray-200" />
+              <div className="mx-auto h-24 w-24 rounded-full bg-muted" />
               <p className="mt-3 font-heading text-lg font-semibold">
                 {groom?.name || 'Mempelai Pria'}
               </p>
-              <p className="text-xs text-gray-500">{groom?.parent_info || 'Putra dari ...'}</p>
+              <p className="text-xs text-muted-foreground">{groom?.parent_info || 'Putra dari ...'}</p>
             </div>
           </div>
         );
@@ -153,10 +154,10 @@ function PreviewSection({ section }: { section: InvitationSection }) {
         const { text, source } = section.content as { text?: string; source?: string };
         return (
           <div className="py-8 text-center italic">
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <p className="text-sm text-foreground leading-relaxed">
               &ldquo;{text || 'Ayat atau doa...'}&rdquo;
             </p>
-            <p className="mt-2 text-xs text-gray-500 not-italic">— {source || 'Sumber'}</p>
+            <p className="mt-2 text-xs text-muted-foreground not-italic">— {source || 'Sumber'}</p>
           </div>
         );
       }
@@ -164,7 +165,7 @@ function PreviewSection({ section }: { section: InvitationSection }) {
         return (
           <div className="py-8 text-center">
             <span className="text-2xl">{SECTION_TYPE_ICONS[section.section_type]}</span>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               {SECTION_TYPE_LABELS[section.section_type]}
             </p>
           </div>
@@ -173,7 +174,7 @@ function PreviewSection({ section }: { section: InvitationSection }) {
     }
   };
 
-  return <div className="border-b border-gray-100 last:border-b-0">{renderContent()}</div>;
+  return <div className="border-b border-border/40 last:border-b-0">{renderContent()}</div>;
 }
 
 export default function PreviewPage() {
@@ -186,7 +187,7 @@ export default function PreviewPage() {
         <div>
           <Link
             href="/cms"
-            className="mb-2 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="mb-2 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <svg
               className="h-4 w-4"
@@ -200,19 +201,19 @@ export default function PreviewPage() {
             Kembali ke editor
           </Link>
           <h1 className="font-heading text-2xl font-bold">Preview Undangan</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-muted-foreground">
             Tampilan undangan sesuai konfigurasi section aktif
           </p>
         </div>
 
         {/* Device toggle */}
-        <div className="flex rounded-lg border border-gray-200 bg-white p-1">
+        <div className="flex rounded-lg border border-border/40 bg-card p-1">
           <button
             onClick={() => setDeviceView('mobile')}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               deviceView === 'mobile'
-                ? 'bg-primary text-white'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
             aria-label="Tampilan mobile"
           >
@@ -222,8 +223,8 @@ export default function PreviewPage() {
             onClick={() => setDeviceView('desktop')}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               deviceView === 'desktop'
-                ? 'bg-primary text-white'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
             aria-label="Tampilan desktop"
           >
@@ -235,13 +236,13 @@ export default function PreviewPage() {
       {/* Preview frame */}
       <div className="flex justify-center">
         <div
-          className={`overflow-hidden rounded-2xl border-2 border-gray-200 bg-white shadow-lg transition-all ${
+          className={`overflow-hidden rounded-2xl border-2 border-border/40 bg-card shadow-lg transition-all ${
             deviceView === 'mobile' ? 'w-[375px]' : 'w-full max-w-[768px]'
           }`}
         >
           {deviceView === 'mobile' && (
-            <div className="flex items-center justify-center bg-gray-900 py-2">
-              <div className="h-4 w-24 rounded-full bg-gray-800" />
+            <div className="flex items-center justify-center bg-neutral-900 dark:bg-neutral-950 py-2">
+              <div className="h-4 w-24 rounded-full bg-muted" />
             </div>
           )}
           <div className="max-h-[600px] overflow-y-auto">

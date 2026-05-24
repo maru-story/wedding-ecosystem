@@ -172,7 +172,6 @@ model Guest {
   name            String
   slug            String
   phone           String?
-  email           String?
   group           GuestGroup
   type            GuestType      @default(invited)
   plus_one_count  Int            @default(0)
@@ -197,7 +196,6 @@ model QRCode {
   id           String   @id @default(uuid()) @db.Uuid
   guest_id     String   @db.Uuid
   qr_payload   String   @unique
-  qr_image_url String?
   is_active    Boolean  @default(true)
   generated_at DateTime @default(now())
 

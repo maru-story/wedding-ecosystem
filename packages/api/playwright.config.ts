@@ -27,13 +27,14 @@ export default defineConfig({
       url: 'http://localhost:4005/health',
       reuseExistingServer: !process.env.CI,
       timeout: 120000,
-      stdout: 'pipe',
-      stderr: 'pipe',
+      stdout: 'inherit',
+      stderr: 'inherit',
     },
     {
-      command: 'npx next dev --port 3000',
+      command: 'npx next build && npx next start --port 3000',
       cwd: path.resolve(__dirname, '../../apps/dashboard'),
       env: {
+        NODE_ENV: 'test',
         NEXT_PUBLIC_API_URL: 'http://localhost:4005',
         NEXT_PUBLIC_WS_URL: 'http://localhost:4005',
         NEXT_PUBLIC_CDN_URL: 'http://localhost:4005',
@@ -41,8 +42,8 @@ export default defineConfig({
       url: 'http://localhost:3000',
       reuseExistingServer: !process.env.CI,
       timeout: 120000,
-      stdout: 'pipe',
-      stderr: 'pipe',
+      stdout: 'inherit',
+      stderr: 'inherit',
     }
   ],
 });

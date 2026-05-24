@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { apiFetch, ApiError } from '@/lib/api';
+import { useState } from 'react';
+import { ApiError } from '@/lib/api';
+import { useAdminAuditLogs, useAdminTenants, useAdminUsers } from '@/hooks/queries';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+
 interface AuditLogRecord {
   id: string;
   timestamp: string;
@@ -48,32 +50,19 @@ interface AuditLogRecord {
   metadata: any;
 }
 
-interface TenantItem {
+interface Tenant {
   id: string;
   name: string;
 }
 
-interface UserItem {
+interface User {
   id: string;
   name: string;
   email: string;
 }
 
 export default function AdminAuditLogsPage() {
-  const [logs, setLogs] = useState<AuditLogRecord[]>([]);
-  const [tenants, setTenants] = useState<TenantItem[]>([]);
-  const [users, setUsers] = useState<UserItem[]>([]);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    per_page: 10,
-    total: 0,
-    total_pages: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState('');
-
-  // Filters
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [actionFilter, setActionFilter] = useState<string>('ALL');
   const [tenantFilter, setTenantFilter] = useState<string>('ALL');
@@ -82,67 +71,35 @@ export default function AdminAuditLogsPage() {
   // Dialog State
   const [selectedLog, setSelectedLog] = useState<AuditLogRecord | null>(null);
 
-  // Fetch filters helper data
-  const fetchFilterHelpers = async () => {
-    try {
-      const [tenantsRes, usersRes] = await Promise.all([
-        apiFetch<{ data: TenantItem[] }>('/admin/tenants?per_page=100'),
-        apiFetch<{ data: UserItem[] }>('/admin/users?per_page=100')
-      ]);
-      setTenants(tenantsRes.data);
-      setUsers(usersRes.data);
-    } catch {
-      // Non-blocking helper fail
-    }
+  // Fetch helper filters data using TanStack Query
+  const { data: tenantsData } = useAdminTenants({ page: 1, perPage: 100 });
+  const { data: usersData } = useAdminUsers({ page: 1, perPage: 100 });
+
+  const tenants: Tenant[] = tenantsData?.data || [];
+  const users: User[] = usersData?.data || [];
+
+  // Fetch audit logs via TanStack Query
+  const {
+    data: logsData,
+    isLoading,
+    error,
+    refetch,
+    isFetching,
+  } = useAdminAuditLogs({
+    page,
+    search: searchTerm,
+    action: actionFilter,
+    tenantId: tenantFilter,
+    userId: userFilter,
+  });
+
+  const logs: AuditLogRecord[] = logsData?.data || [];
+  const pagination = logsData?.pagination || {
+    page: 1,
+    per_page: 10,
+    total: 0,
+    total_pages: 0,
   };
-
-  const fetchLogs = useCallback(
-    async (page = 1, silent = false) => {
-      if (!silent) setIsLoading(true);
-      else setIsRefreshing(true);
-      setError('');
-
-      try {
-        const params = new URLSearchParams({
-          page: page.toString(),
-          per_page: '10',
-        });
-
-        if (searchTerm) params.set('search', searchTerm);
-        if (actionFilter !== 'ALL') params.set('action', actionFilter);
-        if (tenantFilter !== 'ALL') params.set('tenant_id', tenantFilter);
-        if (userFilter !== 'ALL') params.set('user_id', userFilter);
-
-        const response = await apiFetch<{
-          success: boolean;
-          data: AuditLogRecord[];
-          pagination: typeof pagination;
-        }>(`/admin/audit-logs?${params.toString()}`);
-
-        setLogs(response.data);
-        setPagination(response.pagination);
-      } catch (err) {
-        if (err instanceof ApiError) {
-          const errData = err.data as { error?: { message?: string } };
-          setError(errData.error?.message || 'Gagal memuat log audit aktivitas');
-        } else {
-          setError('Terjadi kesalahan koneksi ke server');
-        }
-      } finally {
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
-    },
-    [searchTerm, actionFilter, tenantFilter, userFilter]
-  );
-
-  useEffect(() => {
-    fetchFilterHelpers();
-  }, []);
-
-  useEffect(() => {
-    fetchLogs(1);
-  }, [fetchLogs]);
 
   const formatDate = (dateStr: string) => {
     try {
@@ -163,17 +120,17 @@ export default function AdminAuditLogsPage() {
   const getActionBadgeColor = (action: string) => {
     switch (action) {
       case 'login':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30';
+        return 'bg-success/15 text-success border-transparent';
       case 'logout':
-        return 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30';
+        return 'bg-warning/15 text-warning border-transparent';
       case 'data_export':
-        return 'bg-sky-50 text-sky-700 border-sky-100 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900/30';
+        return 'bg-info/15 text-info border-transparent';
       case 'bulk_operation':
-        return 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900/30';
+        return 'bg-primary/15 text-foreground border-transparent';
       case 'tenant_config_change':
-        return 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-950/20 dark:text-purple-400 dark:border-purple-900/30';
+        return 'bg-accent/40 text-foreground border-transparent';
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-100 dark:bg-gray-800/40 dark:text-gray-400 dark:border-gray-700/50';
+        return 'bg-muted text-muted-foreground border-transparent';
     }
   };
 
@@ -194,34 +151,45 @@ export default function AdminAuditLogsPage() {
     }
   };
 
+  // Format error message
+  let errorMessage = '';
+  if (error) {
+    if (error instanceof ApiError) {
+      const errData = error.data as { error?: { message?: string } };
+      errorMessage = errData.error?.message || 'Gagal memuat log audit aktivitas';
+    } else {
+      errorMessage = 'Terjadi kesalahan koneksi ke server';
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <History className="h-8 w-8 text-primary" />
             Log Aktivitas & Audit
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Pantau seluruh aktivitas operasional sensitif, transaksi penting, dan audit keamanan sistem global.
           </p>
         </div>
         <Button
-          onClick={() => fetchLogs(pagination.page, true)}
-          disabled={isRefreshing}
+          onClick={() => refetch()}
+          disabled={isFetching}
           variant="outline"
-          className="flex items-center gap-2 border-gray-200 self-start"
+          className="flex items-center gap-2 border-border/60 self-start hover:bg-muted/20"
         >
-          <RefreshCw className={`h-4 w-4 text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 text-muted-foreground ${isFetching ? 'animate-spin' : ''}`} />
           Perbarui
         </Button>
       </div>
 
       {/* Advanced Filter Panel */}
-      <Card className="border-gray-100 shadow-sm bg-white">
+      <Card className="border-border/40 shadow-sm bg-card">
         <CardContent className="p-4 space-y-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <SlidersHorizontal className="h-4 w-4 text-primary" />
             Panel Filter Lanjutan
           </div>
@@ -229,18 +197,27 @@ export default function AdminAuditLogsPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Search Term */}
             <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Cari Aksi atau Request ID..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 rounded-lg border-gray-200 focus-visible:ring-primary/20"
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1);
+                }}
+                className="pl-9 rounded-lg border-border/60 focus-visible:ring-primary/20 bg-background"
               />
             </div>
 
             {/* Action Filter */}
-            <Select value={actionFilter} onValueChange={setActionFilter}>
-              <SelectTrigger className="rounded-lg border-gray-200">
+            <Select
+              value={actionFilter}
+              onValueChange={(val) => {
+                setActionFilter(val);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="rounded-lg border-border/60 bg-background">
                 <SelectValue placeholder="Pilih Aksi" />
               </SelectTrigger>
               <SelectContent>
@@ -254,8 +231,14 @@ export default function AdminAuditLogsPage() {
             </Select>
 
             {/* Tenant Filter */}
-            <Select value={tenantFilter} onValueChange={setTenantFilter}>
-              <SelectTrigger className="rounded-lg border-gray-200">
+            <Select
+              value={tenantFilter}
+              onValueChange={(val) => {
+                setTenantFilter(val);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="rounded-lg border-border/60 bg-background">
                 <SelectValue placeholder="Pilih Tenant" />
               </SelectTrigger>
               <SelectContent>
@@ -267,8 +250,14 @@ export default function AdminAuditLogsPage() {
             </Select>
 
             {/* User Filter */}
-            <Select value={userFilter} onValueChange={setUserFilter}>
-              <SelectTrigger className="rounded-lg border-gray-200">
+            <Select
+              value={userFilter}
+              onValueChange={(val) => {
+                setUserFilter(val);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="rounded-lg border-border/60 bg-background">
                 <SelectValue placeholder="Pilih Pengguna" />
               </SelectTrigger>
               <SelectContent>
@@ -283,27 +272,27 @@ export default function AdminAuditLogsPage() {
       </Card>
 
       {/* Main Table */}
-      <Card className="border-gray-100 shadow-sm overflow-hidden bg-white">
+      <Card className="border-border/40 shadow-sm overflow-hidden bg-card">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
             <div className="flex flex-col items-center gap-2">
               <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-              <span className="text-sm text-gray-500 font-medium">Memuat log aktivitas...</span>
+              <span className="text-sm text-muted-foreground font-medium">Memuat log aktivitas...</span>
             </div>
           </div>
-        ) : error ? (
-          <div className="flex h-64 items-center justify-center text-red-500 font-medium">
-            {error}
+        ) : errorMessage ? (
+          <div className="flex h-64 items-center justify-center text-destructive font-medium">
+            {errorMessage}
           </div>
         ) : logs.length === 0 ? (
           <div className="flex h-64 flex-col items-center justify-center gap-2">
-            <History className="h-10 w-10 text-gray-300" />
-            <span className="text-sm text-gray-500 font-medium">Tidak ada log aktivitas yang cocok</span>
+            <History className="h-10 w-10 text-muted-foreground/40" />
+            <span className="text-sm text-muted-foreground font-medium">Tidak ada log aktivitas yang cocok</span>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-gray-50/75">
+              <TableHeader className="bg-muted/30">
                 <TableRow>
                   <TableHead className="w-[200px]">Waktu</TableHead>
                   <TableHead className="w-[150px]">Aksi</TableHead>
@@ -314,10 +303,10 @@ export default function AdminAuditLogsPage() {
               </TableHeader>
               <TableBody>
                 {logs.map((log) => (
-                  <TableRow key={log.id} className="hover:bg-gray-50/50 transition-colors">
-                    <TableCell className="font-medium text-gray-600 whitespace-nowrap">
+                  <TableRow key={log.id} className="hover:bg-muted/10 transition-colors">
+                    <TableCell className="font-medium text-muted-foreground whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-400 shrink-0" />
+                        <Calendar className="h-4 w-4 text-muted-foreground/60 shrink-0" />
                         {formatDate(log.timestamp)}
                       </div>
                     </TableCell>
@@ -329,24 +318,24 @@ export default function AdminAuditLogsPage() {
                     <TableCell>
                       {log.user_id ? (
                         <div className="flex flex-col">
-                          <span className="font-semibold text-gray-800 text-sm flex items-center gap-1">
-                            <User className="h-3 w-3 text-gray-400" />
+                          <span className="font-semibold text-foreground text-sm flex items-center gap-1">
+                            <User className="h-3 w-3 text-muted-foreground/60" />
                             {log.user_name || 'Tanpa Nama'}
                           </span>
-                          <span className="text-xs text-gray-400">{log.user_email}</span>
+                          <span className="text-xs text-muted-foreground">{log.user_email}</span>
                         </div>
                       ) : (
-                        <span className="text-gray-400 text-sm italic">Anonim / Sistem</span>
+                        <span className="text-muted-foreground text-sm italic">Anonim / Sistem</span>
                       )}
                     </TableCell>
                     <TableCell>
                       {log.tenant_id ? (
-                        <span className="text-gray-700 text-sm font-medium flex items-center gap-1">
-                          <Building className="h-3.5 w-3.5 text-gray-400" />
+                        <span className="text-foreground text-sm font-medium flex items-center gap-1">
+                          <Building className="h-3.5 w-3.5 text-muted-foreground/60" />
                           {log.tenant_name || 'Tenant Tidak Diketahui'}
                         </span>
                       ) : (
-                        <span className="text-gray-400 text-xs italic">Akses Tingkat Global</span>
+                        <span className="text-muted-foreground text-xs italic">Akses Tingkat Global</span>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -354,7 +343,7 @@ export default function AdminAuditLogsPage() {
                         size="sm"
                         variant="ghost"
                         onClick={() => setSelectedLog(log)}
-                        className="text-primary hover:text-primary-hover hover:bg-primary/5 rounded-lg h-8 px-2.5"
+                        className="text-primary hover:text-foreground hover:bg-primary/10 rounded-lg h-8 px-2.5"
                       >
                         <Info className="h-4 w-4 shrink-0" />
                         <span className="sr-only">Detail</span>
@@ -368,31 +357,31 @@ export default function AdminAuditLogsPage() {
         )}
 
         {/* Pagination Section */}
-        {!isLoading && !error && logs.length > 0 && (
-          <div className="flex items-center justify-between border-t border-gray-100 px-4 py-4 bg-white">
-            <div className="text-xs text-gray-500 font-medium">
+        {!isLoading && !errorMessage && logs.length > 0 && (
+          <div className="flex items-center justify-between border-t border-border/40 px-4 py-4 bg-card">
+            <div className="text-xs text-muted-foreground font-medium">
               Menampilkan {(pagination.page - 1) * pagination.per_page + 1} - {Math.min(pagination.page * pagination.per_page, pagination.total)} dari {pagination.total} log
             </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => fetchLogs(pagination.page - 1)}
-                disabled={pagination.page <= 1}
-                className="h-8 rounded-lg border-gray-200"
+                onClick={() => setPage(page - 1)}
+                disabled={page <= 1}
+                className="h-8 rounded-lg border-border/60 hover:bg-muted/10"
               >
                 <ChevronLeft className="h-4 w-4" />
                 Sebelumnya
               </Button>
-              <div className="text-xs font-semibold text-gray-700 px-2">
-                Halaman {pagination.page} / {pagination.total_pages}
+              <div className="text-xs font-semibold text-foreground px-2">
+                Halaman {page} / {pagination.total_pages}
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => fetchLogs(pagination.page + 1)}
-                disabled={pagination.page >= pagination.total_pages}
-                className="h-8 rounded-lg border-gray-200"
+                onClick={() => setPage(page + 1)}
+                disabled={page >= pagination.total_pages}
+                className="h-8 rounded-lg border-border/60 hover:bg-muted/10"
               >
                 Selanjutnya
                 <ChevronRight className="h-4 w-4" />
@@ -404,45 +393,45 @@ export default function AdminAuditLogsPage() {
 
       {/* JSON Metadata Detail Dialog */}
       <Dialog open={selectedLog !== null} onOpenChange={(open) => !open && setSelectedLog(null)}>
-        <DialogContent className="max-w-2xl bg-white rounded-xl shadow-xl border border-gray-100">
+        <DialogContent className="max-w-2xl bg-card rounded-xl shadow-xl border border-border/40">
           <DialogHeader>
-            <DialogTitle className="font-heading text-xl font-bold text-gray-900 flex items-center gap-2">
+            <DialogTitle className="font-heading text-xl font-bold text-foreground flex items-center gap-2">
               <Cpu className="h-5 w-5 text-primary" />
               Detail Log Aktivitas & Payload Metadata
             </DialogTitle>
-            <DialogDescription className="text-xs text-gray-400">
+            <DialogDescription className="text-xs text-muted-foreground">
               Berikut detail lengkap data operasional audit log beserta metadata payload yang tersimpan.
             </DialogDescription>
           </DialogHeader>
 
           {selectedLog && (
             <div className="space-y-4 my-2">
-              <div className="grid grid-cols-2 gap-4 text-xs bg-gray-50 p-3 rounded-lg border border-gray-100">
+              <div className="grid grid-cols-2 gap-4 text-xs bg-muted/20 p-3 rounded-lg border border-border/40">
                 <div>
-                  <span className="font-medium text-gray-400 block mb-0.5">WAKTU EKSEKUSI</span>
-                  <span className="font-semibold text-gray-700">{formatDate(selectedLog.timestamp)}</span>
+                  <span className="font-medium text-muted-foreground block mb-0.5">WAKTU EKSEKUSI</span>
+                  <span className="font-semibold text-foreground">{formatDate(selectedLog.timestamp)}</span>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-400 block mb-0.5">JENIS AKSI</span>
+                  <span className="font-medium text-muted-foreground block mb-0.5">JENIS AKSI</span>
                   <Badge className={`border uppercase text-[9px] font-bold ${getActionBadgeColor(selectedLog.action)}`} variant="outline">
                     {getActionNameInIndonesian(selectedLog.action)}
                   </Badge>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-400 block mb-0.5">OPERATOR ID</span>
-                  <span className="font-semibold text-gray-700 font-mono text-[10px]">{selectedLog.user_id || 'SISTEM'}</span>
+                  <span className="font-medium text-muted-foreground block mb-0.5">OPERATOR ID</span>
+                  <span className="font-semibold text-foreground font-mono text-[10px]">{selectedLog.user_id || 'SISTEM'}</span>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-400 block mb-0.5">REQUEST ID</span>
-                  <span className="font-semibold text-gray-700 font-mono text-[10px]">{selectedLog.request_id}</span>
+                  <span className="font-medium text-muted-foreground block mb-0.5">REQUEST ID</span>
+                  <span className="font-semibold text-foreground font-mono text-[10px]">{selectedLog.request_id}</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Payload JSON Metadata</span>
-                <div className="bg-slate-950 text-slate-100 p-4 rounded-lg overflow-auto max-h-64 font-mono text-xs shadow-inner">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Payload JSON Metadata</span>
+                <div className="bg-zinc-950/80 border border-border/40 text-slate-100 p-4 rounded-lg overflow-auto max-h-64 font-mono text-xs shadow-inner">
                   {selectedLog.metadata ? (
-                    <pre>{JSON.stringify(selectedLog.metadata, null, 2)}</pre>
+                    <pre className="whitespace-pre-wrap">{JSON.stringify(selectedLog.metadata, null, 2)}</pre>
                   ) : (
                     <span className="italic text-slate-500">Tidak ada metadata tambahan yang terasosiasi.</span>
                   )}

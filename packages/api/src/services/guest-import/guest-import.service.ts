@@ -5,7 +5,7 @@ import { GuestService, isGuestError } from '../guest/guest.service';
 // --- Constants ---
 
 const REQUIRED_COLUMNS = ['nama', 'grup'] as const;
-const OPTIONAL_COLUMNS = ['phone', 'email', 'plus_one_count'] as const;
+const OPTIONAL_COLUMNS = ['phone', 'plus_one_count'] as const;
 const ALL_COLUMNS = [...REQUIRED_COLUMNS, ...OPTIONAL_COLUMNS] as const;
 
 const VALID_GROUPS: string[] = Object.values(GuestGroup);
@@ -16,7 +16,6 @@ export interface CSVRow {
   nama?: string;
   grup?: string;
   phone?: string;
-  email?: string;
   plus_one_count?: string;
   [key: string]: string | undefined;
 }
@@ -43,14 +42,29 @@ export interface ParsedCSVResult {
  * Handles quoted fields, commas within quotes, and newlines within quotes.
  */
 export function parseCSV(csvText: string): ParsedCSVResult {
-  const lines = splitCSVLines(csvText);
+  let lines = splitCSVLines(csvText);
 
   if (lines.length === 0) {
     return { rows: [], headers: [] };
   }
 
+  // Skip "sep=" configuration line if present (used for Excel compatibility)
+  if (lines[0].trim().toLowerCase().startsWith('sep=')) {
+    lines = lines.slice(1);
+  }
+
+  if (lines.length === 0) {
+    return { rows: [], headers: [] };
+  }
+
+  // Detect delimiter from the first line (prefer comma unless semicolon is dominant)
+  const firstLine = lines[0];
+  const commaCount = (firstLine.match(/,/g) || []).length;
+  const semicolonCount = (firstLine.match(/;/g) || []).length;
+  const delimiter = semicolonCount > commaCount ? ';' : ',';
+
   // Parse header row
-  const headers = parseCSVLine(lines[0]).map((h) => h.trim().toLowerCase());
+  const headers = parseCSVLine(lines[0], delimiter).map((h) => h.trim().toLowerCase());
 
   // Parse data rows
   const rows: CSVRow[] = [];
@@ -58,7 +72,7 @@ export function parseCSV(csvText: string): ParsedCSVResult {
     const line = lines[i].trim();
     if (line === '') continue; // Skip empty lines
 
-    const values = parseCSVLine(line);
+    const values = parseCSVLine(line, delimiter);
     const row: CSVRow = {};
 
     for (let j = 0; j < headers.length; j++) {
@@ -110,7 +124,7 @@ function splitCSVLines(text: string): string[] {
 /**
  * Parse a single CSV line into field values, handling quoted fields.
  */
-function parseCSVLine(line: string): string[] {
+function parseCSVLine(line: string, delimiter = ','): string[] {
   const fields: string[] = [];
   let current = '';
   let inQuotes = false;
@@ -126,7 +140,7 @@ function parseCSVLine(line: string): string[] {
       } else {
         inQuotes = !inQuotes;
       }
-    } else if (char === ',' && !inQuotes) {
+    } else if (char === delimiter && !inQuotes) {
       fields.push(current);
       current = '';
     } else {
@@ -144,7 +158,6 @@ export interface ValidatedRow {
   name: string;
   group: GuestGroup;
   phone: string | undefined;
-  email: string | undefined;
   plus_one_count: number;
 }
 
@@ -160,9 +173,18 @@ export function validateRow(row: CSVRow, existingNames: Set<string>): ValidatedR
   }
 
   // Check required field: grup
-  const grup = row.grup?.trim().toLowerCase();
+  let grup = row.grup?.trim().toLowerCase();
   if (!grup || grup === '') {
     return 'Grup tidak boleh kosong';
+  }
+
+  // Normalize Indonesian group synonyms to standard enums
+  if (grup === 'keluarga') {
+    grup = 'family';
+  } else if (['teman', 'kawan', 'sahabat'].includes(grup)) {
+    grup = 'friend';
+  } else if (['rekan', 'kerja', 'kantor', 'rekan kerja'].includes(grup)) {
+    grup = 'colleague';
   }
 
   // Validate group enum
@@ -193,7 +215,6 @@ export function validateRow(row: CSVRow, existingNames: Set<string>): ValidatedR
     name: nama,
     group: grup as GuestGroup,
     phone: row.phone?.trim() || undefined,
-    email: row.email?.trim() || undefined,
     plus_one_count: plusOneCount,
   };
 }
@@ -277,7 +298,6 @@ export async function bulkImportGuests(
       group: validationResult.group,
       type: GuestType.INVITED,
       phone: validationResult.phone,
-      email: validationResult.email,
       plus_one_count: validationResult.plus_one_count,
     });
 

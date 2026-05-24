@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { apiFetch, ApiError } from '@/lib/api';
+import { useAdminStats } from '@/hooks/queries';
+import { ApiError } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -16,68 +16,36 @@ import {
   TrendingUp 
 } from 'lucide-react';
 
-interface GlobalStats {
-  total_tenants: number;
-  total_users: number;
-  active_scanner_devices: number;
-  total_guests: number;
-}
-
-interface ApiResponse {
-  success: boolean;
-  data: GlobalStats;
-}
-
 export default function AdminOverviewPage() {
-  const [stats, setStats] = useState<GlobalStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { data: statsResponse, isLoading, error, refetch, isFetching } = useAdminStats();
+  const stats = statsResponse?.data;
 
-  const fetchStats = async (silent = false) => {
-    if (!silent) setIsLoading(true);
-    else setIsRefreshing(true);
-    setError('');
-
-    try {
-      const response = await apiFetch<ApiResponse>('/admin/stats');
-      if (response.success) {
-        setStats(response.data);
-      } else {
-        setError('Gagal memuat data statistik dari server.');
-      }
-    } catch (err) {
-      if (err instanceof ApiError) {
-        const errData = err.data as { error?: { message?: string } };
-        setError(errData.error?.message || 'Gagal memuat data statistik global');
-      } else {
-        setError('Terjadi kesalahan koneksi ke server');
-      }
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+  // Format error message
+  let errorMessage = '';
+  if (error) {
+    if (error instanceof ApiError) {
+      const errData = error.data as { error?: { message?: string } };
+      errorMessage = errData.error?.message || 'Gagal memuat data statistik global';
+    } else {
+      errorMessage = 'Terjadi kesalahan koneksi ke server';
     }
-  };
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  }
 
   if (isLoading) {
     return (
       <div className="space-y-6">
         <div>
-          <div className="h-8 w-64 animate-pulse rounded bg-gray-200" />
-          <div className="mt-2 h-4 w-96 animate-pulse rounded bg-gray-200" />
+          <div className="h-8 w-64 animate-pulse rounded bg-muted" />
+          <div className="mt-2 h-4 w-96 animate-pulse rounded bg-muted" />
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 animate-pulse rounded-xl bg-white p-6 shadow-sm border border-gray-100" />
+            <div key={i} className="h-32 animate-pulse rounded-xl bg-card p-6 shadow-sm border border-border/40" />
           ))}
         </div>
 
-        <div className="h-64 animate-pulse rounded-xl bg-white shadow-sm border border-gray-100" />
+        <div className="h-64 animate-pulse rounded-xl bg-card shadow-sm border border-border/40" />
       </div>
     );
   }
@@ -87,33 +55,33 @@ export default function AdminOverviewPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-gray-900">
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">
             Statistik Global
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Ringkasan metrik performa platform digital secara real-time.
           </p>
         </div>
         <Button
-          onClick={() => fetchStats(true)}
-          disabled={isRefreshing}
+          onClick={() => refetch()}
+          disabled={isFetching}
           variant="outline"
-          className="flex items-center gap-2 self-start rounded-xl px-4 py-2 text-sm font-medium border-gray-200 transition-all hover:bg-gray-50"
+          className="flex items-center gap-2 self-start rounded-xl px-4 py-2 text-sm font-medium border-border/60 transition-all hover:bg-muted/20"
         >
-          <RefreshCw className={`h-4 w-4 text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 text-muted-foreground ${isFetching ? 'animate-spin' : ''}`} />
           Perbarui Data
         </Button>
       </div>
 
       {/* Error Alert */}
-      {error && (
+      {errorMessage && (
         <div
-          className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+          className="rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 font-semibold"
           role="alert"
         >
-          <span>{error}</span>
+          <span>{errorMessage}</span>
           <Button 
-            onClick={() => fetchStats()} 
+            onClick={() => refetch()} 
             size="sm" 
             variant="destructive"
             className="rounded-lg px-3 py-1.5"
@@ -128,20 +96,20 @@ export default function AdminOverviewPage() {
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {/* Tenants Card */}
-            <Card className="relative overflow-hidden border-gray-100 hover:shadow-md transition-all duration-300">
+            <Card className="relative overflow-hidden border-border/40 hover:shadow-md transition-all duration-300 bg-card">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Total Tenant</p>
-                    <p className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    <p className="text-sm font-medium text-muted-foreground">Total Tenant</p>
+                    <p className="text-3xl font-extrabold text-foreground tracking-tight">
                       {stats.total_tenants}
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-indigo-50 p-3.5 text-indigo-600">
+                  <div className="rounded-2xl bg-primary/15 p-3.5 text-foreground">
                     <Building2 className="h-6 w-6" />
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-1.5 text-xs text-indigo-600 font-medium">
+                <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
                   <TrendingUp className="h-3.5 w-3.5" />
                   <span>Penyelenggara aktif di platform</span>
                 </div>
@@ -149,20 +117,20 @@ export default function AdminOverviewPage() {
             </Card>
 
             {/* Users Card */}
-            <Card className="relative overflow-hidden border-gray-100 hover:shadow-md transition-all duration-300">
+            <Card className="relative overflow-hidden border-border/40 hover:shadow-md transition-all duration-300 bg-card">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Total Pengguna</p>
-                    <p className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    <p className="text-sm font-medium text-muted-foreground">Total Pengguna</p>
+                    <p className="text-3xl font-extrabold text-foreground tracking-tight">
                       {stats.total_users}
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-emerald-50 p-3.5 text-emerald-600">
+                  <div className="rounded-2xl bg-accent/40 p-3.5 text-foreground">
                     <Users className="h-6 w-6" />
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+                <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   <span>Admin, Client, dan WO terdaftar</span>
                 </div>
@@ -170,20 +138,20 @@ export default function AdminOverviewPage() {
             </Card>
 
             {/* Active Scanners Card */}
-            <Card className="relative overflow-hidden border-gray-100 hover:shadow-md transition-all duration-300">
+            <Card className="relative overflow-hidden border-border/40 hover:shadow-md transition-all duration-300 bg-card">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Scanner Aktif</p>
-                    <p className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    <p className="text-sm font-medium text-muted-foreground">Scanner Aktif</p>
+                    <p className="text-3xl font-extrabold text-foreground tracking-tight">
                       {stats.active_scanner_devices}
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-amber-50 p-3.5 text-amber-600">
+                  <div className="rounded-2xl bg-copper/15 p-3.5 text-ring">
                     <QrCode className="h-6 w-6" />
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-1.5 text-xs text-amber-600 font-medium">
+                <div className="mt-4 flex items-center gap-1.5 text-xs text-ring font-medium">
                   <Activity className="h-3.5 w-3.5 animate-pulse" />
                   <span>Perangkat scan QR aktif saat ini</span>
                 </div>
@@ -191,20 +159,20 @@ export default function AdminOverviewPage() {
             </Card>
 
             {/* Global Guests Card */}
-            <Card className="relative overflow-hidden border-gray-100 hover:shadow-md transition-all duration-300">
+            <Card className="relative overflow-hidden border-border/40 hover:shadow-md transition-all duration-300 bg-card">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Total Tamu</p>
-                    <p className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    <p className="text-sm font-medium text-muted-foreground">Total Tamu</p>
+                    <p className="text-3xl font-extrabold text-foreground tracking-tight">
                       {stats.total_guests}
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-rose-50 p-3.5 text-rose-600">
+                  <div className="rounded-2xl bg-success/15 p-3.5 text-success">
                     <UserCheck className="h-6 w-6" />
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-1.5 text-xs text-rose-600 font-medium">
+                <div className="mt-4 flex items-center gap-1.5 text-xs text-success font-medium">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   <span>Jumlah tamu terdaftar sistem</span>
                 </div>
@@ -213,17 +181,17 @@ export default function AdminOverviewPage() {
           </div>
 
           {/* Platform Performance & System Health Status */}
-          <Card className="border-gray-100 shadow-sm">
-            <CardHeader className="border-b border-gray-100 pb-5">
+          <Card className="border-border/40 shadow-sm bg-card">
+            <CardHeader className="border-b border-border/40 pb-5">
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-teal-50 p-2 text-teal-600">
+                <div className="rounded-lg bg-info/15 p-2 text-info">
                   <Server className="h-5 w-5" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg font-bold text-gray-900">
+                  <CardTitle className="text-lg font-bold text-foreground">
                     Status Layanan Platform
                   </CardTitle>
-                  <CardDescription className="text-sm text-gray-500">
+                  <CardDescription className="text-sm text-muted-foreground">
                     Kesehatan infrastruktur dan status konektivitas sistem.
                   </CardDescription>
                 </div>
@@ -231,34 +199,34 @@ export default function AdminOverviewPage() {
             </CardHeader>
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
-                  <div className="mt-1 h-3.5 w-3.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/20 border border-border/40">
+                  <div className="mt-1 h-3.5 w-3.5 rounded-full bg-success animate-pulse shrink-0" />
                   <div>
-                    <h4 className="text-sm font-bold text-gray-900">Database Server</h4>
-                    <p className="text-xs text-gray-500 mt-1">PostgreSQL live & optimal</p>
-                    <span className="inline-flex items-center mt-2 rounded-full bg-emerald-50 px-2 py-0.5 text-3xs font-medium text-emerald-700">
+                    <h4 className="text-sm font-bold text-foreground">Database Server</h4>
+                    <p className="text-xs text-muted-foreground mt-1">PostgreSQL live & optimal</p>
+                    <span className="inline-flex items-center mt-2 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-medium text-success">
                       Normal
                     </span>
                   </div>
                 </div>
                 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
-                  <div className="mt-1 h-3.5 w-3.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/20 border border-border/40">
+                  <div className="mt-1 h-3.5 w-3.5 rounded-full bg-success animate-pulse shrink-0" />
                   <div>
-                    <h4 className="text-sm font-bold text-gray-900">Redis Cache Storage</h4>
-                    <p className="text-xs text-gray-500 mt-1">Upstash cache terhubung</p>
-                    <span className="inline-flex items-center mt-2 rounded-full bg-emerald-50 px-2 py-0.5 text-3xs font-medium text-emerald-700">
+                    <h4 className="text-sm font-bold text-foreground">Redis Cache Storage</h4>
+                    <p className="text-xs text-muted-foreground mt-1">Upstash cache terhubung</p>
+                    <span className="inline-flex items-center mt-2 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-medium text-success">
                       Normal
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50/50 border border-gray-100">
-                  <div className="mt-1 h-3.5 w-3.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/20 border border-border/40">
+                  <div className="mt-1 h-3.5 w-3.5 rounded-full bg-success animate-pulse shrink-0" />
                   <div>
-                    <h4 className="text-sm font-bold text-gray-900">Socket.io WebSocket</h4>
-                    <p className="text-xs text-gray-500 mt-1">Layanan real-time aktif</p>
-                    <span className="inline-flex items-center mt-2 rounded-full bg-emerald-50 px-2 py-0.5 text-3xs font-medium text-emerald-700">
+                    <h4 className="text-sm font-bold text-foreground">Socket.io WebSocket</h4>
+                    <p className="text-xs text-muted-foreground mt-1">Layanan real-time aktif</p>
+                    <span className="inline-flex items-center mt-2 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-medium text-success">
                       Aktif
                     </span>
                   </div>

@@ -319,8 +319,9 @@ NEXT_PUBLIC_CDN_URL=http://localhost:4000
 - **Test files**: Co-located with source (`*.test.ts`, `*.property.test.ts`)
 - **Coverage target**: 80% for business logic
 - **Run**: `npm run test` or `npx turbo test --filter=@wedding/api`
-- **DO NOT** add tests unless explicitly asked
+- **DO NOT** add unit/property-based tests unless explicitly asked. However, E2E check and E2E test updates are mandatory for new features.
 - **DO NOT** use `--watch` mode in commands (use `--run` for single execution)
+- **E2E Testing Rule**: Every time a new feature is added or a new capability is implemented, you MUST perform an E2E check (`npm run test:e2e --workspace=packages/api`) and write/update E2E tests for it. If the improvement/feature is a minor text change, documentation update, or styling fix that does not need testing, you may skip it.
 
 ---
 
@@ -361,7 +362,9 @@ CI/CD via GitHub Actions:
 9. **Use standard validation helper** — Use the `validate(data, schema, reply)` helper in all Fastify routes to ensure consistent error handling and type safety.
 10. **Authenticated Request Pattern** — In protected routes, use `request.user!` to access the authenticated context. The `FastifyRequest` is augmented with `user?: AuthUser`, and the `onRequest` auth hook ensures it exists.
 11. **Scope WebSocket broadcasts to event rooms** — Never broadcast globally.
-11. **Handle offline gracefully** — Scanner features must work without network.
+12. **Handle offline gracefully** — Scanner features must work without network.
+13. **Frontend Component & Library Consistency** — When building new pages, sections, or form fields in the frontend, first inspect `apps/*/src/components/ui/` to see what shadcn/UI components exist (e.g., `Button`, `Input`, `Label`, `Textarea`, `Dialog`). Always import and use these shared components rather than fallback HTML tags (`<button>`, `<input>`, `<textarea>`, etc.). If a shadcn component does not exist but fits the standard, create the shadcn-compliant component in the workspace's UI folder following existing patterns, then use it consistently. Check `package.json` for installed packages (e.g. framer-motion, lucide-react) to prevent writing custom implementations or installing redundant packages.
+14. **Mandatory E2E Check** — Every time a new feature is added or a new capability is implemented, always write/update E2E tests and run them (`npm run test:e2e --workspace=packages/api`). If the improvement or feature doesn't need the E2E test (e.g. documentation, minor text adjustments, or formatting changes), you may skip the test.
 
 ### MUST NOT DO
 
@@ -440,3 +443,4 @@ CI/CD via GitHub Actions:
 | CI/CD workflows          | `.github/workflows/`                             |
 | Deploy config (API)      | `packages/api/railway.toml`                      |
 | Deploy config (Frontend) | `apps/*/vercel.json`                             |
+| Design system            | `.agents/summary/design-system.md`               |

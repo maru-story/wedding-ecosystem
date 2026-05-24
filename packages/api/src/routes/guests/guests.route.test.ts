@@ -15,7 +15,7 @@ import jwt from 'jsonwebtoken';
 
 // Mock @wedding/db
 vi.mock('@wedding/db', () => ({
-  PrismaClient: class {},
+  PrismaClient: class { },
   createProductionPrismaClient: vi.fn().mockReturnValue({}),
   Prisma: {
     JsonNull: 'JsonNull',
@@ -65,7 +65,7 @@ import { guestRoutes } from './guests';
 import { GuestService, isGuestError } from '../../services/guest/guest.service';
 import { bulkImportGuests } from '../../services/guest-import/guest-import.service';
 import { getCurrentTenantEvent } from '../../repositories';
-import { GuestGroup, GuestType, DeliveryStatus, ErrorCode } from '@wedding/shared';
+import { GuestGroup, GuestType, DeliveryStatus, ErrorCode, UserRole } from '@wedding/shared';
 
 // --- Helpers ---
 
@@ -87,7 +87,6 @@ function makeGuest(overrides = {}) {
     name: 'Budi Santoso',
     slug: 'budi-santoso',
     phone: '+6281234567890',
-    email: 'budi@example.com',
     group: GuestGroup.FAMILY,
     type: GuestType.INVITED,
     plus_one_count: 0,
@@ -110,7 +109,8 @@ async function buildApp(): Promise<FastifyInstance> {
 
   app.setErrorHandler((error, request, reply) => {
     console.error('Test App Error:', error);
-    reply.status(500).send({ error: error.message });
+    const message = error instanceof Error ? error.message : String(error);
+    reply.status(500).send({ error: message });
   });
 
   // Decorate with authenticate
@@ -214,7 +214,7 @@ describe('Guest Routes', () => {
     it('should return flat delivery_status shape when include=delivery_status', async () => {
       const service = getServiceInstance(app);
       service.listGuests.mockResolvedValue({
-        data: [{ id: 'g-1', name: 'Budi', slug: 'budi', phone: null, email: null, delivery_status: 'not_sent', invitation_url: '/event?to=budi' }],
+        data: [{ id: 'g-1', name: 'Budi', slug: 'budi', phone: null, delivery_status: 'not_sent', invitation_url: '/event?to=budi' }],
         pagination: { page: 1, per_page: 50, total: 1, total_pages: 1 },
       });
 
@@ -389,7 +389,6 @@ describe('Guest Routes', () => {
         qr_code: {
           id: 'qr-001',
           qr_payload: 'abc:encrypted',
-          qr_image_url: 'https://cdn.example.com/qr.png',
           is_active: true,
         },
       });
@@ -407,6 +406,8 @@ describe('Guest Routes', () => {
       expect(body.qr_payload).toBe('abc:encrypted');
       expect(body.is_active).toBe(true);
     });
+
+
 
     it('should return null QR fields when guest has no QR code', async () => {
       const service = getServiceInstance(app);

@@ -146,7 +146,6 @@ export const createGuestSchema = z.object({
     errorMap: () => ({ message: 'Grup tamu tidak valid (family, friend, colleague, vip)' }),
   }),
   phone: phoneSchema.optional().or(z.literal('')),
-  email: emailSchema.optional().or(z.literal('')),
   plus_one_count: z
     .number()
     .int({ message: 'Jumlah plus one harus bilangan bulat' })

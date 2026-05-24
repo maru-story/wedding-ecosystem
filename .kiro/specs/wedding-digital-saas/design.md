@@ -443,7 +443,6 @@ erDiagram
         uuid id PK
         uuid guest_id FK
         string qr_payload "encrypted unique token"
-        string qr_image_url
         boolean is_active
         timestamp generated_at
     }

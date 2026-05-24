@@ -104,7 +104,6 @@ function createMockGuestRepository(): GuestRepository & {
         id: data.id,
         guest_id: data.guest_id,
         qr_payload: data.qr_payload,
-        qr_image_url: null,
         is_active: data.is_active,
         generated_at: new Date(),
       };

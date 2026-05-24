@@ -57,7 +57,6 @@ function createMockRepository(): GuestRepository & { qrPayloads: Set<string> } {
       name: data.name,
       slug: data.slug,
       phone: data.phone,
-      email: data.email,
       group: data.group,
       type: data.type,
       plus_one_count: data.plus_one_count,
@@ -72,7 +71,6 @@ function createMockRepository(): GuestRepository & { qrPayloads: Set<string> } {
         id: data.id,
         guest_id: data.guest_id,
         qr_payload: data.qr_payload,
-        qr_image_url: null,
         is_active: data.is_active,
         generated_at: new Date(),
       };
@@ -101,10 +99,14 @@ function createMockRepository(): GuestRepository & { qrPayloads: Set<string> } {
       return qrPayloads.has(payload);
     },
 
-    findEventById: async (eventId: string) => ({
+    findEventById: async (eventId: string, _tenantId: string) => ({
       id: eventId,
       slug: `event-${eventId.slice(0, 8)}`,
     }),
+
+    findGuestNamesByEvent: async () => [],
+
+    searchGuestsByName: async () => [],
   };
 }
 
@@ -144,6 +146,8 @@ describe('Property 4: QR Code Uniqueness', () => {
             const result = await service.addGuest(eventId, tenantId, {
               name,
               group,
+              type: GuestType.INVITED,
+              plus_one_count: 0
             });
 
             // Should succeed
@@ -186,6 +190,8 @@ describe('Property 4: QR Code Uniqueness', () => {
             const result = await service.addGuest(eventId, tenantId, {
               name: guestName,
               group,
+              type: GuestType.INVITED,
+              plus_one_count: 0
             });
 
             if ('qr_code' in result && result.qr_code) {
@@ -232,6 +238,8 @@ describe('Property 4: QR Code Uniqueness', () => {
             const result = await service.addGuest(eventId, tenantId, {
               name: guest.name,
               group: guest.group,
+              type: GuestType.INVITED,
+              plus_one_count: 0
             });
 
             if ('qr_code' in result && result.qr_code) {

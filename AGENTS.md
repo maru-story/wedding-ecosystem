@@ -45,7 +45,7 @@ packages/
 |---------|--------|
 | **Local Grouping** | Source files and their tests are grouped in feature subfolders (e.g., `services/auth/auth.service.ts` + `services/auth/auth.service.test.ts`). |
 | Multi-tenant isolation | Every query scoped by `tenant_id` via middleware — not optional, not per-route |
-| PII encryption at rest | Guest phone/email encrypted before DB write, decrypted in service layer (`middleware/encryption/`) |
+| PII encryption at rest | Guest phone encrypted before DB write, decrypted in service layer (`middleware/encryption/`) |
 | Denormalized `tenant_id` on Guest | Guest has both `event_id` and `tenant_id` for query performance (avoids JOIN) |
 | Pinned dependency versions | No `^` or `~` in app packages — exact versions only |
 | Single server for REST + WebSocket | Fastify and Socket.io share the same process on port 4000 |
@@ -77,6 +77,7 @@ packages/
 5. **QR payload encrypted** — Contains `guest_id + event_id`, encrypted with app secret.
 6. **14 CMS sections** — Fixed set of section types (cover through music). Toggleable and reorderable, not user-creatable.
 7. **Guest capacity: 2000 per event** — Enforced in `EventConfig.max_guests` and `guest.service.ts`.
+8. **UI Component Consistency** — Frontend pages must strictly use the unified shadcn/UI library components. Raw HTML input/form elements are forbidden if a shadcn alternative exists (or can be easily instantiated).
 
 ### Unified Auth Context (Mandatory — July 2026)
 
@@ -89,6 +90,10 @@ The `AuthUser` interface is exclusively defined in `@wedding/shared`. Frontend a
 - Property-based tests cover: QR validation, RSVP invariants, duplicate detection, tenant isolation, offline sync, room isolation
 - Run: `npm run test` (all), `npm run test:e2e --workspace=packages/api` (E2E tests), or `npx turbo test --filter=@wedding/{package}`
 
+### E2E Testing Requirement
+- **Mandatory E2E Check**: Every time a new feature is added or a new capability is implemented, you MUST write/update E2E tests and perform an E2E check (`npm run test:e2e --workspace=packages/api`).
+- **Exemption**: If the improvement or feature does not impact system behaviors, user flows, or integration points and explicitly does not need E2E testing (e.g., purely documentation updates, minor text adjustments, or simple formatting changes), E2E test additions/runs may be skipped.
+
 ## Detailed Documentation
 
 For deeper information, see `.agents/summary/`:
@@ -99,6 +104,7 @@ For deeper information, see `.agents/summary/`:
 - `data_models.md` — Database schema details
 - `workflows.md` — End-to-end flow diagrams
 - `dependencies.md` — Library versions and rationale
+- `design-system.md` — Dashboard design system and tokens
 
 ## Custom Instructions
 <!-- This section is for human and agent-maintained operational knowledge.
@@ -135,7 +141,13 @@ After **every** code change — no matter how small — the agent MUST:
 
 5. **Only update files the user approves.** Never silently edit documentation or config files without this step.
 
-**Skip the audit only when**: the change is a pure refactor with no observable API, schema, or architectural difference (e.g., renaming a local variable, fixing a typo in a code comment).
+### Frontend Component & Library Consistency Protocol (Mandatory — May 2026)
+
+When adding or updating UI elements or introducing new pages:
+1. **Audit Available Components**: Always check `apps/{app}/src/components/ui/` to see if a shadcn or custom UI wrapper exists (e.g., `Label`, `Input`, `Button`, `Textarea`, `Card`).
+2. **Mandatory Reuse**: Use these UI components. Do not fallback to raw HTML controls (like `<textarea>` or `<button>`) unless they are custom-styled structural containers distinct from design-system components.
+3. **Extend, Don't Duplicate**: If a standard shadcn component is missing (e.g. `textarea`), construct it in the workspace's UI directory to match the layout/design guidelines, then import and use it.
+4. **Third-Party Libraries**: Inspect `package.json` before implementing custom solutions for motion/animation (e.g. `motion` or `framer-motion`) or iconography (e.g. `lucide-react`) to ensure ecosystem consistency.
 
 ---
 
@@ -167,7 +179,7 @@ The `Guest` domain has been migrated to a **3-layer architecture**: thin route �
 
 | Gotcha | Detail |
 |--------|--------|
-| **CSV import headers** | `GuestImportService` expects Bahasa Indonesia column names: `nama`, `grup`, `telepon`, `email`. English names (`name`, `group`) will silently skip rows. |
+| **CSV import headers** | `GuestImportService` expects Bahasa Indonesia column names: `nama`, `grup`, `telepon`. English names (`name`, `group`) will silently skip rows. |
 | **QR payload format** | Encrypted as `iv:ciphertext` (AES-256-CBC). Requires `AES_ENCRYPTION_KEY` env var (32 bytes). Missing key → runtime crash on QR generation. |
 | **`DELETE /guests/:id`** | Exists in the route file and is tenant-scoped. Was missing from Postman collection until June 2026 — now present. |
 | **`searchGuestsByName`** | Minimum 2 characters enforced in the route. Below that, the route returns 400, not an empty array. |

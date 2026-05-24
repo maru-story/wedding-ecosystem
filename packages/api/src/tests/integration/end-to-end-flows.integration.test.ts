@@ -159,7 +159,6 @@ function createSharedGuestRepository(state: IntegrationState): GuestRepository {
     createQRCode: vi.fn(async (data) => {
       const record: QRCodeRecord = {
         ...data,
-        qr_image_url: null,
         generated_at: new Date(),
       };
       state.qrCodes.set(data.guest_id, record);
@@ -194,7 +193,6 @@ function createSharedGuestRepository(state: IntegrationState): GuestRepository {
           type: g.type,
           plus_one_count: g.plus_one_count,
           phone: g.phone,
-          email: g.email,
           delivery_status: g.delivery_status,
           rsvp_status: null,
           check_in_status: state.checkIns.has(g.id),
@@ -318,7 +316,6 @@ function createSharedCheckInRepository(state: IntegrationState): CheckInReposito
         name: data.name,
         slug: data.name.toLowerCase().replace(/\s+/g, '-'),
         phone: null,
-        email: null,
         group: GuestGroup.FRIEND,
         type: data.type,
         plus_one_count: 0,
@@ -534,7 +531,6 @@ describe('Integration Tests: End-to-End Flows', () => {
           name: 'Budi Santoso',
           group: GuestGroup.FAMILY,
           phone: '+6281234567890',
-          email: 'budi@example.com',
         }
       );
 
@@ -1257,7 +1253,6 @@ describe('Integration Tests: End-to-End Flows', () => {
         name: 'Teman Andi',
         group: GuestGroup.FRIEND,
         plus_one_count: 1,
-        email: 'andi@example.com',
       });
       const guest3 = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
         name: 'Kolega Citra',

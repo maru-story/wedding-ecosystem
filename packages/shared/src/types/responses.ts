@@ -53,7 +53,7 @@ export interface LoginResponse {
 export interface GuestWithStatus extends Omit<Guest, 'event_id'> {
   rsvp: RSVP | null;
   check_in: CheckIn | null;
-  qr_code: Pick<QRCode, 'qr_image_url' | 'is_active'> | null;
+  qr_code: Pick<QRCode, 'qr_payload' | 'is_active'> | null;
 }
 
 /** CSV import result report (Req 3.3) */

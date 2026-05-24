@@ -37,22 +37,21 @@ sequenceDiagram
     participant Client as Dashboard User
     participant API
     participant DB
-    participant QR as QR Generator
 
     Client->>API: POST /events/:id/guests {name, group, phone}
     API->>API: Validate input (Zod)
     API->>API: Generate unique slug from name
     API->>DB: Insert guest record
-    API->>QR: Generate encrypted QR payload
-    QR-->>API: {qr_payload, qr_image_url}
+    API->>API: Generate encrypted QR payload
     API->>DB: Insert QR code record
-    API-->>Client: Guest + QR code
+    API-->>Client: Guest + QR code (render QR locally)
 
     Note over Client,API: CSV Bulk Import
     Client->>API: POST /events/:id/guests/import (CSV file)
     API->>API: Parse CSV, validate rows (max 2000)
     API->>DB: Bulk insert valid guests
-    API->>QR: Generate QR for each guest
+    API->>API: Generate encrypted QR payload for each guest
+    API->>DB: Bulk insert QR code records
     API-->>Client: CsvImportReport {success_count, failed_rows}
 ```
 
@@ -208,21 +207,15 @@ sequenceDiagram
     participant API
     participant DB
     participant WA as WhatsApp Provider
-    participant Email as Email Provider
 
     Client->>API: POST /notifications/bulk {guest_ids, channel}
     API->>API: Validate (max 500 per batch)
     API->>DB: Fetch guests with contact info
-    API->>API: Decrypt PII (phone/email)
+    API->>API: Decrypt PII (phone)
 
     loop For each guest
-        alt Channel = WhatsApp
-            API->>WA: Send personalized invitation link
-            WA-->>API: Delivery status
-        else Channel = Email
-            API->>Email: Send invitation email
-            Email-->>API: Delivery status
-        end
+        API->>WA: Send personalized invitation link
+        WA-->>API: Delivery status
         API->>DB: Update delivery_status (sent/failed)
     end
 

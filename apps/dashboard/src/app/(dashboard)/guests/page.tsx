@@ -20,7 +20,6 @@ export interface GuestListItem {
   type: string;
   plus_one_count: number;
   phone: string | null;
-  email: string | null;
   delivery_status: string;
   rsvp_status: string | null;
   check_in_status: boolean;

@@ -44,7 +44,6 @@ function createMockGuest(overrides: Partial<GuestRecord> = {}): GuestRecord {
     name: 'John Doe',
     slug: 'john-doe',
     phone: '+6281234567890',
-    email: 'john@example.com',
     group: GuestGroup.FRIEND,
     type: GuestType.INVITED,
     plus_one_count: 1,
@@ -60,7 +59,6 @@ function createMockQRCode(overrides: Partial<QRCodeRecord> = {}): QRCodeRecord {
     id: 'qr-001',
     guest_id: 'guest-001',
     qr_payload: 'abc123:encrypted_data',
-    qr_image_url: null,
     is_active: true,
     generated_at: new Date('2024-01-01'),
     ...overrides,
@@ -121,8 +119,8 @@ describe('GuestService', () => {
         name: 'John Doe',
         group: GuestGroup.FRIEND,
         phone: '+6281234567890',
-        email: 'john@example.com',
         plus_one_count: 1,
+        type: GuestType.INVITED
       });
 
       expect(isGuestError(result)).toBe(false);
@@ -163,6 +161,8 @@ describe('GuestService', () => {
       const result = await service.addGuest('nonexistent', 'tenant-001', {
         name: 'John Doe',
         group: GuestGroup.FRIEND,
+        type: GuestType.INVITED,
+        plus_one_count: 0
       });
 
       expect(isGuestError(result)).toBe(true);
@@ -187,6 +187,8 @@ describe('GuestService', () => {
       await service.addGuest('event-001', 'tenant-001', {
         name: 'Budi Santoso',
         group: GuestGroup.FAMILY,
+        type: GuestType.INVITED,
+        plus_one_count: 0
       });
 
       expect(repository.createGuest).toHaveBeenCalledWith(
@@ -213,12 +215,13 @@ describe('GuestService', () => {
       await service.addGuest('event-001', 'tenant-001', {
         name: 'Jane',
         group: GuestGroup.VIP,
+        type: GuestType.INVITED,
+        plus_one_count: 0
       });
 
       expect(repository.createGuest).toHaveBeenCalledWith(
         expect.objectContaining({
           phone: null,
-          email: null,
           plus_one_count: 0,
           type: GuestType.INVITED,
         })
@@ -320,17 +323,16 @@ describe('GuestService', () => {
       }
     });
 
-    it('should update phone and email to null when empty string', async () => {
+    it('should update phone to null when empty string', async () => {
       const mockGuest = createMockGuest();
 
       vi.mocked(repository.findGuestById).mockResolvedValue(mockGuest);
       vi.mocked(repository.updateGuest).mockResolvedValue(
-        createMockGuest({ phone: null, email: null })
+        createMockGuest({ phone: null })
       );
 
       await service.updateGuest('guest-001', 'tenant-001', {
         phone: '',
-        email: '',
       });
 
       expect(repository.updateGuest).toHaveBeenCalledWith(
@@ -338,7 +340,6 @@ describe('GuestService', () => {
         'tenant-001',
         expect.objectContaining({
           phone: null,
-          email: null,
         })
       );
     });
@@ -388,7 +389,6 @@ describe('GuestService', () => {
             type: GuestType.INVITED,
             plus_one_count: 1,
             phone: '+6281234567890',
-            email: 'john@example.com',
             invitation_url: '/wedding?to=john-doe',
             delivery_status: DeliveryStatus.NOT_SENT,
             rsvp_status: 'confirmed',
@@ -491,7 +491,6 @@ describe('GuestService', () => {
       vi.mocked(repository.checkQRPayloadExists).mockResolvedValue(false);
       vi.mocked(repository.createQRCode).mockImplementation(async (data) => ({
         ...data,
-        qr_image_url: null,
         generated_at: new Date(),
       }));
 
@@ -521,7 +520,6 @@ describe('GuestService', () => {
         payloads.push(data.qr_payload);
         return {
           ...data,
-          qr_image_url: null,
           generated_at: new Date(),
         };
       });
@@ -543,7 +541,6 @@ describe('GuestService', () => {
 
       vi.mocked(repository.createQRCode).mockImplementation(async (data) => ({
         ...data,
-        qr_image_url: null,
         generated_at: new Date(),
       }));
 

@@ -48,6 +48,11 @@
 **Consult when**: You need to write tests, understand existing test patterns, know what properties are verified, or set up mocks/fixtures for a new service.
 **Key content**: Test distribution per package, file naming conventions, 6 testing patterns (repository mocking, factory functions, property-based with fast-check, in-memory implementations, middleware testing, WebSocket testing), property-based coverage table, integration test patterns.
 
+### design-system.md
+**Purpose**: Single source of truth for the visual language and tokens in `apps/dashboard`.
+**Consult when**: You need to check the design system tokens, color palettes, spacing, typography scales, badge usages, custom sonner toasts, or dark mode overrides.
+**Key content**: Color palettes (sage, cream, copper, blush, charcoal, success, warning, info, destructive), typography specs, spacing tokens, border radius sizes, component-specific token classes, Sonner toast design patterns, motion/animation specifications, and icons rules.
+
 ## Quick Reference: Which File to Read
 
 | Question Type | File |
@@ -63,6 +68,7 @@
 | "What are the deployment steps?" | `architecture.md` → `workflows.md` |
 | "How is auth/security handled?" | `architecture.md` → `interfaces.md` |
 | "What are the project conventions?" | `codebase_info.md` |
+| "What are the design system color palettes and component tokens?" | `design-system.md` |
 
 ## File Relationships
 
@@ -76,6 +82,7 @@ graph TB
     Data["data_models.md<br/>(what's stored)"]
     Work["workflows.md<br/>(how it works)"]
     Deps["dependencies.md<br/>(what it uses)"]
+    Design["design-system.md<br/>(design tokens & showcase)"]
 
     Index --> Info
     Index --> Arch
@@ -84,6 +91,7 @@ graph TB
     Index --> Data
     Index --> Work
     Index --> Deps
+    Index --> Design
 
     Arch -.->|"references"| Comp
     Comp -.->|"implements"| Iface
@@ -91,6 +99,7 @@ graph TB
     Work -.->|"uses"| Comp
     Work -.->|"calls"| Iface
     Deps -.->|"powers"| Comp
+    Design -.->|"styles"| Comp
 ```
 
 ## Usage Tips for AI Assistants

@@ -5,9 +5,11 @@ import { GuestGroup } from '@wedding/shared';
 import { ApiError } from '@/lib/api';
 import type { GuestListItem } from '../page';
 import { useCreateGuest, useUpdateGuest } from '@/hooks/queries';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -41,7 +43,6 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
   const [name, setName] = useState(guest?.name || '');
   const [group, setGroup] = useState<GuestGroup>(guest?.group || GuestGroup.FAMILY);
   const [phone, setPhone] = useState(guest?.phone || '');
-  const [email, setEmail] = useState(guest?.email || '');
   const [plusOneCount, setPlusOneCount] = useState(guest?.plus_one_count ?? 0);
   const [error, setError] = useState('');
 
@@ -57,15 +58,16 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
       name: name.trim(),
       group,
       phone: phone.trim() || undefined,
-      email: email.trim() || undefined,
       plus_one_count: plusOneCount,
     };
 
     try {
       if (isEditing) {
         await updateGuest.mutateAsync({ id: guest.id, payload });
+        toast.success(`Data tamu "${name.trim()}" berhasil diperbarui`);
       } else {
         await createGuest.mutateAsync(payload);
+        toast.success(`Tamu "${name.trim()}" berhasil ditambahkan`);
       }
       onSaved();
     } catch (err) {
@@ -85,6 +87,11 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
           <DialogTitle className="font-heading text-xl tracking-wide text-foreground">
             {isEditing ? 'Edit Tamu' : 'Tambah Tamu Baru'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {isEditing
+              ? 'Edit informasi tamu yang sudah terdaftar.'
+              : 'Tambahkan tamu baru ke dalam daftar undangan.'}
+          </DialogDescription>
         </DialogHeader>
 
         {error && (
@@ -145,17 +152,6 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="guest-email" className="text-foreground">Email</Label>
-            <Input
-              id="guest-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="tamu@email.com"
-              className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
-            />
-          </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="guest-plus-one" className="text-foreground">

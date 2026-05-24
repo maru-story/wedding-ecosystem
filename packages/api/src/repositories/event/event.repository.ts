@@ -26,7 +26,7 @@ export class PrismaEventRepository implements EventRepository {
     resepsi_end: string;
     status: EventStatus;
   }): Promise<EventRecord> {
-    return this.prisma.event.create({
+    const event = await this.prisma.event.create({
       data: {
         id: data.id,
         tenant_id: data.tenant_id,
@@ -44,6 +44,10 @@ export class PrismaEventRepository implements EventRepository {
         status: data.status,
       },
     });
+    return {
+      ...event,
+      status: event.status as EventStatus,
+    };
   }
 
   async createEventConfig(data: {
@@ -97,20 +101,31 @@ export class PrismaEventRepository implements EventRepository {
 
     return {
       ...section,
+      section_type: section.section_type as SectionType,
       content: section.content as Record<string, unknown>,
     };
   }
 
   async findEventBySlug(slug: string): Promise<EventRecord | null> {
-    return this.prisma.event.findUnique({
+    const event = await this.prisma.event.findUnique({
       where: { slug },
     });
+    if (!event) return null;
+    return {
+      ...event,
+      status: event.status as EventStatus,
+    };
   }
 
   async findEventById(eventId: string, tenantId: string): Promise<EventRecord | null> {
-    return this.prisma.event.findFirst({
+    const event = await this.prisma.event.findFirst({
       where: { id: eventId, tenant_id: tenantId },
     });
+    if (!event) return null;
+    return {
+      ...event,
+      status: event.status as EventStatus,
+    };
   }
 
   async countEventsByTenant(tenantId: string): Promise<number> {

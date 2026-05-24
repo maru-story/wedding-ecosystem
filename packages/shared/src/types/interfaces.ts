@@ -100,7 +100,6 @@ export interface Guest {
   name: string;
   slug: string;
   phone: string | null;
-  email: string | null;
   group: GuestGroup;
   type: GuestType;
   plus_one_count: number;
@@ -114,7 +113,6 @@ export interface QRCode {
   id: string;
   guest_id: string;
   qr_payload: string;
-  qr_image_url: string | null;
   is_active: boolean;
   generated_at: Date;
 }

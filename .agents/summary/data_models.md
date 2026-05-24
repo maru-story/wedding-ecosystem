@@ -101,7 +101,6 @@ Guest record within an event, directly tenant-scoped for query performance.
 | `name` | String | Required | Guest full name |
 | `slug` | String | Required | URL-friendly name |
 | `phone` | String? | Optional | Phone (encrypted at rest) |
-| `email` | String? | Optional | Email (encrypted at rest) |
 | `group` | GuestGroup | Required | Categorization |
 | `type` | GuestType | Default: `invited` | Invited vs go-show |
 | `plus_one_count` | Int | Default: `0` | Additional guests |
@@ -120,7 +119,6 @@ QR code associated with a guest for check-in verification.
 | `id` | UUID | PK | Unique identifier |
 | `guest_id` | UUID | FK → Guest | Owning guest |
 | `qr_payload` | String | Unique | Encrypted payload (guest_id + event_id) |
-| `qr_image_url` | String? | Optional | Generated QR image URL |
 | `is_active` | Boolean | Default: `true` | Can be deactivated |
 | `generated_at` | DateTime | Auto | Generation timestamp |
 
@@ -336,4 +334,4 @@ Content is a flexible JSON object whose shape depends on the `section_type`. Exa
 | Guest lookup by slug | Index on `guests.slug` for invitation personalization |
 | Duplicate check-in detection | Query `check_ins WHERE guest_id = ?` before insert |
 | Section ordering | Unique constraint on `[event_id, sort_order]` |
-| PII encryption | Guest phone/email encrypted at rest, decrypted in service layer |
+| PII encryption | Guest phone encrypted at rest, decrypted in service layer |

@@ -20,7 +20,6 @@ export class PrismaGuestRepository implements GuestRepository {
     name: string;
     slug: string;
     phone: string | null;
-    email: string | null;
     group: GuestGroup;
     type: GuestType;
     plus_one_count: number;
@@ -35,7 +34,6 @@ export class PrismaGuestRepository implements GuestRepository {
         name: data.name,
         slug: data.slug,
         phone: data.phone,
-        email: data.email,
         group: data.group,
         type: data.type,
         plus_one_count: data.plus_one_count,
@@ -66,7 +64,6 @@ export class PrismaGuestRepository implements GuestRepository {
       id: qr.id,
       guest_id: qr.guest_id,
       qr_payload: qr.qr_payload,
-      qr_image_url: qr.qr_image_url,
       is_active: qr.is_active,
       generated_at: qr.generated_at,
     };
@@ -148,7 +145,6 @@ export class PrismaGuestRepository implements GuestRepository {
       type: guest.type as GuestType,
       plus_one_count: guest.plus_one_count,
       phone: guest.phone ?? null,
-      email: guest.email ?? null,
       invitation_url: guest.invitation_url ?? null,
       delivery_status: guest.delivery_status as DeliveryStatus,
       rsvp_status: (guest.rsvps[0]?.attendance as AttendanceType) ?? null,
@@ -170,7 +166,6 @@ export class PrismaGuestRepository implements GuestRepository {
       name: string;
       slug: string;
       phone: string | null;
-      email: string | null;
       group: GuestGroup;
       plus_one_count: number;
       invitation_url: string | null;
@@ -218,7 +213,6 @@ export class PrismaGuestRepository implements GuestRepository {
       id: qr.id,
       guest_id: qr.guest_id,
       qr_payload: qr.qr_payload,
-      qr_image_url: qr.qr_image_url,
       is_active: qr.is_active,
       generated_at: qr.generated_at,
     };
@@ -291,7 +285,6 @@ export class PrismaGuestRepository implements GuestRepository {
     name: string;
     slug: string;
     phone: string | null;
-    email: string | null;
     group: string;
     type: string;
     plus_one_count: number;
@@ -306,7 +299,6 @@ export class PrismaGuestRepository implements GuestRepository {
       name: guest.name,
       slug: guest.slug,
       phone: guest.phone,
-      email: guest.email,
       group: guest.group as GuestGroup,
       type: guest.type as GuestType,
       plus_one_count: guest.plus_one_count,

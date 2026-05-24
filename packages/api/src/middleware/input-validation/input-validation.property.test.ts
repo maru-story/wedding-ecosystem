@@ -6,7 +6,7 @@ import {
   createGenericBodyValidationMiddleware,
   validateInput,
 } from './input-validation.middleware';
-import { ErrorCode, MAX_TEXT_LENGTH, createGuestSchema } from '@wedding/shared';
+import { ErrorCode, MAX_TEXT_LENGTH, createGuestSchema, createUserSchema } from '@wedding/shared';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
 // --- Test Helpers ---
@@ -175,10 +175,11 @@ describe('Property 18: Server-Side Input Validation', () => {
     it('invalid email formats are rejected with specific field error', () => {
       fc.assert(
         fc.property(arbInvalidEmail, (invalidEmail) => {
-          const result = validateInput(createGuestSchema, {
-            name: 'Test Guest',
-            group: 'family',
+          const result = validateInput(createUserSchema, {
             email: invalidEmail,
+            password: 'password123',
+            role: 'client',
+            name: 'Valid Name',
           });
 
           expect(result.success).toBe(false);

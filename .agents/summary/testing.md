@@ -289,3 +289,12 @@ export default defineConfig({
 ## E2E Playwright Configuration
 
 Playwright is configured under `packages/api/playwright.config.ts`. It manages starting the backend server synchronously using the `webServer` config block, targets the dedicated test database, and runs the E2E specs in sequential mode to ensure database integrity during test state assertions.
+
+## E2E Testing Validation Rules
+
+Whenever a new feature is added or a new capability is introduced:
+1. **Mandatory E2E Check**: Write or update E2E tests under `packages/api/tests/e2e` to verify the user flows and backend integration. Run the suite sequentially:
+   ```bash
+   npm run test:e2e --workspace=packages/api
+   ```
+2. **Exemption Rule**: If the change is a minor improvement, styling fix, typo correction, or documentation update that does not introduce or alter any system/user flows or integration points, writing/executing E2E tests is not required.

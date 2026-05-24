@@ -66,7 +66,7 @@ graph TB
 | `RsvpService` | `rsvp/rsvp.service.ts` | RSVP submission and retrieval |
 | `CMSService` | `cms/cms.service.ts` | Section CRUD, sort order management, toggle active state |
 | `EventService` | `event/event.service.ts` | Event creation with default sections and theme |
-| `NotificationService` | `notification/notification.service.ts` | Bulk invitation sending (WhatsApp/Email), delivery status tracking |
+| `NotificationService` | `notification/notification.service.ts` | Bulk invitation sending (WhatsApp), delivery status tracking |
 | `ScannerDeviceService` | `scanner-device/scanner-device.service.ts` | Device registration, lane assignment, heartbeat, max 2 per event |
 | `MediaUploadService` | `media-upload/media-upload.service.ts` | File validation, virus scanning, cloud storage upload |
 | `StorageService` | `storage/storage.ts` | R2 client, signed URLs, tenant storage quota enforcement |

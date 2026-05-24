@@ -1,13 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useSocket, type ConnectionStatus } from '@/hooks/use-socket';
-import {
-  useRealtimeStats,
-  type EventStats,
-  type RsvpTrackingItem,
-} from '@/hooks/use-realtime-stats';
-import { apiFetch } from '@/lib/api';
+import { useRealtimeStats } from '@/hooks/use-realtime-stats';
+import { useEvent, useRsvpList } from '@/hooks/queries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -91,40 +86,10 @@ function AttendanceBadge({ attendance }: { attendance: string }) {
 }
 
 export default function RsvpTrackingPage() {
-  const [eventId, setEventId] = useState<string | null>(null);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [initialStats, setInitialStats] = useState<EventStats>({
-    total_guests: 0,
-    total_rsvp: 0,
-    total_checked_in: 0,
-    total_go_show: 0,
-  });
-  const [initialRsvpList, setInitialRsvpList] = useState<RsvpTrackingItem[]>([]);
+  const { data: eventData, isLoading: isEventLoading } = useEvent();
+  const eventId = eventData?.id || null;
 
-  // Fetch initial data and event ID
-  useEffect(() => {
-    async function fetchInitialData() {
-      try {
-        const eventData = await apiFetch<{ id: string }>('/events/current');
-        setEventId(eventData.id);
-
-        // Parallel fetching to avoid data waterfalls (Next.js best practice)
-        const [statsData, rsvpData] = await Promise.all([
-          apiFetch<EventStats>(`/events/${eventData.id}/stats`),
-          apiFetch<{ data: RsvpTrackingItem[] }>(`/events/${eventData.id}/rsvp`),
-        ]);
-
-        setInitialStats(statsData);
-        setInitialRsvpList(rsvpData.data);
-      } catch {
-        // If API is not available, use empty defaults
-      } finally {
-        setInitialLoading(false);
-      }
-    }
-
-    fetchInitialData();
-  }, []);
+  const { isLoading: isRsvpListLoading } = useRsvpList(eventId);
 
   // WebSocket connection
   const { socket, connectionStatus } = useSocket({
@@ -135,9 +100,10 @@ export default function RsvpTrackingPage() {
   // Real-time stats and RSVP list
   const { stats, rsvpList } = useRealtimeStats({
     socket,
-    initialStats,
-    initialRsvpList,
+    eventId,
   });
+
+  const isLoading = isEventLoading || (!!eventId && isRsvpListLoading);
 
   return (
     <FadeIn>
@@ -202,7 +168,7 @@ export default function RsvpTrackingPage() {
             <h2 className="font-heading text-lg font-semibold text-foreground">Daftar RSVP</h2>
           </div>
 
-          {initialLoading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
                 <div className="mx-auto h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />

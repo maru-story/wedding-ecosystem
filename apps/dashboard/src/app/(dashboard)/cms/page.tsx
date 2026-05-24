@@ -5,6 +5,8 @@ import { SectionList } from '@/components/cms/section-list';
 import type { InvitationSection } from '@/lib/cms';
 import Link from 'next/link';
 
+import { buttonVariants } from '@/components/ui/button';
+
 // Mock data for initial development (will be replaced with API calls)
 const MOCK_SECTIONS: InvitationSection[] = [
   {
@@ -164,13 +166,13 @@ export default function CMSPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold">Editor Undangan</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-muted-foreground">
             Kelola konten dan urutan section undangan digital Anda
           </p>
         </div>
         <Link
           href="/cms/preview"
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+          className={buttonVariants({ variant: 'default', className: 'gap-2' })}
         >
           <svg
             className="h-4 w-4"
@@ -197,7 +199,7 @@ export default function CMSPage() {
       {/* Error message */}
       {error && (
         <div
-          className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive"
           role="alert"
         >
           {error}
@@ -205,7 +207,7 @@ export default function CMSPage() {
       )}
 
       {/* Info */}
-      <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700">
+      <div className="mb-4 rounded-lg border border-info/20 bg-info/10 p-3 text-sm text-info">
         <strong>Tips:</strong> Seret section untuk mengubah urutan. Klik toggle untuk
         mengaktifkan/menonaktifkan section. Klik nama section untuk mengedit konten.
       </div>

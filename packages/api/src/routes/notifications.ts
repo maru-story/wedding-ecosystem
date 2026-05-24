@@ -19,8 +19,8 @@ export async function notificationRoutes(app: FastifyInstance, opts: Notificatio
     const user = request.user!;
     const bodySchema = z.object({
       guest_id: z.string().uuid({ message: 'ID tamu tidak valid' }),
-      channel: z.enum(['whatsapp', 'email'], {
-        errorMap: () => ({ message: 'Channel harus whatsapp atau email' }),
+      channel: z.enum(['whatsapp'], {
+        errorMap: () => ({ message: 'Channel harus whatsapp' }),
       }),
     });
 
@@ -48,15 +48,6 @@ export async function notificationRoutes(app: FastifyInstance, opts: Notificatio
       });
     }
 
-    if (body.channel === 'email' && !guest.email) {
-      return reply.send({
-        guest_id: guest.id,
-        channel: body.channel,
-        success: false,
-        error: 'Alamat email belum dilengkapi',
-      });
-    }
-
     // Simulate sending (dev mode - always succeeds)
     await prisma.guest.update({
       where: { id: body.guest_id },
@@ -78,8 +69,8 @@ export async function notificationRoutes(app: FastifyInstance, opts: Notificatio
         .array(z.string().uuid())
         .min(1, { message: 'guest_ids tidak boleh kosong' })
         .max(MAX_BULK_SEND, { message: `Maksimal ${MAX_BULK_SEND} tamu per batch` }),
-      channel: z.enum(['whatsapp', 'email'], {
-        errorMap: () => ({ message: 'Channel harus whatsapp atau email' }),
+      channel: z.enum(['whatsapp'], {
+        errorMap: () => ({ message: 'Channel harus whatsapp' }),
       }),
     });
 
@@ -95,14 +86,14 @@ export async function notificationRoutes(app: FastifyInstance, opts: Notificatio
     let failed = 0;
 
     for (const guest of guests) {
-      const hasContact = body.channel === 'whatsapp' ? !!guest.phone : !!guest.email;
+      const hasContact = !!guest.phone;
 
       if (!hasContact) {
         results.push({
           guest_id: guest.id,
           channel: body.channel,
           success: false,
-          error: body.channel === 'whatsapp' ? 'Nomor phone belum dilengkapi' : 'Alamat email belum dilengkapi',
+          error: 'Nomor phone belum dilengkapi',
         });
         failed++;
         continue;
