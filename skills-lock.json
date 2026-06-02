@@ -24,6 +24,54 @@
       "sourceType": "github",
       "skillPath": "skills/supabase-postgres-best-practices/SKILL.md",
       "computedHash": "d606a1146be6d54fb9e73f718b5320b9acac5ff2ba2d7230a555df4b5a923b4a"
+    },
+    "backend-patterns": {
+      "source": "everything-claude-code",
+      "sourceType": "local",
+      "skillPath": ".claude/skills/backend-patterns/SKILL.md",
+      "computedHash": "6d3500c25874d41b4dd094c83ec10b7ce09cc43a46cea7551f2244316c349eb6"
+    },
+    "e2e-testing": {
+      "source": "everything-claude-code",
+      "sourceType": "local",
+      "skillPath": ".claude/skills/e2e-testing/SKILL.md",
+      "computedHash": "f84ae93c159bf6ecef5a60c9735dc82d96bc5f977ef52eb71678b66722acf684"
+    },
+    "postgres-patterns": {
+      "source": "everything-claude-code",
+      "sourceType": "local",
+      "skillPath": ".claude/skills/postgres-patterns/SKILL.md",
+      "computedHash": "2b07d5f7de1b68a93c8b25d093be2f0e9bfde11b8f488bd5433f0bac15415074"
+    },
+    "redis-patterns": {
+      "source": "everything-claude-code",
+      "sourceType": "local",
+      "skillPath": ".claude/skills/redis-patterns/SKILL.md",
+      "computedHash": "eff68ab5d3402742537a8045f22c8c1b706ee000a16d31e86ff966827a55c457"
+    },
+    "nextjs-turbopack": {
+      "source": "everything-claude-code",
+      "sourceType": "local",
+      "skillPath": ".claude/skills/nextjs-turbopack/SKILL.md",
+      "computedHash": "f65da15aabeb9dca7ae08525739e72ab16e79a78ff4004f7cab6ad2de1c2a79b"
+    },
+    "motion-ui": {
+      "source": "everything-claude-code",
+      "sourceType": "local",
+      "skillPath": ".claude/skills/motion-ui/SKILL.md",
+      "computedHash": "dcd78a3718c3f2227695033c42cd194fbc073c8decc663fd5140a2c76e68f162"
+    },
+    "verification-loop": {
+      "source": "everything-claude-code",
+      "sourceType": "local",
+      "skillPath": ".claude/skills/verification-loop/SKILL.md",
+      "computedHash": "01a9ae310ad4426bb05660dda6cefdeaac9513417585c09c8bb1b94738649a78"
+    },
+    "skill-library": {
+      "source": "everything-claude-code",
+      "sourceType": "local",
+      "skillPath": ".claude/skills/skill-library/SKILL.md",
+      "computedHash": "cc8b062746cee6ba811045bae68d9544c73547140e8a1b3f97d7e1341cd6434b"
     }
   }
 }
