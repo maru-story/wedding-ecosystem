@@ -25,12 +25,23 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
     const event = await getTenantEvent(prisma, body.event_id, user.tenant_id);
     if (!event) return replyEventNotFound(reply);
 
+    // Auto-deactivate stale devices (last_active_at > 5 minutes ago)
+    const staleThreshold = new Date(Date.now() - 5 * 60 * 1000);
+    await prisma.scannerDevice.updateMany({
+      where: {
+        event_id: body.event_id,
+        is_active: true,
+        last_active_at: { lt: staleThreshold },
+      },
+      data: { is_active: false },
+    });
+
     // Check active device count (max 2 per event)
-    const activeDevices = await prisma.scannerDevice.count({
+    const activeDevices = await prisma.scannerDevice.findMany({
       where: { event_id: body.event_id, is_active: true },
     });
 
-    if (activeDevices >= 2) {
+    if (activeDevices.length >= 2) {
       return reply.status(403).send({
         success: false,
         error: {
@@ -40,6 +51,10 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
       });
     }
 
+    // Auto-assign lane based on what's available (prefer lane_1, then lane_2)
+    const usedLanes = new Set(activeDevices.map((d) => d.lane));
+    const lane = body.lane || (!usedLanes.has('lane_1') ? 'lane_1' : 'lane_2');
+
     // Create scanner device
     const { randomUUID } = await import('crypto');
     const device = await prisma.scannerDevice.create({
@@ -47,7 +62,7 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
         id: randomUUID(),
         event_id: body.event_id,
         device_name: body.device_name,
-        lane: body.lane,
+        lane: lane as any,
         is_active: true,
         last_active_at: new Date(),
       },

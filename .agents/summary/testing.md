@@ -3,20 +3,20 @@
 ## Overview
 
 - **Unit/Integration Framework**: Vitest 3.2.4
-- **E2E Testing Framework**: Playwright 1.50.1 (API & Socket.io WebSocket)
+- **E2E Testing Framework**: Playwright 1.55.1 (API & Socket.io WebSocket)
 - **Property-Based Testing**: fast-check 4.8.0
-- **Total Tests**: ~1218 + 11 Playwright E2E cases across all packages
+- **Total Tests**: ~1218 + 14 Playwright E2E cases across all packages
 - **Coverage Target**: 80% minimum for business logic
 
 ## Test Distribution
 
 | Package | Tests | Type |
 |---------|-------|------|
-| `@wedding/api` | ~924 + 11 E2E | Unit + Integration + Property-based + Playwright E2E |
+| `@wedding/api` | ~924 + 14 E2E | Unit + Integration + Property-based + Playwright E2E |
 | `@wedding/shared` | ~63 | Unit + Property-based |
 | `@wedding/realtime` | ~87 | Unit + Integration + Property-based |
 | `@wedding/dashboard` | ~81 | Unit + Property-based |
-| `@wedding/invitation` | ~32 | Unit + Property-based |
+| `@wedding/invitation` | ~32 + 14 UI | Unit + Property-based + Playwright UI Smoke Tests |
 | `@wedding/scanner` | ~43 | Unit + Property-based |
 
 ## Running Tests
@@ -27,6 +27,9 @@ npm run test
 
 # Playwright E2E tests (specifically for @wedding/api / @wedding/realtime)
 npm run test:e2e --workspace=packages/api
+
+# Playwright UI smoke tests for invitation application (mobile/desktop viewports)
+npx playwright test --config=apps/invitation/playwright.config.ts
 
 # Per package (unit tests)
 npx turbo test --filter=@wedding/api
@@ -245,7 +248,7 @@ function waitForEvent(socket: Socket, event: string, timeout = 5000) {
 | CMS Sort Order | Reordering always produces valid sequential sort_order; no gaps or duplicates |
 | Scanner Device | Max 2 devices enforced regardless of registration order; lane assignment is deterministic |
 | Go-Show | Go-show guests always get type=go_show and method=go_show; never assigned QR codes |
-| Notification | Bulk send respects max 500 limit; delivery status accurately tracked |
+| Invitation Delivery | Custom template compilation; delivery status tracking ('sent'); WhatsApp Web URL compilation |
 
 ## Integration Test Patterns
 
@@ -289,6 +292,10 @@ export default defineConfig({
 ## E2E Playwright Configuration
 
 Playwright is configured under `packages/api/playwright.config.ts`. It manages starting the backend server synchronously using the `webServer` config block, targets the dedicated test database, and runs the E2E specs in sequential mode to ensure database integrity during test state assertions.
+
+## E2E Playwright UI Configuration (Invitation App)
+
+Playwright is configured under `apps/invitation/playwright.config.ts` for running mobile-first UI smoke tests against the invitation web app. It targets the local Next.js dev server on port `3001` (reusing it if running), using a mobile Chrome viewport (iPhone 14) and desktop Chrome, saving screenshot results to `test-results/` for inspection.
 
 ## E2E Testing Validation Rules
 

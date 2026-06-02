@@ -23,7 +23,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'npx tsx --env-file=../../.env.test src/index.ts',
+      command: 'PORT=4005 npx tsx --env-file=../../.env.test src/index.ts',
       url: 'http://localhost:4005/health',
       reuseExistingServer: !process.env.CI,
       timeout: 120000,
@@ -31,7 +31,7 @@ export default defineConfig({
       stderr: 'inherit',
     },
     {
-      command: 'npx next build && npx next start --port 3000',
+      command: 'npx next dev --port 3000',
       cwd: path.resolve(__dirname, '../../apps/dashboard'),
       env: {
         NODE_ENV: 'test',
@@ -41,9 +41,39 @@ export default defineConfig({
       },
       url: 'http://localhost:3000',
       reuseExistingServer: !process.env.CI,
-      timeout: 120000,
+      timeout: 300000,
       stdout: 'inherit',
       stderr: 'inherit',
-    }
+    },
+    {
+      command: 'npx next dev --port 3001',
+      cwd: path.resolve(__dirname, '../../apps/invitation'),
+      env: {
+        NODE_ENV: 'test',
+        NEXT_PUBLIC_API_URL: 'http://localhost:4005',
+        NEXT_PUBLIC_WS_URL: 'http://localhost:4005',
+        NEXT_PUBLIC_CDN_URL: 'http://localhost:4005',
+      },
+      url: 'http://localhost:3001',
+      reuseExistingServer: !process.env.CI,
+      timeout: 300000,
+      stdout: 'inherit',
+      stderr: 'inherit',
+    },
+    {
+      command: 'npx next dev --port 3002',
+      cwd: path.resolve(__dirname, '../../apps/scanner'),
+      env: {
+        NODE_ENV: 'test',
+        NEXT_PUBLIC_API_URL: 'http://localhost:4005',
+        NEXT_PUBLIC_WS_URL: 'http://localhost:4005',
+        NEXT_PUBLIC_CDN_URL: 'http://localhost:4005',
+      },
+      url: 'http://localhost:3002',
+      reuseExistingServer: !process.env.CI,
+      timeout: 300000,
+      stdout: 'inherit',
+      stderr: 'inherit',
+    },
   ],
 });

@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import { PrismaClient } from '@wedding/db';
-import { loginSchema, RefreshTokenPayload } from '@wedding/shared';
+import { loginSchema, RefreshTokenPayload, updateProfileSchema, changePasswordSchema, ErrorCode } from '@wedding/shared';
 import { validate } from '../middleware/validate';
 
 interface AuthRouteOptions extends FastifyPluginOptions {
@@ -44,6 +44,13 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
       return reply.status(401).send({
         success: false,
         error: { code: 'AUTH_2001', message: 'Email atau password tidak valid' },
+      });
+    }
+
+    if (!user.is_active) {
+      return reply.status(403).send({
+        success: false,
+        error: { code: ErrorCode.FORBIDDEN, message: 'Akun Anda telah ditangguhkan (nonaktif)' },
       });
     }
 
@@ -105,6 +112,13 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
         });
       }
 
+      if (!user.is_active) {
+        return reply.status(403).send({
+          success: false,
+          error: { code: ErrorCode.FORBIDDEN, message: 'Akun Anda telah ditangguhkan (nonaktif)' },
+        });
+      }
+
       // Generate new token pair
       const payload = {
         sub: user.id,
@@ -132,5 +146,94 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
         error: { code: 'AUTH_2005', message: 'Sesi telah berakhir. Silakan login ulang.' },
       });
     }
+  });
+
+  // Protected routes for self-service profile and password changes
+  app.register(async (protectedApp) => {
+    protectedApp.addHook('onRequest', app.authenticate);
+
+    // PUT /auth/profile - Update client profile name/email
+    protectedApp.put('/profile', async (request, reply) => {
+      const user = request.user!;
+      const body = validate(request.body, updateProfileSchema, reply);
+      if (!body) return reply;
+
+      // Ensure new email is not already taken by another user
+      const existing = await prisma.user.findFirst({
+        where: {
+          email: body.email,
+          id: { not: user.id },
+        },
+      });
+
+      if (existing) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: ErrorCode.ALREADY_EXISTS, message: 'Email sudah terdaftar untuk pengguna lain' },
+        });
+      }
+
+      const updated = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          name: body.name,
+          email: body.email,
+        },
+      });
+
+      return reply.send({
+        success: true,
+        data: {
+          id: updated.id,
+          tenant_id: updated.tenant_id,
+          email: updated.email,
+          role: updated.role,
+          name: updated.name,
+        },
+      });
+    });
+
+    // PUT /auth/change-password - Change user password
+    protectedApp.put('/change-password', async (request, reply) => {
+      const user = request.user!;
+      const body = validate(request.body, changePasswordSchema, reply);
+      if (!body) return reply;
+
+      const { current_password, new_password } = body;
+
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.id },
+      });
+
+      if (!dbUser) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: ErrorCode.NOT_FOUND, message: 'User tidak ditemukan' },
+        });
+      }
+
+      // Verify current password
+      const isPasswordValid = await bcrypt.compare(current_password, dbUser.password_hash);
+      if (!isPasswordValid) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'AUTH_2001', message: 'Password saat ini tidak valid' },
+        });
+      }
+
+      // Hash new password using bcrypt
+      const saltRounds = 10;
+      const new_password_hash = await bcrypt.hash(new_password, saltRounds);
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { password_hash: new_password_hash },
+      });
+
+      return reply.send({
+        success: true,
+        message: 'Password berhasil diubah',
+      });
+    });
   });
 }

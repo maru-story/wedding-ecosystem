@@ -1,4 +1,4 @@
 sep=,
-nama,grup,telepon
-Budi Santoso,family,081234567890
-Siti Aminah,friend,089876543210
+nama,grup,telepon,jumlah_tamu
+Budi Santoso,family,+6281234567890,2
+Siti Aminah,friend,+6289876543210,0

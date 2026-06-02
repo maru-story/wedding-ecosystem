@@ -192,7 +192,7 @@ describe('verifyQRCode', () => {
       );
     });
 
-    it('returns duplicate result when guest already checked in locally', async () => {
+    it('returns valid result and enqueues subsequent scan when guest already checked in locally', async () => {
       mockGetCachedGuestByQR.mockResolvedValueOnce({
         id: 'guest-2',
         name: 'Rina Wati',
@@ -209,14 +209,14 @@ describe('verifyQRCode', () => {
       });
 
       expect(result).toEqual<VerificationResult>({
-        status: 'duplicate',
+        status: 'valid',
         guestName: 'Rina Wati',
         guestGroup: 'family',
-        previousCheckInTime: '2025-01-15T09:00:00.000Z',
+        scanCount: 2,
       });
 
-      // Should NOT queue a check-in for duplicates
-      expect(mockEnqueueCheckIn).not.toHaveBeenCalled();
+      // Should queue the duplicate check-in
+      expect(mockEnqueueCheckIn).toHaveBeenCalled();
     });
 
     it('returns invalid result when QR not found in local cache', async () => {

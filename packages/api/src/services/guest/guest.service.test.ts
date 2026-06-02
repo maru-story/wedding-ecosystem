@@ -26,11 +26,14 @@ function createMockRepository(): GuestRepository {
     findGuestsByEvent: vi.fn(),
     updateGuest: vi.fn(),
     deleteGuest: vi.fn(),
+    deleteGuests: vi.fn(),
     deactivateQRCode: vi.fn(),
+    deactivateQRCodes: vi.fn(),
     findQRCodeByGuestId: vi.fn(),
     checkSlugExists: vi.fn(),
     checkQRPayloadExists: vi.fn(),
     findEventById: vi.fn(),
+    countGuestsByEvent: vi.fn(async () => 0),
     findGuestNamesByEvent: vi.fn(),
     searchGuestsByName: vi.fn(),
   };
@@ -227,6 +230,28 @@ describe('GuestService', () => {
         })
       );
     });
+
+    it('should return error if guest limit is exceeded', async () => {
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        slug: 'wedding',
+        max_guests: 5,
+      });
+      vi.mocked(repository.countGuestsByEvent).mockResolvedValue(5);
+
+      const result = await service.addGuest('event-001', 'tenant-001', {
+        name: 'John Doe',
+        group: GuestGroup.FRIEND,
+        type: GuestType.INVITED,
+        plus_one_count: 1,
+      });
+
+      expect(isGuestError(result)).toBe(true);
+      if (isGuestError(result)) {
+        expect(result.code).toBe(ErrorCode.GUEST_LIMIT_EXCEEDED);
+        expect(result.message).toContain('Kapasitas tamu untuk acara ini telah penuh');
+      }
+    });
   });
 
   describe('getGuest', () => {
@@ -422,26 +447,26 @@ describe('GuestService', () => {
       }
     });
 
-    it('should enforce max 50 per page (Req 3.9)', async () => {
+    it('should enforce max 100 per page (Req 3.9)', async () => {
       vi.mocked(repository.findEventById).mockResolvedValue({
         id: 'event-001',
         slug: 'wedding',
       });
       vi.mocked(repository.findGuestsByEvent).mockResolvedValue({
         data: [],
-        pagination: { page: 1, per_page: 50, total: 0, total_pages: 0 },
+        pagination: { page: 1, per_page: 100, total: 0, total_pages: 0 },
       });
 
       await service.listGuests('event-001', 'tenant-001', {
         page: 1,
-        per_page: 100, // Requesting more than max
+        per_page: 150, // Requesting more than max
       });
 
-      // Should be capped at 50
+      // Should be capped at 100
       expect(repository.findGuestsByEvent).toHaveBeenCalledWith(
         'event-001',
         'tenant-001',
-        { page: 1, per_page: 50 },
+        { page: 1, per_page: 100 },
         undefined
       );
     });

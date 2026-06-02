@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@wedding/shared'],
+  allowedDevOrigins: ['8a29ce0d038e5209-182-10-131-106.serveousercontent.com'],
   // Ensure service worker is served with correct headers
   async headers() {
     return [

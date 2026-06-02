@@ -20,6 +20,7 @@ export interface UserRecord {
   email: string;
   role: UserRole;
   name: string;
+  is_active: boolean;
   created_at: Date;
 }
 
@@ -69,6 +70,12 @@ export interface AdminRepository {
 
   updateUserPassword(userId: string, passwordHash: string): Promise<boolean>;
 
+  updateUserStatus(userId: string, isActive: boolean): Promise<UserRecord | null>;
+
+  createAdminUser(
+    userData: { email: string; password_hash: string; name: string; tenant_id: string }
+  ): Promise<UserRecord>;
+
   getGlobalStats(): Promise<GlobalStats>;
 
   checkTenantSlugExists(slug: string): Promise<boolean>;
@@ -81,7 +88,9 @@ export interface AdminRepository {
     action?: string,
     tenantId?: string,
     userId?: string,
-    search?: string
+    search?: string,
+    startDate?: string,
+    endDate?: string
   ): Promise<{ data: AuditLogRecord[]; total: number }>;
 }
 
@@ -166,6 +175,43 @@ export class AdminService {
     return { success: true };
   }
 
+  async toggleUserStatus(
+    userId: string,
+    isActive: boolean
+  ): Promise<UserRecord | AdminServiceError> {
+    const user = await this.repository.updateUserStatus(userId, isActive);
+    if (!user) {
+      return {
+        code: ErrorCode.NOT_FOUND,
+        message: 'Pengguna tidak ditemukan',
+      };
+    }
+    return user;
+  }
+
+  async createAdminUser(
+    email: string,
+    passwordPlain: string,
+    name: string,
+    tenantId: string
+  ): Promise<UserRecord | AdminServiceError> {
+    const emailExists = await this.repository.checkUserEmailExists(email);
+    if (emailExists) {
+      return {
+        code: ErrorCode.ALREADY_EXISTS,
+        message: 'Email sudah digunakan oleh pengguna lain',
+      };
+    }
+
+    const passwordHash = await bcrypt.hash(passwordPlain, BCRYPT_COST_FACTOR);
+    return this.repository.createAdminUser({
+      email,
+      password_hash: passwordHash,
+      name,
+      tenant_id: tenantId,
+    });
+  }
+
   async getGlobalStats(): Promise<GlobalStats> {
     return this.repository.getGlobalStats();
   }
@@ -176,8 +222,10 @@ export class AdminService {
     action?: string,
     tenantId?: string,
     userId?: string,
-    search?: string
+    search?: string,
+    startDate?: string,
+    endDate?: string
   ): Promise<{ data: AuditLogRecord[]; total: number }> {
-    return this.repository.listAuditLogs(page, perPage, action, tenantId, userId, search);
+    return this.repository.listAuditLogs(page, perPage, action, tenantId, userId, search, startDate, endDate);
   }
 }

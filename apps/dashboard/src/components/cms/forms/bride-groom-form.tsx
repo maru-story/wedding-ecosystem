@@ -1,10 +1,20 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 import { MediaUpload } from '../media-upload';
+import { uploadMedia } from '@/lib/cms';
+
+interface EventData {
+  id?: string;
+  bride_name?: string | null;
+  groom_name?: string | null;
+}
 
 interface BrideGroomFormProps {
   content: Record<string, unknown>;
   onChange: (content: Record<string, unknown>) => void;
+  event?: EventData | null;
 }
 
 interface PersonData {
@@ -14,7 +24,7 @@ interface PersonData {
   instagram: string;
 }
 
-export function BrideGroomForm({ content, onChange }: BrideGroomFormProps) {
+export function BrideGroomForm({ content, onChange, event }: BrideGroomFormProps) {
   const bride = (content.bride as PersonData) || { name: '', parent_info: '', photo: '', instagram: '' };
   const groom = (content.groom as PersonData) || { name: '', parent_info: '', photo: '', instagram: '' };
 
@@ -26,9 +36,24 @@ export function BrideGroomForm({ content, onChange }: BrideGroomFormProps) {
     });
   };
 
+  const handleSyncNames = () => {
+    if (!event) return;
+    onChange({
+      ...content,
+      bride: { ...bride, name: event.bride_name || bride.name },
+      groom: { ...groom, name: event.groom_name || groom.name },
+    });
+  };
+
   const handleUpload = async (file: File): Promise<string> => {
+    if (event?.id) {
+      const res = await uploadMedia(event.id, file, 'bride-groom');
+      return res.url;
+    }
     return URL.createObjectURL(file);
   };
+
+  const hasEventNames = event?.bride_name || event?.groom_name;
 
   const renderPersonForm = (role: 'bride' | 'groom', label: string) => {
     const person = role === 'bride' ? bride : groom;
@@ -96,8 +121,33 @@ export function BrideGroomForm({ content, onChange }: BrideGroomFormProps) {
 
   return (
     <div className="space-y-4">
-      {renderPersonForm('bride', '👰 Mempelai Wanita')}
-      {renderPersonForm('groom', '🤵 Mempelai Pria')}
+      {/* Sync names from event settings */}
+      {hasEventNames && (
+        <div className="flex items-start justify-between rounded-lg border border-primary/20 bg-primary/5 p-3">
+          <div className="text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Sinkronkan dari Pengaturan Acara</p>
+            <p className="text-xs mt-0.5">
+              Isi otomatis nama mempelai dari pengaturan acara:{' '}
+              <span className="font-medium text-foreground">
+                {event?.groom_name}{event?.groom_name && event?.bride_name ? ' & ' : ''}{event?.bride_name}
+              </span>
+            </p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="default"
+            onClick={handleSyncNames}
+            className="ml-3 shrink-0 gap-1.5"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Terapkan
+          </Button>
+        </div>
+      )}
+
+      {renderPersonForm('bride', 'Mempelai Wanita')}
+      {renderPersonForm('groom', 'Mempelai Pria')}
     </div>
   );
 }

@@ -62,7 +62,7 @@ export async function syncPendingCheckIns(
 
       try {
         const response = await fetchWithTimeout(
-          `${apiBaseUrl}/check-in/sync`,
+          `${apiBaseUrl}/checkin/sync`,
           {
             method: 'POST',
             headers: {
@@ -70,12 +70,12 @@ export async function syncPendingCheckIns(
               Authorization: `Bearer ${authToken}`,
             },
             body: JSON.stringify({
-              checkIns: batch.map((record) => ({
-                guestId: record.guestId,
-                qrPayload: record.qrPayload,
+              records: batch.map((record) => ({
+                guest_id: record.guestId,
+                qr_payload: record.qrPayload,
                 method: record.method,
-                checkedInAt: record.checkedInAt,
-                eventId: record.eventId,
+                checked_in_at: record.checkedInAt,
+                event_id: record.eventId,
               })),
             }),
           },

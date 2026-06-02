@@ -7,6 +7,7 @@ export { PrismaCMSRepository } from './cms.repository';
 export { PrismaRsvpRepository } from './rsvp.repository';
 export { RealtimeRsvpBroadcaster } from './rsvp.broadcaster';
 export { PrismaAdminRepository } from './admin.repository';
+export { PrismaInvitationDeliveryRepository } from './invitation-delivery.repository';
 export {
   getTenantEvent,
   getCurrentTenantEvent,

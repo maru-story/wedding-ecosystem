@@ -32,6 +32,7 @@ export enum ErrorCode {
   GUEST_DUPLICATE_NAME = 'GUEST_6002',
   QR_CODE_INVALID = 'GUEST_6003',
   QR_CODE_INACTIVE = 'GUEST_6004',
+  GUEST_LIMIT_EXCEEDED = 'GUEST_6005',
 
   // Check-in errors (7xxx)
   ALREADY_CHECKED_IN = 'CHECKIN_7001',
@@ -111,6 +112,7 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.GUEST_DUPLICATE_NAME]: 409,
   [ErrorCode.QR_CODE_INVALID]: 400,
   [ErrorCode.QR_CODE_INACTIVE]: 400,
+  [ErrorCode.GUEST_LIMIT_EXCEEDED]: 403,
 
   [ErrorCode.ALREADY_CHECKED_IN]: 409,
   [ErrorCode.INVALID_QR]: 404,

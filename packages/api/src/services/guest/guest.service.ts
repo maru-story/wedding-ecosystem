@@ -74,6 +74,7 @@ export interface PaginatedGuestList {
 export interface GuestFilterOptions {
   group?: GuestGroup;
   status?: 'belum_rsvp' | 'confirmed' | 'declined' | 'checked_in';
+  q?: string;
 }
 
 export interface GuestServiceError {
@@ -134,7 +135,11 @@ export interface GuestRepository {
 
   deleteGuest(guestId: string, tenantId: string): Promise<boolean>;
 
+  deleteGuests(guestIds: string[], tenantId: string): Promise<number>;
+
   deactivateQRCode(guestId: string): Promise<boolean>;
+
+  deactivateQRCodes(guestIds: string[]): Promise<number>;
 
   findQRCodeByGuestId(guestId: string): Promise<QRCodeRecord | null>;
 
@@ -142,7 +147,9 @@ export interface GuestRepository {
 
   checkQRPayloadExists(payload: string): Promise<boolean>;
 
-  findEventById(eventId: string, tenantId: string): Promise<{ id: string; slug: string } | null>;
+  findEventById(eventId: string, tenantId: string): Promise<{ id: string; slug: string; max_guests?: number } | null>;
+
+  countGuestsByEvent(eventId: string, tenantId: string): Promise<number>;
 
   /**
    * Fetch all guest names for an event, used to pre-seed the duplicate-detection
@@ -198,6 +205,15 @@ export class GuestService {
       return {
         code: ErrorCode.NOT_FOUND,
         message: 'Event tidak ditemukan',
+      };
+    }
+
+    // Verify guest capacity (max_guests) limit
+    const currentCount = await this.repository.countGuestsByEvent(eventId, tenantId);
+    if (currentCount >= (event.max_guests ?? 2000)) {
+      return {
+        code: ErrorCode.GUEST_LIMIT_EXCEEDED,
+        message: 'Kapasitas tamu untuk acara ini telah penuh. Silakan hubungi administrator untuk menambah kuota.',
       };
     }
 
@@ -360,6 +376,26 @@ export class GuestService {
     return { success: deleted };
   }
 
+  /**
+   * Delete multiple guests and deactivate their QR codes
+   */
+  async deleteGuests(
+    guestIds: string[],
+    tenantId: string
+  ): Promise<{ success: boolean; deletedCount: number }> {
+    if (guestIds.length === 0) {
+      return { success: true, deletedCount: 0 };
+    }
+
+    // Deactivate QR codes first
+    await this.repository.deactivateQRCodes(guestIds);
+
+    // Delete guest records
+    const deletedCount = await this.repository.deleteGuests(guestIds, tenantId);
+
+    return { success: true, deletedCount };
+  }
+
   // --- List Guests ---
 
   /**
@@ -382,10 +418,10 @@ export class GuestService {
       };
     }
 
-    // Enforce max 50 per page (Req 3.9)
+    // Enforce max 100 per page (Req 3.9)
     const sanitizedPagination: PaginationInput = {
       page: pagination.page ?? 1,
-      per_page: Math.min(pagination.per_page ?? GUESTS_PER_PAGE, GUESTS_PER_PAGE),
+      per_page: Math.min(pagination.per_page ?? GUESTS_PER_PAGE, 100),
     };
 
     return this.repository.findGuestsByEvent(

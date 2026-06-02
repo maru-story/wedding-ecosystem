@@ -15,6 +15,7 @@ export interface VerificationResult {
   guestGroup?: string;
   errorMessage?: string;
   previousCheckInTime?: string;
+  scanCount?: number;
 }
 
 interface CheckInApiResponse {
@@ -23,6 +24,7 @@ interface CheckInApiResponse {
   guest_group?: string | null;
   message?: string | null;
   checked_in_at?: string | null;
+  scan_count?: number | null;
 }
 
 /**
@@ -76,6 +78,7 @@ async function verifyOnline(
         status: 'valid',
         guestName: data.guest_name || undefined,
         guestGroup: data.guest_group || undefined,
+        scanCount: data.scan_count || undefined,
       };
     }
 
@@ -125,13 +128,22 @@ async function verifyOffline(
       };
     }
 
-    // Check for duplicate
+    // Check for duplicate - bypass and queue subsequent scan
     if (cachedGuest.checkedIn) {
+      const checkedInAt = new Date().toISOString();
+      await enqueueCheckIn({
+        guestId: cachedGuest.id,
+        qrPayload,
+        method: 'qr_scan',
+        eventId,
+        guestName: cachedGuest.name,
+      });
+
       return {
-        status: 'duplicate',
+        status: 'valid',
         guestName: cachedGuest.name,
         guestGroup: cachedGuest.group,
-        previousCheckInTime: cachedGuest.checkedInAt,
+        scanCount: 2,
       };
     }
 

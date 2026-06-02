@@ -33,7 +33,7 @@ test.describe('Check-in API E2E', () => {
     expect(scan1Body.status).toBe('green');
     expect(scan1Body.checked_in_at).not.toBeNull();
 
-    // 4. Perform second scan (YELLOW - Duplicate check-in warning)
+    // 4. Perform second scan (GREEN - Bypass duplicate scan and increment count)
     const scan2Response = await tenantA.request.post('/checkin/scan', {
       data: {
         qr_payload: qrPayload,
@@ -42,8 +42,9 @@ test.describe('Check-in API E2E', () => {
     });
     expect(scan2Response.status()).toBe(200);
     const scan2Body = await scan2Response.json();
-    expect(scan2Body.status).toBe('yellow');
-    expect(scan2Body.checked_in_at).toBe(scan1Body.checked_in_at);
+    expect(scan2Body.status).toBe('green');
+    expect(scan2Body.scan_count).toBe(2);
+    expect(scan2Body.checked_in_at).not.toBeNull();
   });
 
   test('should register a Go-Show (walk-in) guest and check them in', async ({ tenantA }) => {
@@ -88,13 +89,17 @@ test.describe('Check-in API E2E', () => {
     expect(body.guest_name).toBe('Manual Checkin Guest');
     expect(body.checked_in_at).not.toBeNull();
 
-    // 3. Attempt duplicate manual check-in (should fail with 409 Conflict)
+    // 3. Attempt duplicate manual check-in (should succeed and increment scan count)
     const duplicateResponse = await tenantA.request.post('/checkin/manual', {
       data: {
         guest_id: guestId,
         event_id: tenantA.eventId,
       },
     });
-    expect(duplicateResponse.status()).toBe(409);
+    expect(duplicateResponse.status()).toBe(200);
+    const duplicateBody = await duplicateResponse.json();
+    expect(duplicateBody.success).toBe(true);
+    expect(duplicateBody.scan_count).toBe(2);
+    expect(duplicateBody.checked_in_at).not.toBeNull();
   });
 });

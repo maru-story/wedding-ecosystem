@@ -15,10 +15,17 @@ export const ALLOWED_VIDEO_MIMES = [
   'video/webm',
 ] as const;
 
+/** Allowed MIME types for audio uploads */
+export const ALLOWED_AUDIO_MIMES = [
+  'audio/mpeg',
+  'audio/mp3',
+] as const;
+
 /** All allowed MIME types */
 export const ALLOWED_MIMES = [
   ...ALLOWED_IMAGE_MIMES,
   ...ALLOWED_VIDEO_MIMES,
+  ...ALLOWED_AUDIO_MIMES,
 ] as const;
 
 /** File extension to MIME type mapping */
@@ -29,6 +36,7 @@ export const EXTENSION_MIME_MAP: Record<string, string> = {
   '.webp': 'image/webp',
   '.mp4': 'video/mp4',
   '.webm': 'video/webm',
+  '.mp3': 'audio/mpeg', // Some browsers report audio/mp3, some audio/mpeg, map both
 };
 
 /** Max file sizes in bytes (Req 5.4, 13.8) */
@@ -37,6 +45,8 @@ export const MAX_FILE_SIZES = {
   IMAGE: 5 * 1024 * 1024,
   /** Video: max 50MB */
   VIDEO: 50 * 1024 * 1024,
+  /** Audio: max 10MB */
+  AUDIO: 10 * 1024 * 1024,
   /** General/other: max 10MB */
   GENERAL: 10 * 1024 * 1024,
 } as const;
@@ -45,6 +55,7 @@ export const MAX_FILE_SIZES = {
 export const SIZE_LABELS = {
   IMAGE: '5MB',
   VIDEO: '50MB',
+  AUDIO: '10MB',
   GENERAL: '10MB',
 } as const;
 
@@ -52,7 +63,7 @@ export const SIZE_LABELS = {
 
 export type AllowedMimeType = (typeof ALLOWED_MIMES)[number];
 
-export type MediaCategory = 'image' | 'video';
+export type MediaCategory = 'image' | 'video' | 'audio';
 
 /** Input file metadata for validation */
 export interface FileInput {
@@ -165,8 +176,9 @@ export class MediaUploadService {
    */
   async uploadFile(
     file: FileInput,
-    tenantId: string,
-    eventId: string
+    tenantSlug: string,
+    eventSlug: string,
+    section: string = 'media'
   ): Promise<UploadResult | MediaUploadError> {
     // Step 1: Validate file format (Req 13.8)
     const formatValidation = this.validateFormat(file);
@@ -193,7 +205,7 @@ export class MediaUploadService {
     }
 
     // Step 4: Upload to cloud storage
-    const storageKey = this.generateStorageKey(tenantId, eventId, file.originalname);
+    const storageKey = this.generateStorageKey(tenantSlug, eventSlug, file.originalname, section);
     try {
       const url = await this.cloudStorage.upload(file.buffer, storageKey, file.mimetype);
       return {
@@ -218,10 +230,10 @@ export class MediaUploadService {
   validateFormat(file: FileInput): MediaUploadError | null {
     const allowedMimes: readonly string[] = ALLOWED_MIMES;
 
-    if (!allowedMimes.includes(file.mimetype)) {
+    if (!allowedMimes.includes(file.mimetype) && !(file.mimetype === 'audio/mp3')) {
       return {
         code: ErrorCode.INVALID_FILE_FORMAT,
-        message: `Format file tidak didukung: ${file.mimetype}. Format yang didukung: JPEG, PNG, WebP (gambar) dan MP4, WebM (video).`,
+        message: `Format file tidak didukung: ${file.mimetype}. Format yang didukung: JPEG, PNG, WebP (gambar), MP4, WebM (video), dan MP3 (audio).`,
       };
     }
 
@@ -229,10 +241,10 @@ export class MediaUploadService {
     const extension = this.getFileExtension(file.originalname);
     const expectedMime = EXTENSION_MIME_MAP[extension];
 
-    if (!expectedMime || expectedMime !== file.mimetype) {
+    if (!expectedMime || (expectedMime !== file.mimetype && !(extension === '.mp3' && (file.mimetype === 'audio/mpeg' || file.mimetype === 'audio/mp3')))) {
       return {
         code: ErrorCode.INVALID_FILE_FORMAT,
-        message: `Ekstensi file tidak sesuai dengan tipe file. Format yang didukung: JPEG, PNG, WebP (gambar) dan MP4, WebM (video).`,
+        message: `Ekstensi file tidak sesuai dengan tipe file. Format yang didukung: JPEG, PNG, WebP (gambar), MP4, WebM (video), dan MP3 (audio).`,
       };
     }
 
@@ -244,8 +256,23 @@ export class MediaUploadService {
    * Returns error if too large, null if valid.
    */
   validateSize(file: FileInput, category: MediaCategory): MediaUploadError | null {
-    const maxSize = category === 'image' ? MAX_FILE_SIZES.IMAGE : MAX_FILE_SIZES.VIDEO;
-    const sizeLabel = category === 'image' ? SIZE_LABELS.IMAGE : SIZE_LABELS.VIDEO;
+    let maxSize: number;
+    let sizeLabel: string;
+
+    switch (category) {
+      case 'image':
+        maxSize = MAX_FILE_SIZES.IMAGE;
+        sizeLabel = SIZE_LABELS.IMAGE;
+        break;
+      case 'video':
+        maxSize = MAX_FILE_SIZES.VIDEO;
+        sizeLabel = SIZE_LABELS.VIDEO;
+        break;
+      case 'audio':
+        maxSize = MAX_FILE_SIZES.AUDIO;
+        sizeLabel = SIZE_LABELS.AUDIO;
+        break;
+    }
 
     if (file.size > maxSize) {
       return {
@@ -262,20 +289,29 @@ export class MediaUploadService {
    */
   getMediaCategory(mimetype: string): MediaCategory {
     const imageMimes: readonly string[] = ALLOWED_IMAGE_MIMES;
+    const audioMimes: readonly string[] = ALLOWED_AUDIO_MIMES;
     if (imageMimes.includes(mimetype)) {
       return 'image';
+    }
+    if (audioMimes.includes(mimetype) || mimetype === 'audio/mp3') {
+      return 'audio';
     }
     return 'video';
   }
 
   /**
    * Generate a unique storage key for the uploaded file.
-   * Format: {tenantId}/{eventId}/media/{timestamp}-{filename}
+   * Format: {tenantSlug}/{eventSlug}/cms/{section}/{timestamp}-{filename}
    */
-  generateStorageKey(tenantId: string, eventId: string, filename: string): string {
+  generateStorageKey(
+    tenantSlug: string,
+    eventSlug: string,
+    filename: string,
+    section: string = 'media'
+  ): string {
     const timestamp = Date.now();
     const sanitizedFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-    return `${tenantId}/${eventId}/media/${timestamp}-${sanitizedFilename}`;
+    return `${tenantSlug}/${eventSlug}/cms/${section}/${timestamp}-${sanitizedFilename}`;
   }
 
   /**

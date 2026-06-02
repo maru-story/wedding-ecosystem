@@ -8,9 +8,12 @@ import { CsvImportModal } from './components/csv-import-modal';
 import { QrCodeModal } from './components/qr-code-modal';
 import { ApiError } from '@/lib/api';
 import type { GuestGroup } from '@wedding/shared';
-import { useGuests } from '@/hooks/queries';
+import { useGuests, useEvent, useDashboardStats } from '@/hooks/queries';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { FadeIn } from '@/components/ui/motion-wrapper';
+import { DEFAULT_MAX_GUESTS, GUESTS_PER_PAGE } from '@/lib/constants';
+import { useTableState } from '@/hooks/use-table-state';
 
 export interface GuestListItem {
   id: string;
@@ -39,7 +42,10 @@ export interface PaginatedGuestList {
 type GuestStatusFilter = 'belum_rsvp' | 'confirmed' | 'declined' | 'checked_in';
 
 export default function GuestsPage() {
-  const [page, setPage] = useState(1);
+  const tableState = useTableState<GuestListItem>({
+    initialPerPage: GUESTS_PER_PAGE,
+  });
+
   const [groupFilter, setGroupFilter] = useState<GuestGroup | ''>('');
   const [statusFilter, setStatusFilter] = useState<GuestStatusFilter | ''>('');
 
@@ -51,18 +57,27 @@ export default function GuestsPage() {
 
   // Fetch guests using React Query
   const { data, isLoading, error: queryError, refetch } = useGuests({
-    page,
+    page: tableState.page,
+    perPage: tableState.perPage,
     group: groupFilter || undefined,
     status: statusFilter || undefined,
+    q: tableState.debouncedSearchQuery || undefined,
   });
+
+  const { data: eventData } = useEvent();
+  const { data: stats } = useDashboardStats();
+  const maxGuests = eventData?.event_config?.max_guests ?? DEFAULT_MAX_GUESTS;
+  const totalGuests = stats?.total_guests ?? 0;
 
   const guests = data?.data || [];
   const pagination = data?.pagination || {
     page: 1,
-    per_page: 50,
+    per_page: tableState.perPage,
     total: 0,
     total_pages: 0,
   };
+
+  const isFiltered = !!groupFilter || !!statusFilter || !!tableState.searchQuery;
 
   let errorMessage = '';
   if (queryError) {
@@ -74,29 +89,33 @@ export default function GuestsPage() {
     }
   }
 
+  // Get selection helpers dynamically
+  const { allSelected, someSelected, handleSelectAll, handleSelectOne } =
+    tableState.getSelectionHelpers(guests);
+
   const handleGroupFilterChange = (val: GuestGroup | '') => {
     setGroupFilter(val);
-    setPage(1);
+    tableState.resetPage();
   };
 
   const handleStatusFilterChange = (val: GuestStatusFilter | '') => {
     setStatusFilter(val);
-    setPage(1);
+    tableState.resetPage();
   };
-
-  function handlePageChange(newPage: number) {
-    setPage(newPage);
-  }
 
   function handleGuestSaved() {
     setShowAddModal(false);
     setEditingGuest(null);
   }
 
+  // Reload statistics and page list
+  const { refetch: refetchStats } = useDashboardStats();
+
   function handleImportComplete() {
     setShowImportModal(false);
-    setPage(1);
+    tableState.resetPage();
     refetch();
+    refetchStats();
   }
 
   return (
@@ -106,7 +125,16 @@ export default function GuestsPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="font-heading text-2xl font-bold">Daftar Tamu</h1>
-            <p className="mt-1 text-sm text-gray-600">Kelola tamu undangan pernikahan Anda</p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <p className="text-sm text-gray-600">
+                Kelola tamu undangan pernikahan Anda (Kapasitas: {totalGuests} / {maxGuests})
+              </p>
+              {isFiltered && (
+                <Badge variant="secondary" className="font-normal text-xs bg-accent/30 text-accent-foreground border-accent/20">
+                  {pagination.total} hasil ditemukan
+                </Badge>
+              )}
+            </div>
           </div>
           <div className="flex gap-2">
             <Button
@@ -127,6 +155,8 @@ export default function GuestsPage() {
 
         {/* Filters */}
         <GuestFilters
+          searchQuery={tableState.searchQuery}
+          onSearchChange={tableState.setSearchQuery}
           groupFilter={groupFilter}
           statusFilter={statusFilter}
           onGroupChange={handleGroupFilterChange}
@@ -148,10 +178,16 @@ export default function GuestsPage() {
           guests={guests}
           pagination={pagination}
           isLoading={isLoading}
-          onPageChange={handlePageChange}
+          onPageChange={tableState.setPage}
+          onPerPageChange={tableState.setPerPage}
           onEdit={(guest) => setEditingGuest(guest)}
           onShowQr={(guest) => setQrGuest(guest)}
-          onRefresh={refetch}
+          selectedIds={tableState.selectedIds}
+          allSelected={allSelected}
+          someSelected={someSelected}
+          onSelectAll={handleSelectAll}
+          onSelectOne={handleSelectOne}
+          onClearSelection={tableState.clearSelection}
         />
 
         {/* Add/Edit Guest Modal */}
@@ -171,6 +207,7 @@ export default function GuestsPage() {
           <CsvImportModal
             onClose={() => setShowImportModal(false)}
             onComplete={handleImportComplete}
+            currentCount={pagination.total}
           />
         )}
 

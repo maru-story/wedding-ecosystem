@@ -53,7 +53,7 @@
 │   │   ├── src/config/     # Production config, database, Redis, logger
 │   │   ├── src/middleware/  # CORS, rate limiting, tenant isolation, RBAC, encryption
 │   │   ├── src/plugins/    # Audit logger, response cache, security headers, request validation
-│   │   ├── src/routes/     # Route handlers (auth, guests, events, checkin, rsvp, cms, scanner, messages, invitations, notifications, health)
+│   │   ├── src/routes/     # Route handlers (auth, guests, events, checkin, rsvp, cms, scanner, messages, invitations, invitation-deliveries, health)
 │   │   └── src/services/   # Business logic layer
 │   ├── db/                 # Prisma 7 schema, migrations, client factory
 │   ├── shared/             # Shared TypeScript types, Zod schemas, enums, error codes, utilities
@@ -84,7 +84,7 @@
 | Auth       | JWT (jsonwebtoken) + bcrypt | 9.0 / 6.0                                     |
 | Validation | Zod                         | 3.25                                          |
 | Testing    | Vitest + fast-check         | 3.2 / 4.8                                     |
-| E2E Test   | Playwright                  | 1.50.1                                        |
+| E2E Test   | Playwright                  | 1.55.1                                        |
 | Language   | TypeScript                  | 5.9                                           |
 | Monorepo   | npm workspaces + Turborepo  | 2.4                                           |
 | Node.js    | Minimum                     | 20.0.0                                        |
@@ -121,7 +121,7 @@
 1. **Tenant isolation** — EVERY database query MUST be scoped by `tenant_id`. Never expose data across tenants.
 2. **Personalized URLs** — Format: `/{event-slug}?to={guest-slug}`. The guest-slug determines the name on the cover.
 3. **QR uniqueness** — One QR code per guest per event. Payload contains `guest_id` + `event_id`.
-4. **Duplicate detection** — Prevent duplicate check-ins. Second scan returns YELLOW status with first check-in timestamp.
+4. **Duplicate detection** — Allow duplicate check-ins. Subsequent scans increment the `scan_count` counter and return a success status (GREEN).
 5. **Go-Show flow** — Walk-in guests added on-site. Temporary record, no QR code, immediately checked in.
 6. **CMS sections** — 14 configurable sections per invitation. Each toggleable and reorderable.
 7. **RSVP states** — `pending` | `confirmed` | `declined` | `checked_in`.
@@ -138,12 +138,21 @@
 - `POST /auth/login` — Login, returns JWT access_token (15min) + refresh_token (7 days)
 - `POST /auth/refresh` — Refresh access token
 
+### Auth (Auth required)
+
+- `PUT /auth/profile` — Update client name and email
+- `PUT /auth/change-password` — Change password (requires current password)
+
 ### Events (Auth required)
 
 - `GET /events` — List events for tenant
 - `POST /events` — Create a new wedding event
 - `GET /events/current` — Get current tenant's latest event
 - `GET /events/current/stats` — Get current event statistics
+- `GET /events/:id/stats` — Get event statistics (guests, RSVPs, check-ins)
+- `GET /events/:id/rsvp` — Get RSVP list for event
+- `PUT /events/:id` — Update wedding event details
+- `POST /events/:id/media/upload` — Upload media file (image/video/audio) to Cloudflare R2 (optional query param `?section=` structure: e.g., `cover`, `gallery`, `story`)
 
 ### Guests (Auth required)
 
@@ -153,10 +162,11 @@
 - `GET /guests/search?q=&event_id=` — Search by name (min 2 chars)
 - `GET /guests/:id/qr` — Get QR code data
 - `POST /guests/import` — Bulk import from CSV
+- `POST /guests/bulk-delete` — Bulk delete guests and deactivate their QR codes
 
 ### Check-in (Auth required)
 
-- `POST /checkin/scan` — QR scan verification (returns GREEN/YELLOW/RED)
+- `POST /checkin/scan` — QR scan verification (returns GREEN/RED)
 - `POST /checkin/manual` — Manual check-in by guest_id
 - `POST /checkin/go-show` — Register + check-in walk-in guest
 - `POST /checkin/sync` — Sync offline check-in records
@@ -184,11 +194,19 @@
 ### Messages (No auth — public)
 
 - `POST /messages` — Send wish/message
-- `GET /messages?event_id=` — Get messages for event
+- `GET /messages/:eventId` — Get messages for event
 
-### Notifications (Auth required)
+### Messages (Auth required)
 
-- `GET /notifications` — Get delivery status
+- `GET /messages/:eventId/admin` — Get all messages (visible and hidden) for event
+- `PUT /messages/:messageId/visibility` — Toggle visibility of a message
+- `DELETE /messages/:messageId` — Delete a message
+
+### Invitation Deliveries (Auth required)
+
+- `GET /invitation-deliveries/message-template` — Get message template for event
+- `PUT /invitation-deliveries/message-template` — Update message template for event
+- `POST /invitation-deliveries/send` — Send single invitation via WhatsApp Web redirect
 
 ### Health (No auth)
 
@@ -200,9 +218,13 @@
 - `GET /admin/tenants` — List all tenants (paginated, search, filter)
 - `POST /admin/tenants` — Create a new tenant with master client credentials
 - `PATCH /admin/tenants/:id/status` — Toggle tenant active/inactive status
-- `GET /admin/users` — List all users across the platform (paginated, search, role filters)
+- `GET /admin/users` — List all users across the platform (paginated, search, role filters, is_active status)
+- `PATCH /admin/users/:id/status` — Toggle user active/inactive status (suspend/activate account)
+- `POST /admin/users/admin` — Create a new platform administrator
 - `PUT /admin/users/:id/reset-password` — Generate and reset user password with secure random string
-- `GET /admin/audit-logs` — List platform-wide system audit logs with pagination, search, and type filtering
+- `GET /admin/audit-logs` — List platform-wide system audit logs with pagination, search, action filter, and date-range filters (`start_date`/`end_date`)
+- `GET /admin/tenants/:id/events` — List events for a tenant with their config limits
+- `PATCH /admin/events/:eventId/config` — Update event config limits
 
 ---
 
@@ -263,6 +285,7 @@ npm run dev                    # Run all apps + API via Turborepo
 npm run build                  # Build all packages
 npm run test                   # Run all tests
 npm run test:e2e --workspace=packages/api # Run Playwright E2E tests
+npx playwright test --config=apps/invitation/playwright.config.ts # Run Playwright UI tests
 npm run lint                   # Lint all packages
 
 # Per-package
@@ -434,9 +457,13 @@ CI/CD via GitHub Actions:
 | WS auth middleware       | `packages/realtime/src/middleware/auth.ts`       |
 | Playwright E2E Config    | `packages/api/playwright.config.ts`              |
 | Playwright E2E Tests     | `packages/api/tests/e2e/`                        |
+| Playwright UI Config     | `apps/invitation/playwright.config.ts`           |
+| Playwright UI Tests      | `apps/invitation/tests/`                         |
 | Scanner auth             | `apps/scanner/src/lib/auth.ts`                   |
 | Scanner offline queue    | `apps/scanner/src/lib/offline-queue.ts`          |
 | Dashboard socket hook    | `apps/dashboard/src/hooks/use-socket.ts`         |
+| Dashboard table state hook | `apps/dashboard/src/hooks/use-table-state.ts`   |
+| Dashboard DataTable component | `apps/dashboard/src/components/ui/data-table.tsx` |
 | Production config        | `packages/api/src/config/production.ts`          |
 | Redis config             | `packages/api/src/config/redis.ts`               |
 | CORS middleware          | `packages/api/src/middleware/cors.middleware.ts` |

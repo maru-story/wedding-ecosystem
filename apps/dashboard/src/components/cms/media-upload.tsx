@@ -2,9 +2,12 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { validateMediaFile } from '@/lib/cms';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Upload, X, FileImage, Music } from 'lucide-react';
 
 interface MediaUploadProps {
-  mediaType: 'image' | 'video';
+  mediaType: 'image' | 'video' | 'audio';
   currentUrl?: string;
   onUpload: (file: File) => Promise<string>;
   onRemove?: () => void;
@@ -26,12 +29,16 @@ export function MediaUpload({
   const acceptFormats =
     mediaType === 'image'
       ? 'image/jpeg,image/png,image/webp'
-      : 'video/mp4';
+      : mediaType === 'video'
+      ? 'video/mp4'
+      : 'audio/mpeg,audio/mp3';
 
   const formatHint =
     mediaType === 'image'
       ? 'Format: JPEG, PNG, WebP. Maks 5MB.'
-      : 'Format: MP4. Maks 50MB.';
+      : mediaType === 'video'
+      ? 'Format: MP4. Maks 50MB.'
+      : 'Format: MP3. Maks 10MB.';
 
   const handleFileSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,6 +65,9 @@ export function MediaUpload({
           setPreview(ev.target?.result as string);
         };
         reader.readAsDataURL(file);
+      } else {
+        // For video and audio, we don't necessarily show a local preview before upload
+        // but we'll update it once uploaded
       }
 
       // Upload
@@ -86,37 +96,40 @@ export function MediaUpload({
 
   return (
     <div className="space-y-2">
-      {label && (
-        <label className="block text-sm font-medium text-gray-700">{label}</label>
-      )}
+      {label && <Label>{label}</Label>}
 
       {/* Preview area */}
       {preview && (
-        <div className="relative rounded-lg border border-gray-200 overflow-hidden">
+        <div className="relative rounded-lg border border-border/60 overflow-hidden bg-muted/20">
           {mediaType === 'image' ? (
             <img
               src={preview}
               alt="Preview"
               className="h-48 w-full object-cover"
             />
-          ) : (
+          ) : mediaType === 'video' ? (
             <video
               src={preview}
               className="h-48 w-full object-cover"
               controls
             />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-24 p-4">
+              <Music className="h-8 w-8 text-primary mb-2" />
+              <audio src={preview} controls className="w-full h-8" />
+            </div>
           )}
           {onRemove && (
-            <button
+            <Button
               type="button"
+              variant="destructive"
+              size="icon"
               onClick={handleRemove}
-              className="absolute right-2 top-2 rounded-full bg-red-500 p-1.5 text-white shadow-md transition-colors hover:bg-red-600"
+              className="absolute right-2 top-2 rounded-full p-0 h-7 w-7 shadow-md"
               aria-label="Hapus media"
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+              <X className="h-4 w-4" />
+            </Button>
           )}
         </div>
       )}
@@ -124,17 +137,16 @@ export function MediaUpload({
       {/* Upload area */}
       {!preview && (
         <div
-          className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${
-            error ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50 hover:border-primary hover:bg-primary/5'
+          className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors cursor-pointer ${
+            error ? 'border-destructive/40 bg-destructive/5' : 'border-border/60 bg-muted/10 hover:border-primary/40 hover:bg-muted/20'
           }`}
+          onClick={() => fileInputRef.current?.click()}
         >
-          <svg className="mb-2 h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-          </svg>
-          <p className="text-sm text-gray-600">
-            {mediaType === 'image' ? 'Upload foto' : 'Upload video'}
+          <Upload className="mb-2 h-8 w-8 text-muted-foreground/60" />
+          <p className="text-sm font-medium text-foreground">
+            {mediaType === 'image' ? 'Upload foto' : mediaType === 'video' ? 'Upload video' : 'Upload musik (MP3)'}
           </p>
-          <p className="mt-1 text-xs text-gray-500">{formatHint}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{formatHint}</p>
         </div>
       )}
 
@@ -146,13 +158,15 @@ export function MediaUpload({
           accept={acceptFormats}
           onChange={handleFileSelect}
           className="hidden"
-          aria-label={`Pilih file ${mediaType === 'image' ? 'gambar' : 'video'}`}
+          aria-label={`Pilih file ${mediaType === 'image' ? 'gambar' : mediaType === 'video' ? 'video' : 'musik'}`}
         />
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="gap-1.5"
         >
           {uploading ? (
             <>
@@ -161,18 +175,16 @@ export function MediaUpload({
             </>
           ) : (
             <>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+              {mediaType === 'audio' ? <Music className="h-4 w-4 text-muted-foreground" /> : <FileImage className="h-4 w-4 text-muted-foreground" />}
               {preview ? 'Ganti File' : 'Pilih File'}
             </>
           )}
-        </button>
+        </Button>
       </div>
 
       {/* Error message */}
       {error && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="text-xs font-medium text-destructive" role="alert">
           {error}
         </p>
       )}

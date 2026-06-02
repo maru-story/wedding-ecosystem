@@ -284,7 +284,7 @@ describe('MediaUploadService', () => {
 
       expect(cloudStorage.upload).toHaveBeenCalledWith(
         file.buffer,
-        expect.stringContaining('tenant-001/event-001/media/'),
+        expect.stringContaining('tenant-001/event-001/cms/media/'),
         'image/jpeg'
       );
     });
@@ -377,10 +377,10 @@ describe('MediaUploadService', () => {
 
   describe('generateStorageKey', () => {
     it('should include tenant ID, event ID, and filename', () => {
-      const key = service.generateStorageKey('tenant-001', 'event-001', 'photo.jpg');
+      const key = service.generateStorageKey('tenant-001', 'event-001', 'photo.jpg', 'cover');
       expect(key).toContain('tenant-001');
       expect(key).toContain('event-001');
-      expect(key).toContain('media/');
+      expect(key).toContain('/cms/cover/');
       expect(key).toContain('photo.jpg');
     });
 

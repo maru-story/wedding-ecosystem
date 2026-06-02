@@ -229,7 +229,7 @@ async function overwriteOldestSynced(db: IDBDatabase, newCheckIn: QueuedCheckIn)
 
   return new Promise((resolve, reject) => {
     // Find oldest synced record
-    const request = index.openCursor(IDBKeyRange.only(1)); // synced = true (stored as 1)
+    const request = index.openCursor(IDBKeyRange.only(true)); // synced = true
     request.onsuccess = (event) => {
       const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
       if (cursor) {

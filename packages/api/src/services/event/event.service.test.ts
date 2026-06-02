@@ -33,6 +33,11 @@ function createMockRepository(overrides: Partial<EventRepository> = {}): EventRe
     findEventBySlug: vi.fn(async () => null),
     findEventById: vi.fn(async () => null),
     countEventsByTenant: vi.fn(async () => 0),
+    updateEvent: vi.fn(async (eventId, tenantId, data) => ({
+      id: eventId,
+      tenant_id: tenantId,
+      ...data,
+    })) as any,
     ...overrides,
   };
 }
@@ -388,6 +393,60 @@ describe('EventService', () => {
     });
   });
 
+  describe('updateEvent', () => {
+    it('should update event details successfully', async () => {
+      const existing = { id: 'evt-1', tenant_id: TENANT_ID, slug: 'old-slug', bride_name: 'Juliet', groom_name: 'Romeo' };
+      const repo = createMockRepository({
+        findEventById: vi.fn(async () => existing as any),
+        findEventBySlug: vi.fn(async () => null),
+      });
+      const service = new EventService({ repository: repo });
+
+      const result = await service.updateEvent('evt-1', TENANT_ID, {
+        bride_name: 'Juliana',
+        groom_name: 'Romeo',
+      });
+
+      expect(isEventError(result)).toBe(false);
+      expect((result as EventRecord).bride_name).toBe('Juliana');
+      expect(repo.updateEvent).toHaveBeenCalledWith('evt-1', TENANT_ID, expect.objectContaining({ bride_name: 'Juliana' }));
+    });
+
+    it('should return NOT_FOUND if the event does not exist for the tenant', async () => {
+      const repo = createMockRepository({
+        findEventById: vi.fn(async () => null),
+      });
+      const service = new EventService({ repository: repo });
+
+      const result = await service.updateEvent('evt-not-found', TENANT_ID, {
+        bride_name: 'Juliana',
+      });
+
+      expect(isEventError(result)).toBe(true);
+      expect((result as EventServiceError).code).toBe(ErrorCode.NOT_FOUND);
+    });
+
+    it('should return ALREADY_EXISTS if the updated slug conflicts with another event', async () => {
+      const existing = { id: 'evt-1', tenant_id: TENANT_ID, slug: 'my-slug', bride_name: 'Juliet' };
+      const another = { id: 'evt-2', tenant_id: 'different-tenant', slug: 'conflicting-slug', bride_name: 'Siti' };
+      const repo = createMockRepository({
+        findEventById: vi.fn(async () => existing as any),
+        findEventBySlug: vi.fn(async (slug) => {
+          if (slug === 'conflicting-slug') return another as any;
+          return null;
+        }),
+      });
+      const service = new EventService({ repository: repo });
+
+      const result = await service.updateEvent('evt-1', TENANT_ID, {
+        slug: 'conflicting-slug',
+      });
+
+      expect(isEventError(result)).toBe(true);
+      expect((result as EventServiceError).code).toBe(ErrorCode.ALREADY_EXISTS);
+    });
+  });
+
   describe('isEventError', () => {
     it('should return true for error objects', () => {
       expect(isEventError({ code: ErrorCode.NOT_FOUND, message: 'Not found' })).toBe(true);
@@ -405,3 +464,4 @@ describe('EventService', () => {
     });
   });
 });
+

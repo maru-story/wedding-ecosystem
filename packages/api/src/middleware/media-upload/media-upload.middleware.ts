@@ -32,10 +32,10 @@ export function createMediaFileFilter() {
     const allowedMimes: readonly string[] = ALLOWED_MIMES;
 
     // Check MIME type
-    if (!allowedMimes.includes(file.mimetype)) {
+    if (!allowedMimes.includes(file.mimetype) && !(file.mimetype === 'audio/mp3')) {
       cb(
         new Error(
-          `Format file tidak didukung: ${file.mimetype}. Format yang didukung: JPEG, PNG, WebP (gambar) dan MP4, WebM (video).`
+          `Format file tidak didukung: ${file.mimetype}. Format yang didukung: JPEG, PNG, WebP (gambar), MP4, WebM (video), dan MP3 (audio).`
         ),
         false
       );
@@ -46,10 +46,14 @@ export function createMediaFileFilter() {
     const ext = getExtension(file.originalname);
     const expectedMime = EXTENSION_MIME_MAP[ext];
 
-    if (!expectedMime || expectedMime !== file.mimetype) {
+    if (
+      !expectedMime ||
+      (expectedMime !== file.mimetype &&
+        !(ext === '.mp3' && (file.mimetype === 'audio/mpeg' || file.mimetype === 'audio/mp3')))
+    ) {
       cb(
         new Error(
-          'Ekstensi file tidak sesuai dengan tipe file. Format yang didukung: JPEG, PNG, WebP (gambar) dan MP4, WebM (video).'
+          'Ekstensi file tidak sesuai dengan tipe file. Format yang didukung: JPEG, PNG, WebP (gambar), MP4, WebM (video), dan MP3 (audio).'
         ),
         false
       );
@@ -185,7 +189,7 @@ export interface MulterFile {
 }
 
 /** Map error codes to HTTP status codes */
-function getHttpStatusForError(code: string): number {
+export function getHttpStatusForError(code: string): number {
   switch (code) {
     case 'UPLOAD_10001': // FILE_TOO_LARGE
       return 413;

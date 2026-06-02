@@ -98,14 +98,23 @@ export class PrismaCMSRepository implements CMSRepository {
   }
 
   async updateManySortOrders(updates: { id: string; sort_order: number }[]): Promise<void> {
-    // Prisma does not have a bulk update with multiple conditions for different values easily,
-    // so we iterate using sequential updates. It's safe given the small N (max 14).
-    for (const update of updates) {
-      await this.prisma.invitationSection.update({
-        where: { id: update.id },
-        data: { sort_order: update.sort_order },
-      });
-    }
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Temporarily update each section's sort_order to a unique negative value to avoid unique constraints
+      for (let i = 0; i < updates.length; i++) {
+        await tx.invitationSection.update({
+          where: { id: updates[i].id },
+          data: { sort_order: -(i + 1) },
+        });
+      }
+
+      // 2. Set the final positive sort_order values
+      for (const update of updates) {
+        await tx.invitationSection.update({
+          where: { id: update.id },
+          data: { sort_order: update.sort_order },
+        });
+      }
+    });
   }
 
   async deleteSection(sectionId: string, eventId: string): Promise<boolean> {

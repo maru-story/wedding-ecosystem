@@ -7,8 +7,8 @@ import {
   type EventCreationInput,
   type EventRepository,
   type ThemeApplicator,
+  DEFAULT_THEME,
 } from './event-creation';
-import { DEFAULT_THEME } from './theme';
 
 // --- Arbitraries ---
 

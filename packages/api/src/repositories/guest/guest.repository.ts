@@ -102,6 +102,10 @@ export class PrismaGuestRepository implements GuestRepository {
       where.group = filters.group;
     }
 
+    if (filters?.q) {
+      where.name = { contains: filters.q, mode: 'insensitive' };
+    }
+
     // Translate status filter to Prisma relation conditions
     if (filters?.status) {
       switch (filters.status) {
@@ -193,6 +197,17 @@ export class PrismaGuestRepository implements GuestRepository {
     return result.count > 0;
   }
 
+  async deleteGuests(guestIds: string[], tenantId: string): Promise<number> {
+    const whereClause: Prisma.GuestWhereInput = {
+      id: { in: guestIds },
+      tenant_id: tenantId,
+    };
+    const result = await this.prisma.guest.deleteMany({
+      where: whereClause,
+    });
+    return result.count;
+  }
+
   async deactivateQRCode(guestId: string): Promise<boolean> {
     const result = await this.prisma.qRCode.updateMany({
       where: { guest_id: guestId, is_active: true },
@@ -200,6 +215,21 @@ export class PrismaGuestRepository implements GuestRepository {
     });
 
     return result.count > 0;
+  }
+
+  async deactivateQRCodes(guestIds: string[]): Promise<number> {
+    const whereClause: Prisma.QRCodeWhereInput = {
+      guest_id: { in: guestIds },
+      is_active: true,
+    };
+    const updateData: Prisma.QRCodeUpdateManyMutationInput = {
+      is_active: false,
+    };
+    const result = await this.prisma.qRCode.updateMany({
+      where: whereClause,
+      data: updateData,
+    });
+    return result.count;
   }
 
   async findQRCodeByGuestId(guestId: string): Promise<QRCodeRecord | null> {
@@ -239,13 +269,31 @@ export class PrismaGuestRepository implements GuestRepository {
   async findEventById(
     eventId: string,
     tenantId: string
-  ): Promise<{ id: string; slug: string } | null> {
+  ): Promise<{ id: string; slug: string; max_guests: number } | null> {
     const event = await this.prisma.event.findFirst({
       where: { id: eventId, tenant_id: tenantId },
-      select: { id: true, slug: true },
+      select: {
+        id: true,
+        slug: true,
+        event_config: {
+          select: { max_guests: true },
+        },
+      },
     });
 
-    return event;
+    if (!event) return null;
+
+    return {
+      id: event.id,
+      slug: event.slug,
+      max_guests: event.event_config?.max_guests ?? 2000,
+    };
+  }
+
+  async countGuestsByEvent(eventId: string, tenantId: string): Promise<number> {
+    return this.prisma.guest.count({
+      where: { event_id: eventId, tenant_id: tenantId },
+    });
   }
 
   async findGuestNamesByEvent(eventId: string, tenantId: string): Promise<string[]> {

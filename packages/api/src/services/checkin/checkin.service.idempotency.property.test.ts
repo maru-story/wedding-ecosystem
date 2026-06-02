@@ -12,6 +12,7 @@ import {
   RedisClient,
   CheckInRecord,
   GuestInfo,
+  isServiceError,
 } from './checkin.service';
 
 // --- Constants ---
@@ -111,7 +112,8 @@ function createInMemoryRepository(
     },
     findQRCodeByPayload: async () => null,
     findCheckInByGuestId: async (guestId: string) => {
-      return checkIns.find((c) => c.guest_id === guestId) ?? null;
+      const found = checkIns.find((c) => c.guest_id === guestId);
+      return found ? { ...found } : null;
     },
     createCheckIn: async (data) => {
       const record: CheckInRecord = {
@@ -119,10 +121,19 @@ function createInMemoryRepository(
         guest_id: data.guest_id,
         scanner_device_id: data.scanner_device_id,
         method: data.method,
+        scan_count: 1,
         checked_in_at: data.checked_in_at,
       };
       checkIns.push(record);
-      return record;
+      return { ...record };
+    },
+    incrementScanCount: async (checkInId: string) => {
+      const record = checkIns.find((c) => c.id === checkInId);
+      if (record) {
+        record.scan_count = (record.scan_count || 1) + 1;
+        record.checked_in_at = new Date();
+      }
+      return { ...record! };
     },
     searchGuestsByName: async () => [],
     createGoShowGuest: async (data) => ({
@@ -148,6 +159,12 @@ describe('Property 11: Check-in Idempotency', () => {
    * For any guest, regardless of how many QR scan check-in attempts are made,
    * the system SHALL maintain exactly one check-in record per guest.
    * The first attempt returns GREEN, all subsequent attempts return YELLOW.
+   */
+  /**
+   * **Validates: Requirements 7.8**
+   *
+   * For any guest, multiple sequential QR scan attempts SHALL result in
+   * exactly one check-in record in the database, with scan_count equal to the number of attempts.
    */
   it('multiple QR scan attempts for the same guest always result in exactly one check-in record', async () => {
     await fc.assert(
@@ -188,13 +205,17 @@ describe('Property 11: Check-in Idempotency', () => {
           );
           expect(guestCheckIns).toHaveLength(1);
 
-          // Property: first attempt returns GREEN
+          // Property: first attempt returns GREEN, scan_count = 1
           expect(results[0].status).toBe(VerificationStatus.GREEN);
+          expect(results[0].scan_count).toBe(1);
 
-          // Property: all subsequent attempts return YELLOW
+          // Property: all subsequent attempts return GREEN with incremented count
           for (let i = 1; i < results.length; i++) {
-            expect(results[i].status).toBe(VerificationStatus.YELLOW);
+            expect(results[i].status).toBe(VerificationStatus.GREEN);
+            expect(results[i].scan_count).toBe(i + 1);
           }
+
+          expect(guestCheckIns[0].scan_count).toBe(attemptCount);
         }
       ),
       { numRuns: 50 }
@@ -205,8 +226,8 @@ describe('Property 11: Check-in Idempotency', () => {
    * **Validates: Requirements 7.5, 7.8**
    *
    * For any guest, concurrent check-in attempts from 2 scanner devices
-   * SHALL still produce only one check-in record. One device gets GREEN,
-   * the other gets YELLOW.
+   * SHALL still produce only one check-in record. Both devices get GREEN status,
+   * and the check-in record's scan_count is updated to 2.
    */
   it('concurrent check-in attempts from 2 scanner devices produce only one record', async () => {
     await fc.assert(
@@ -247,11 +268,16 @@ describe('Property 11: Check-in Idempotency', () => {
           );
           expect(guestCheckIns).toHaveLength(1);
 
-          // Property: exactly one GREEN and one YELLOW
-          const statuses = [result1.status, result2.status].sort();
-          expect(statuses).toEqual(
-            [VerificationStatus.GREEN, VerificationStatus.YELLOW].sort()
-          );
+          // Property: both return GREEN
+          expect(result1.status).toBe(VerificationStatus.GREEN);
+          expect(result2.status).toBe(VerificationStatus.GREEN);
+          
+          // One of the concurrent requests is first (scan_count = 1), the other is second (scan_count = 2)
+          const scanCounts = [result1.scan_count, result2.scan_count].sort();
+          expect(scanCounts).toEqual([1, 2]);
+
+          // Property: the single check-in record has scan_count = 2
+          expect(guestCheckIns[0].scan_count).toBe(2);
         }
       ),
       { numRuns: 50 }
@@ -263,7 +289,7 @@ describe('Property 11: Check-in Idempotency', () => {
    *
    * For any guest, mixing QR scan and manual check-in methods SHALL still
    * maintain exactly one check-in record. The manual check-in after a QR scan
-   * SHALL be rejected (ALREADY_CHECKED_IN).
+   * SHALL succeed by incrementing the scan count (scan_count = 2).
    */
   it('mixed QR scan and manual check-in attempts maintain exactly one record per guest', async () => {
     await fc.assert(
@@ -293,12 +319,16 @@ describe('Property 11: Check-in Idempotency', () => {
           // First: QR scan check-in (should succeed with GREEN)
           const qrResult = await service.verifyQRScan('tenant-001', qrPayload, eventId);
           expect(qrResult.status).toBe(VerificationStatus.GREEN);
+          expect(qrResult.scan_count).toBe(1);
 
-          // Second: manual check-in attempt (should be rejected)
+          // Second: manual check-in attempt (should succeed and increment scan count)
           const manualResult = await service.manualCheckIn('tenant-001', guestId, eventId);
 
-          // Property: manual check-in is rejected because guest is already checked in
-          expect('code' in manualResult).toBe(true);
+          // Property: manual check-in succeeds (returns success result, not error)
+          expect(isServiceError(manualResult)).toBe(false);
+          if (!isServiceError(manualResult)) {
+            expect(manualResult.check_in.scan_count).toBe(2);
+          }
 
           // Property: still exactly one check-in record
           const guestCheckIns = repository.checkIns.filter(

@@ -10,7 +10,7 @@
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `sage` | `#a8bba3` | Primary / brand color, primary buttons, active states |
+| `sage` | `#6b806c` | Primary / brand color, primary buttons, active states (darker for contrast with white text) |
 | `cream` | `#f7f4ea` | Background, sidebar, secondary surfaces |
 | `copper` | `#b87c4c` | Accent rings, VIP badges, focus indicators |
 | `blush` | `#ebd9d1` | Accent surfaces, hover states, soft highlights |
@@ -107,7 +107,7 @@ Based on `--radius: 0.625rem`:
 
 | Variant | Background | Text | Border |
 |---------|-----------|------|--------|
-| `default` | `primary` (sage) | `primary-foreground` (charcoal) | transparent |
+| `default` | `primary` (sage) | `primary-foreground` (white `#ffffff`) | transparent |
 | `outline` | `background` | `foreground` | `border` (warm) |
 | `ghost` | transparent → `muted` on hover | `foreground` | none |
 | `destructive` | `destructive/10` → `destructive/20` on hover | `destructive` | none |
@@ -229,6 +229,7 @@ Dark mode is toggled via the `.dark` class on the root element (managed by `Them
 | Card | `apps/dashboard/src/components/ui/card.tsx` |
 | Table | `apps/dashboard/src/components/ui/table.tsx` |
 | Tabs | `apps/dashboard/src/components/ui/tabs.tsx` |
+| Custom Tabs | `apps/dashboard/src/components/ui/custom-tabs.tsx` |
 | Motion wrapper | `apps/dashboard/src/components/ui/motion-wrapper.tsx` |
 | Providers (Toaster mount) | `apps/dashboard/src/app/providers.tsx` |
 | Fonts | `apps/dashboard/src/app/layout.tsx` (Google Fonts) |

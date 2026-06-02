@@ -27,14 +27,17 @@ export function SectionWrapper({
   return (
     <motion.section
       ref={ref}
-      className={cn('px-6 py-12', className)}
+      className={cn(
+        'aspect-[9/16] w-full relative overflow-hidden flex flex-col items-center justify-center p-8 text-center bg-[var(--color-background)]',
+        className
+      )}
       data-section-type={sectionType}
       data-sort-order={sortOrder}
       initial={{ opacity: 0, y: 40 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
-      <div className="mx-auto max-w-lg">{children}</div>
+      <div className="w-full h-full flex flex-col items-center justify-center relative z-10">{children}</div>
     </motion.section>
   );
 }

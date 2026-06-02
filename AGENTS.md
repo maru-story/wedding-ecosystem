@@ -7,9 +7,10 @@
 ```
 apps/
 ├── dashboard/        → Client/WO management UI (port 3000)
-│   └── src/app/      → App Router: login, guests, cms, theme, rsvp, notifications
+│   └── src/app/      → App Router: login, guests, cms, rsvp, send-invitation
 ├── invitation/       → Guest-facing invitation (port 3001, mobile-first, SSR)
-│   └── src/app/[eventSlug]/ → Dynamic route, 14 CMS sections rendered
+│   ├── src/app/[eventSlug]/ → Dynamic route, 14 CMS sections rendered
+│   └── tests/        → Playwright UI smoke tests (mobile viewport)
 └── scanner/          → QR check-in PWA (port 3002, offline-first)
     └── src/lib/      → IndexedDB queue, sync-manager, service worker
 
@@ -71,7 +72,7 @@ packages/
 ## Domain Rules (Must Not Violate)
 
 1. **Tenant isolation** — Every DB query scoped by `tenant_id`. Never expose cross-tenant data.
-2. **Duplicate check-in prevention** — Second scan returns YELLOW warning, does not create new record.
+2. **Duplicate check-in bypass & counter** — Multiple scans are allowed; subsequent scans increment the `scan_count` counter on the check-in record and return a success status (GREEN).
 3. **Max 2 scanner devices per event** — Enforced in `ScannerDeviceService`.
 4. **Offline sync: server wins** — Conflict resolution uses server timestamp.
 5. **QR payload encrypted** — Contains `guest_id + event_id`, encrypted with app secret.
@@ -87,8 +88,9 @@ The `AuthUser` interface is exclusively defined in `@wedding/shared`. Frontend a
 
 - ~1218 tests across all packages (Vitest + fast-check property-based)
 - Playwright E2E integration tests for REST API & Socket.io WebSocket server under `packages/api/tests/e2e/`
+- Playwright UI smoke tests for the invitation web app under `apps/invitation/tests/` (uses Mobile Chrome viewport)
 - Property-based tests cover: QR validation, RSVP invariants, duplicate detection, tenant isolation, offline sync, room isolation
-- Run: `npm run test` (all), `npm run test:e2e --workspace=packages/api` (E2E tests), or `npx turbo test --filter=@wedding/{package}`
+- Run: `npm run test` (all), `npm run test:e2e --workspace=packages/api` (E2E tests), `npx playwright test --config=apps/invitation/playwright.config.ts` (invitation UI tests), or `npx turbo test --filter=@wedding/{package}`
 
 ### E2E Testing Requirement
 - **Mandatory E2E Check**: Every time a new feature is added or a new capability is implemented, you MUST write/update E2E tests and perform an E2E check (`npm run test:e2e --workspace=packages/api`).
@@ -179,7 +181,7 @@ The `Guest` domain has been migrated to a **3-layer architecture**: thin route �
 
 | Gotcha | Detail |
 |--------|--------|
-| **CSV import headers** | `GuestImportService` expects Bahasa Indonesia column names: `nama`, `grup`, `telepon`. English names (`name`, `group`) will silently skip rows. |
+| **CSV import headers** | `GuestImportService` expects Bahasa Indonesia column names: `nama`, `grup`, `telepon`, `jumlah_tamu`. English names (`name`, `group`) will silently skip rows. |
 | **QR payload format** | Encrypted as `iv:ciphertext` (AES-256-CBC). Requires `AES_ENCRYPTION_KEY` env var (32 bytes). Missing key → runtime crash on QR generation. |
 | **`DELETE /guests/:id`** | Exists in the route file and is tenant-scoped. Was missing from Postman collection until June 2026 — now present. |
 | **`searchGuestsByName`** | Minimum 2 characters enforced in the route. Below that, the route returns 400, not an empty array. |

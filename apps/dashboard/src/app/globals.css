@@ -84,8 +84,8 @@ h6 {
   --card-foreground: #2d3436;
   --popover: #ffffff;
   --popover-foreground: #2d3436;
-  --primary: #a8bba3; /* sage */
-  --primary-foreground: #2d3436; /* charcoal (high contrast on sage background) */
+  --primary: #6b806c; /* sage green (darker for contrast with white text) */
+  --primary-foreground: #ffffff; /* white */
   --secondary: #f7f4ea; /* cream */
   --secondary-foreground: #2d3436;
   --muted: #f3efe6; /* soft muted cream-gray */
@@ -119,8 +119,8 @@ h6 {
   --card-foreground: #f3efe6;
   --popover: #22201d;
   --popover-foreground: #f3efe6;
-  --primary: oklch(0.65 0.06 145); /* dark sage */
-  --primary-foreground: #181715;
+  --primary: oklch(0.55 0.06 145); /* dark sage */
+  --primary-foreground: #ffffff;
   --secondary: #2d2a25;
   --secondary-foreground: #f3efe6;
   --muted: #2a2823;

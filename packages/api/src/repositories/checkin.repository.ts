@@ -75,6 +75,7 @@ export class PrismaCheckInRepository implements CheckInRepository {
         guest_id: true,
         scanner_device_id: true,
         method: true,
+        scan_count: true,
         checked_in_at: true,
       },
     });
@@ -86,6 +87,7 @@ export class PrismaCheckInRepository implements CheckInRepository {
       guest_id: checkIn.guest_id,
       scanner_device_id: checkIn.scanner_device_id,
       method: checkIn.method as CheckInMethod,
+      scan_count: checkIn.scan_count,
       checked_in_at: checkIn.checked_in_at,
     };
   }
@@ -112,6 +114,26 @@ export class PrismaCheckInRepository implements CheckInRepository {
       guest_id: checkIn.guest_id,
       scanner_device_id: checkIn.scanner_device_id,
       method: checkIn.method as CheckInMethod,
+      scan_count: checkIn.scan_count,
+      checked_in_at: checkIn.checked_in_at,
+    };
+  }
+
+  async incrementScanCount(checkInId: string): Promise<CheckInRecord> {
+    const checkIn = await this.prisma.checkIn.update({
+      where: { id: checkInId },
+      data: {
+        scan_count: { increment: 1 },
+        checked_in_at: new Date(),
+      },
+    });
+
+    return {
+      id: checkIn.id,
+      guest_id: checkIn.guest_id,
+      scanner_device_id: checkIn.scanner_device_id,
+      method: checkIn.method as CheckInMethod,
+      scan_count: checkIn.scan_count,
       checked_in_at: checkIn.checked_in_at,
     };
   }

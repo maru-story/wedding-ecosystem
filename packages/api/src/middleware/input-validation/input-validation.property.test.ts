@@ -92,10 +92,11 @@ const arbInvalidPhone = fc.oneof(
 /** Generates valid phone numbers (Indonesian format) */
 const arbValidPhone = fc
   .tuple(
-    fc.constantFrom('+62', '08'),
-    fc.array(fc.integer({ min: 0, max: 9 }), { minLength: 8, maxLength: 12 })
+    fc.constantFrom('+628', '08', '8', '628'),
+    fc.integer({ min: 1, max: 9 }),
+    fc.array(fc.integer({ min: 0, max: 9 }), { minLength: 7, maxLength: 11 })
   )
-  .map(([prefix, digits]) => `${prefix}${digits.join('')}`);
+  .map(([prefix, providerDigit, restDigits]) => `${prefix}${providerDigit}${restDigits.join('')}`);
 
 // --- Property Tests ---
 

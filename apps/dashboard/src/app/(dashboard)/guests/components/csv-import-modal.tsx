@@ -2,8 +2,9 @@
 
 import { useState, useRef } from 'react';
 import { ApiError } from '@/lib/api';
-import { useImportGuests } from '@/hooks/queries';
+import { useImportGuests, useEvent } from '@/hooks/queries';
 import { toast } from 'sonner';
+import { DEFAULT_MAX_GUESTS, CSV_MAX_ROWS, CSV_MAX_FILE_SIZE } from '@/lib/constants';
 import {
   Dialog,
   DialogContent,
@@ -18,11 +19,12 @@ import { CheckCircle2, AlertTriangle, Upload, RefreshCw, Download } from 'lucide
 interface CsvImportModalProps {
   onClose: () => void;
   onComplete: () => void;
+  currentCount: number;
 }
 
 type ImportState = 'idle' | 'uploading' | 'done' | 'error';
 
-export function CsvImportModal({ onClose, onComplete }: CsvImportModalProps) {
+export function CsvImportModal({ onClose, onComplete, currentCount }: CsvImportModalProps) {
   const [state, setState] = useState<ImportState>('idle');
   const [progress, setProgress] = useState(0);
   const [fileName, setFileName] = useState('');
@@ -31,6 +33,8 @@ export function CsvImportModal({ onClose, onComplete }: CsvImportModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const importGuestsMutation = useImportGuests();
+  const { data: eventData } = useEvent();
+  const maxGuests = eventData?.event_config?.max_guests ?? DEFAULT_MAX_GUESTS;
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -46,7 +50,7 @@ export function CsvImportModal({ onClose, onComplete }: CsvImportModalProps) {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > CSV_MAX_FILE_SIZE) {
       const errMsg = 'Ukuran file maksimal 5MB';
       toast.error(errMsg);
       setError(errMsg);
@@ -63,8 +67,8 @@ export function CsvImportModal({ onClose, onComplete }: CsvImportModalProps) {
       setProgress(30);
 
       const rowCount = csvText.split('\n').filter((line) => line.trim()).length - 1;
-      if (rowCount > 2000) {
-        const errMsg = `File CSV melebihi batas maksimal 2000 baris. Ditemukan: ${rowCount} baris`;
+      if (rowCount > CSV_MAX_ROWS) {
+        const errMsg = `File CSV melebihi batas maksimal ${CSV_MAX_ROWS} baris. Ditemukan: ${rowCount} baris`;
         toast.error(errMsg);
         setError(errMsg);
         setState('error');
@@ -124,8 +128,8 @@ export function CsvImportModal({ onClose, onComplete }: CsvImportModalProps) {
             {state === 'done'
               ? 'Laporan hasil import daftar tamu undangan.'
               : state === 'error'
-              ? 'Terjadi kesalahan saat memproses file CSV.'
-              : 'Pilih file CSV untuk mengimport daftar tamu secara massal.'}
+                ? 'Terjadi kesalahan saat memproses file CSV.'
+                : 'Pilih file CSV untuk mengimport daftar tamu secara massal.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -177,7 +181,8 @@ export function CsvImportModal({ onClose, onComplete }: CsvImportModalProps) {
                 <li>
                   • Kolom opsional:{' '}
                   <code className="rounded bg-muted px-1 font-mono">telepon</code>,{' '}
-                  <code className="rounded bg-muted px-1 font-mono">plus_one_count</code>
+                  <code className="rounded bg-muted px-1 font-mono">jumlah_tamu</code>{' '}
+                  (atau <code className="rounded bg-muted px-1 font-mono">plus_one_count</code>)
                 </li>
                 <li>
                   • Grup valid:{' '}
@@ -186,7 +191,18 @@ export function CsvImportModal({ onClose, onComplete }: CsvImportModalProps) {
                   <code className="rounded bg-muted px-1 font-mono">colleague</code>,{' '}
                   <code className="rounded bg-muted px-1 font-mono">vip</code>
                 </li>
-                <li>• Maksimal 2000 baris per file</li>
+                <li>• Maksimal {CSV_MAX_ROWS} baris per file</li>
+                <li>
+                  • Kuota tersisa:{' '}
+                  <span className="font-semibold text-foreground">
+                    {Math.max(0, maxGuests - currentCount)}
+                  </span>{' '}
+                  tamu lagi (Kapasitas saat ini: {currentCount}/{maxGuests})
+                </li>
+                <li>
+                  • Format nomor telepon wajib diawali kode negara (contoh:{' '}
+                  <code className="rounded bg-muted px-1 font-mono">+628...</code>) untuk menghindari pemotongan angka 0 oleh Excel
+                </li>
               </ul>
             </div>
           </div>
@@ -216,7 +232,7 @@ export function CsvImportModal({ onClose, onComplete }: CsvImportModalProps) {
               <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Import selesai</p>
             </div>
-            
+
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-lg bg-muted/40 p-4 text-center border border-border/40">
                 <p className="text-2xl font-bold text-foreground">{result.imported + result.errors}</p>

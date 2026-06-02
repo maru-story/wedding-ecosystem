@@ -113,4 +113,63 @@ test.describe('Guests API E2E', () => {
     expect(searchBody.data.length).toBeGreaterThan(0);
     expect(searchBody.data[0].name).toBe('Agus Budi');
   });
+
+  test('should bulk delete multiple guests', async ({ tenantA }) => {
+    // 1. Create two guests
+    const guest1Res = await tenantA.request.post('/guests', {
+      data: { name: 'Bulk Guest 1', group: 'friend' },
+    });
+    expect(guest1Res.status()).toBe(201);
+    const guest1 = await guest1Res.json();
+
+    const guest2Res = await tenantA.request.post('/guests', {
+      data: { name: 'Bulk Guest 2', group: 'friend' },
+    });
+    expect(guest2Res.status()).toBe(201);
+    const guest2 = await guest2Res.json();
+
+    // 2. Perform bulk delete
+    const deleteRes = await tenantA.request.post('/guests/bulk-delete', {
+      data: { ids: [guest1.id, guest2.id] },
+    });
+    expect(deleteRes.status()).toBe(200);
+    const deleteBody = await deleteRes.json();
+    expect(deleteBody.success).toBe(true);
+    expect(deleteBody.deletedCount).toBe(2);
+
+    // 3. Verify they are gone
+    const verifyResponse = await tenantA.request.get(`/guests`);
+    const verifyBody = await verifyResponse.json();
+    const found1 = verifyBody.data.find((g: any) => g.id === guest1.id);
+    const found2 = verifyBody.data.find((g: any) => g.id === guest2.id);
+    expect(found1).toBeUndefined();
+    expect(found2).toBeUndefined();
+  });
+
+  test('should enforce tenant isolation during bulk delete', async ({ tenantA, tenantB }) => {
+    // Tenant A creates a guest
+    const guestRes = await tenantA.request.post('/guests', {
+      data: { name: 'Tenant A Guest for Bulk', group: 'family' },
+    });
+    expect(guestRes.status()).toBe(201);
+    const guestId = (await guestRes.json()).id;
+
+    // Tenant B attempts to bulk delete Tenant A's guest
+    const deleteRes = await tenantB.request.post('/guests/bulk-delete', {
+      data: { ids: [guestId] },
+    });
+    expect(deleteRes.status()).toBe(200);
+    const deleteBody = await deleteRes.json();
+    expect(deleteBody.success).toBe(true);
+    expect(deleteBody.deletedCount).toBe(0); // 0 deleted because it belongs to Tenant A
+
+    // Verify it still exists for Tenant A
+    const verifyRes = await tenantA.request.get(`/guests`);
+    const verifyBody = await verifyRes.json();
+    const found = verifyBody.data.find((g: any) => g.id === guestId);
+    expect(found).toBeDefined();
+
+    // Clean up
+    await tenantA.request.delete(`/guests/${guestId}`);
+  });
 });

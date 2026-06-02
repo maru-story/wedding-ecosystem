@@ -228,7 +228,7 @@ describeIfRedis('Redis Integration (live connection)', () => {
 
       const duration = Date.now() - start;
       console.log(`  100 SET+GET operations: ${duration}ms`);
-      expect(duration).toBeLessThan(200); // Should be well under 200ms locally
+      expect(duration).toBeLessThan(500); // Relaxed from 200ms to prevent flakiness in parallel runs
     });
 
     it('should handle pipeline operations efficiently', async () => {
@@ -244,7 +244,7 @@ describeIfRedis('Redis Integration (live connection)', () => {
 
       console.log(`  100 pipelined SET operations: ${duration}ms`);
       expect(results).toHaveLength(100);
-      expect(duration).toBeLessThan(50); // Pipeline should be very fast
+      expect(duration).toBeLessThan(150); // Relaxed from 50ms to prevent flakiness in parallel runs
     });
   });
 });

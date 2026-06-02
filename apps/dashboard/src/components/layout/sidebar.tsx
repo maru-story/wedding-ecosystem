@@ -90,7 +90,7 @@ Sidebar.Item = function SidebarItem({
   // RBAC Filter: Only show if user role matches or no roles specified
   if (roles && !roles.includes(user?.role || '')) return null;
 
-  const isActive = pathname === href;
+  const isActive = href === '/' ? pathname === href : pathname === href || pathname.startsWith(href + '/');
 
   return (
     <li>

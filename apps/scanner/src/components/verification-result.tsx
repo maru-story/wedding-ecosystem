@@ -85,6 +85,7 @@ export function VerificationResultDisplay({
         <ValidContent
           guestName={result.guestName}
           guestGroup={result.guestGroup}
+          scanCount={result.scanCount}
         />
       )}
 
@@ -110,9 +111,11 @@ export function VerificationResultDisplay({
 function ValidContent({
   guestName,
   guestGroup,
+  scanCount,
 }: {
   guestName?: string;
   guestGroup?: string;
+  scanCount?: number;
 }) {
   return (
     <div className="text-center text-white">
@@ -120,6 +123,11 @@ function ValidContent({
         Check-in Berhasil
       </h2>
       <p className="mt-4 text-4xl font-bold">{guestName || 'Tamu'}</p>
+      {scanCount && scanCount > 1 && (
+        <p className="mt-3 text-xl font-semibold bg-emerald-700/60 px-4 py-1 rounded-full inline-block border border-white/20 shadow-sm animate-pulse">
+          Scan ke-{scanCount}
+        </p>
+      )}
       {guestGroup && (
         <p className="mt-3 text-xl font-medium opacity-90">
           {GROUP_LABELS[guestGroup] || guestGroup}

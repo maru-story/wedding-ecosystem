@@ -1,6 +1,7 @@
 'use client';
 
 import { SectionWrapper } from './section-wrapper';
+import { RsvpForm } from '../rsvp-form';
 
 interface RsvpContent {
   options?: string[];
@@ -10,25 +11,29 @@ interface RsvpContent {
 interface RsvpSectionProps {
   content: RsvpContent;
   sortOrder: number;
+  guestId?: string;
+  eventId?: string;
+  plusOneCount?: number;
 }
 
-/**
- * RSVP section placeholder.
- * The full RSVP form with validation will be implemented in task 14.3.
- * This component renders the section shell with appropriate heading.
- */
-export function RsvpSection({ content: _content, sortOrder }: RsvpSectionProps) {
+export function RsvpSection({ content, sortOrder, guestId, eventId, plusOneCount }: RsvpSectionProps) {
   return (
-    <SectionWrapper sectionType="rsvp" sortOrder={sortOrder}>
-      <h2 className="mb-8 text-center font-heading text-2xl font-bold text-[var(--color-primary)]">
+    <SectionWrapper sectionType="rsvp" sortOrder={sortOrder} className="flex flex-col justify-center py-8">
+      {/* Title */}
+      <h2 className="mb-4 text-center font-heading text-2xl font-bold text-[var(--color-primary)]">
         Konfirmasi Kehadiran
       </h2>
 
-      <p className="text-center text-sm text-[var(--color-text)]/60">
-        Silakan konfirmasi kehadiran Anda
-      </p>
-
-      {/* Full RSVP form will be implemented in task 14.3 */}
+      {/* RSVP Form container */}
+      <div className="w-full max-w-[320px] text-left my-auto bg-white/40 p-5 rounded-2xl border border-[var(--color-accent)]/15 shadow-xs">
+        {guestId && eventId ? (
+          <RsvpForm guestId={guestId} eventId={eventId} plusOneCount={plusOneCount ?? content.max_plus_one ?? 0} />
+        ) : (
+          <div className="text-center text-xs text-muted-foreground py-4">
+            Formulir konfirmasi hanya tersedia melalui tautan undangan personal.
+          </div>
+        )}
+      </div>
     </SectionWrapper>
   );
 }

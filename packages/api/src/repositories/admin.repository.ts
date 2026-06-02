@@ -149,6 +149,7 @@ export class PrismaAdminRepository implements AdminRepository {
         email: user.email,
         role: user.role as UserRole,
         name: user.name,
+        is_active: user.is_active,
         created_at: user.created_at,
       })),
       total,
@@ -165,6 +166,68 @@ export class PrismaAdminRepository implements AdminRepository {
     } catch {
       return false;
     }
+  }
+
+  async updateUserStatus(userId: string, isActive: boolean): Promise<UserRecord | null> {
+    try {
+      const user = await this.prisma.user.update({
+        where: { id: userId },
+        data: { is_active: isActive },
+        include: {
+          tenant: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      return {
+        id: user.id,
+        tenant_id: user.tenant_id,
+        tenant_name: user.tenant?.name ?? null,
+        email: user.email,
+        role: user.role as UserRole,
+        name: user.name,
+        is_active: user.is_active,
+        created_at: user.created_at,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async createAdminUser(
+    userData: { email: string; password_hash: string; name: string; tenant_id: string }
+  ): Promise<UserRecord> {
+    const user = await this.prisma.user.create({
+      data: {
+        email: userData.email,
+        password_hash: userData.password_hash,
+        name: userData.name,
+        tenant_id: userData.tenant_id,
+        role: UserRole.ADMIN,
+        is_active: true,
+      },
+      include: {
+        tenant: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    return {
+      id: user.id,
+      tenant_id: user.tenant_id,
+      tenant_name: user.tenant?.name ?? null,
+      email: user.email,
+      role: user.role as UserRole,
+      name: user.name,
+      is_active: user.is_active,
+      created_at: user.created_at,
+    };
   }
 
   async getGlobalStats(): Promise<GlobalStats> {
@@ -205,7 +268,9 @@ export class PrismaAdminRepository implements AdminRepository {
     action?: string,
     tenantId?: string,
     userId?: string,
-    search?: string
+    search?: string,
+    startDate?: string,
+    endDate?: string
   ): Promise<{ data: AuditLogRecord[]; total: number }> {
     const skip = (page - 1) * perPage;
     const where: Prisma.AuditLogWhereInput = {};
@@ -224,6 +289,17 @@ export class PrismaAdminRepository implements AdminRepository {
         { action: { contains: search, mode: 'insensitive' } },
         { request_id: { contains: search, mode: 'insensitive' } },
       ];
+    }
+    if (startDate || endDate) {
+      where.timestamp = {};
+      if (startDate) {
+        where.timestamp.gte = new Date(startDate);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.timestamp.lte = end;
+      }
     }
 
     const [total, logs] = await Promise.all([

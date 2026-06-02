@@ -118,7 +118,8 @@ function createInMemoryRepository(
     },
     findQRCodeByPayload: async () => null,
     findCheckInByGuestId: async (guestId: string) => {
-      return checkIns.find((c) => c.guest_id === guestId) ?? null;
+      const found = checkIns.find((c) => c.guest_id === guestId);
+      return found ? { ...found } : null;
     },
     createCheckIn: async (data) => {
       const record: CheckInRecord = {
@@ -126,10 +127,19 @@ function createInMemoryRepository(
         guest_id: data.guest_id,
         scanner_device_id: data.scanner_device_id,
         method: data.method,
+        scan_count: 1,
         checked_in_at: data.checked_in_at,
       };
       checkIns.push(record);
-      return record;
+      return { ...record };
+    },
+    incrementScanCount: async (checkInId: string) => {
+      const record = checkIns.find((c) => c.id === checkInId);
+      if (record) {
+        record.scan_count = (record.scan_count || 1) + 1;
+        record.checked_in_at = new Date();
+      }
+      return { ...record! };
     },
     searchGuestsByName: async () => [],
     createGoShowGuest: async (data) => ({
@@ -290,10 +300,10 @@ describe('Property 10: Scanner Verification Status Mapping', () => {
    * **Validates: Requirements 7.4**
    *
    * For any valid guest who has already been checked in (first scan was GREEN),
-   * subsequent scans return status YELLOW with the guest's name, group, and
-   * the original check-in timestamp.
+   * subsequent scans return status GREEN with the guest's name, group, and
+   * the incremented scan count.
    */
-  it('valid QR + already checked-in → YELLOW with guest name and timestamp', async () => {
+  it('valid QR + already checked-in → GREEN with guest name and scan_count', async () => {
     await fc.assert(
       fc.asyncProperty(
         arbGuestId,
@@ -321,17 +331,20 @@ describe('Property 10: Scanner Verification Status Mapping', () => {
           // First scan: should be GREEN
           const firstResult = await service.verifyQRScan('tenant-001', qrPayload, eventId);
           expect(firstResult.status).toBe(VerificationStatus.GREEN);
+          expect(firstResult.scan_count).toBe(1);
 
-          // Second scan: should be YELLOW
+          // Second scan: should be GREEN (bypass)
           const secondResult = await service.verifyQRScan('tenant-001', qrPayload, eventId);
 
-          // Property: status is YELLOW
-          expect(secondResult.status).toBe(VerificationStatus.YELLOW);
+          // Property: status is GREEN
+          expect(secondResult.status).toBe(VerificationStatus.GREEN);
+          // Property: scan_count is incremented to 2
+          expect(secondResult.scan_count).toBe(2);
           // Property: guest_name is populated
           expect(secondResult.guest_name).toBe(guestName);
           // Property: guest_group is populated
           expect(secondResult.guest_group).toBe(guestGroup);
-          // Property: checked_in_at is populated (original timestamp)
+          // Property: checked_in_at is populated
           expect(secondResult.checked_in_at).not.toBeNull();
           expect(secondResult.checked_in_at).toBeInstanceOf(Date);
         }

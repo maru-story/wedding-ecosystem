@@ -43,7 +43,7 @@ Production-ready foundation. Backend refactored to align with ECC coding standar
 ## Key Architectural Patterns
 
 - **Multi-tenant**: Every DB table includes `tenant_id`; row-level isolation at query layer.
-- **Service-based backend**: Modular services (Auth, Guest, QR, CMS, Check-in, Real-time, Notification) on Fastify 5.
+- **Service-based backend**: Modular services (Auth, Guest, QR, CMS, Check-in, Real-time, Invitation-Delivery) on Fastify 5.
 - **Room-based WebSocket**: Broadcasts scoped per-event room for data isolation (Socket.io 4.8).
 - **PWA offline-first**: Scanner uses service worker + local queue for offline operation.
 - **CMS-driven rendering**: Invitation sections dynamically rendered based on active config and sort order.

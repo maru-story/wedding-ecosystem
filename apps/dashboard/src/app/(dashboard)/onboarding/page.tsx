@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -19,11 +19,20 @@ import {
   ArrowRight,
   Loader2
 } from 'lucide-react';
+import { useEvent } from '@/hooks/queries';
 
 export default function OnboardingPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
+
+  const { data: event, isLoading: eventLoading } = useEvent();
+
+  useEffect(() => {
+    if (!eventLoading && event) {
+      router.replace('/');
+    }
+  }, [event, eventLoading, router]);
 
   const {
     register,
@@ -60,6 +69,17 @@ export default function OnboardingPage() {
   const onSubmit = (data: CreateEventInput) => {
     createEventMutation.mutate(data);
   };
+
+  if (eventLoading || event) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-center animate-fade-in">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="mt-3 text-sm text-muted-foreground font-medium">Mengalihkan...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl py-8">

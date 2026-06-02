@@ -9,10 +9,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 type GuestStatusFilter = 'belum_rsvp' | 'confirmed' | 'declined' | 'checked_in';
 
 interface GuestFiltersProps {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
   groupFilter: GuestGroup | '';
   statusFilter: GuestStatusFilter | '';
   onGroupChange: (value: GuestGroup | '') => void;
@@ -34,6 +38,8 @@ const STATUS_OPTIONS: { value: GuestStatusFilter; label: string }[] = [
 ];
 
 export function GuestFilters({
+  searchQuery,
+  onSearchChange,
   groupFilter,
   statusFilter,
   onGroupChange,
@@ -41,6 +47,18 @@ export function GuestFilters({
 }: GuestFiltersProps) {
   return (
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+      {/* Search Input */}
+      <div className="relative w-full max-w-sm sm:w-[240px]">
+        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="text"
+          placeholder="Cari nama tamu..."
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="pl-9 bg-card border-border/60 focus-visible:ring-ring focus-visible:ring-offset-0"
+        />
+      </div>
+
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium text-muted-foreground">
           Grup:
@@ -85,10 +103,11 @@ export function GuestFilters({
         </Select>
       </div>
 
-      {(groupFilter || statusFilter) && (
+      {(searchQuery || groupFilter || statusFilter) && (
         <Button
           variant="ghost"
           onClick={() => {
+            onSearchChange('');
             onGroupChange('');
             onStatusChange('');
           }}

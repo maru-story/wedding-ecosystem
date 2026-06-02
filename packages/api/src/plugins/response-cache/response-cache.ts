@@ -100,19 +100,35 @@ export const DEFAULT_INVALIDATION_RULES: InvalidationRule[] = [
     methods: ['PUT'],
     invalidatePatterns: ['cms:', 'events:'],
   },
-  // Guest write operations invalidate guest cache
+  // Event write operations invalidate event cache
+  {
+    triggerPattern: '/events/:id',
+    methods: ['PUT', 'PATCH'],
+    invalidatePatterns: ['events:'],
+  },
+  // Guest write operations invalidate guest and event cache (guest counts)
   {
     triggerPattern: '/guests',
     methods: ['POST'],
-    invalidatePatterns: ['guests:'],
+    invalidatePatterns: ['guests:', 'events:'],
   },
   {
     triggerPattern: '/guests/:id',
     methods: ['PUT', 'PATCH', 'DELETE'],
-    invalidatePatterns: ['guests:'],
+    invalidatePatterns: ['guests:', 'events:'],
   },
   {
     triggerPattern: '/guests/import',
+    methods: ['POST'],
+    invalidatePatterns: ['guests:', 'events:'],
+  },
+  {
+    triggerPattern: '/guests/bulk-delete',
+    methods: ['POST'],
+    invalidatePatterns: ['guests:', 'events:'],
+  },
+  {
+    triggerPattern: '/invitation-deliveries/send',
     methods: ['POST'],
     invalidatePatterns: ['guests:'],
   },
@@ -367,7 +383,10 @@ const responseCachePlugin: FastifyPluginCallback<ResponseCacheOptions> = (
 
     const tenantId = (request as AuthenticatedRequest).user?.tenant_id;
 
-    await invalidateByPatterns(redis, keyPrefix, rule.invalidatePatterns, tenantId);
+    // Invalidate in background — don't block the response
+    invalidateByPatterns(redis, keyPrefix, rule.invalidatePatterns, tenantId).catch((err) => {
+      request.log.error({ err }, 'Gagal melakukan invalidasi cache');
+    });
 
     return payload;
   });

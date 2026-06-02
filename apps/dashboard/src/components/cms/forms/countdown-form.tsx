@@ -1,16 +1,53 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
+
+interface EventData {
+  event_date?: string | null;
+}
+
 interface CountdownFormProps {
   content: Record<string, unknown>;
   onChange: (content: Record<string, unknown>) => void;
+  event?: EventData | null;
 }
 
-export function CountdownForm({ content, onChange }: CountdownFormProps) {
+export function CountdownForm({ content, onChange, event }: CountdownFormProps) {
   const targetDate = (content.target_date as string) || '';
   const calendarLink = (content.calendar_link as string) || '';
 
+  const handleSyncDate = () => {
+    if (!event?.event_date) return;
+    // Format event_date as datetime-local: YYYY-MM-DDT00:00
+    const dateOnly = new Date(event.event_date).toISOString().split('T')[0];
+    onChange({ ...content, target_date: `${dateOnly}T00:00` });
+  };
+
   return (
     <div className="space-y-4">
+      {/* Sync from event settings */}
+      {event?.event_date && (
+        <div className="flex items-start justify-between rounded-lg border border-primary/20 bg-primary/5 p-3">
+          <div className="text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Sinkronkan dari Pengaturan Acara</p>
+            <p className="text-xs mt-0.5">
+              Isi otomatis tanggal countdown dari tanggal acara yang sudah diatur.
+            </p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="default"
+            onClick={handleSyncDate}
+            className="ml-3 shrink-0 gap-1.5"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Terapkan
+          </Button>
+        </div>
+      )}
+
       <div>
         <label htmlFor="countdown-date" className="block text-sm font-medium text-gray-700">
           Tanggal Acara

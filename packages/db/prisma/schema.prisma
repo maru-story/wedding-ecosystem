@@ -108,6 +108,7 @@ model User {
   password_hash String
   role          UserRole
   name          String
+  is_active     Boolean  @default(true)
   created_at    DateTime @default(now())
 
   tenant Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
@@ -155,9 +156,10 @@ model EventConfig {
   active_sections      Json
   invitation_music_url String?
   calendar_link        String?
-  max_scanner_devices  Int      @default(2)
-  max_guests           Int      @default(2000)
-  updated_at           DateTime @updatedAt
+  max_scanner_devices         Int      @default(2)
+  max_guests                  Int      @default(2000)
+  invitation_message_template String?  @db.Text
+  updated_at                  DateTime @updatedAt
 
   event Event @relation(fields: [event_id], references: [id], onDelete: Cascade)
 
@@ -183,6 +185,7 @@ model Guest {
   qr_codes  QRCode[]
   rsvps     RSVP[]
   check_ins CheckIn[]
+  messages  Message[]
 
   @@unique([event_id, slug])
   @@index([tenant_id])
@@ -226,6 +229,7 @@ model CheckIn {
   guest_id          String        @db.Uuid
   scanner_device_id String?       @db.Uuid
   method            CheckInMethod
+  scan_count        Int           @default(1)
   checked_in_at     DateTime      @default(now())
 
   guest          Guest          @relation(fields: [guest_id], references: [id], onDelete: Cascade)
@@ -273,14 +277,17 @@ model ScannerDevice {
 model Message {
   id           String   @id @default(uuid()) @db.Uuid
   event_id     String   @db.Uuid
+  guest_id     String?  @db.Uuid
   sender_name  String
   message_text String
   created_at   DateTime @default(now())
   is_visible   Boolean  @default(true)
 
-  event Event @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  event Event  @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  guest Guest? @relation(fields: [guest_id], references: [id], onDelete: SetNull)
 
   @@index([event_id])
+  @@index([guest_id])
   @@map("messages")
 }
 

@@ -84,7 +84,9 @@ function createMockRepository(): GuestRepository & { qrPayloads: Set<string> } {
     }),
     updateGuest: async () => null,
     deleteGuest: async () => true,
+    deleteGuests: async () => 0,
     deactivateQRCode: async () => true,
+    deactivateQRCodes: async () => 0,
     findQRCodeByGuestId: async () => null,
 
     checkSlugExists: async (_eventId: string, slug: string) => {
@@ -103,6 +105,8 @@ function createMockRepository(): GuestRepository & { qrPayloads: Set<string> } {
       id: eventId,
       slug: `event-${eventId.slice(0, 8)}`,
     }),
+
+    countGuestsByEvent: async () => 0,
 
     findGuestNamesByEvent: async () => [],
 

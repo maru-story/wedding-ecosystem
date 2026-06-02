@@ -18,7 +18,9 @@ import {
   updateGuestSchema,
   paginationSchema,
   guestSearchSchema,
+  bulkDeleteGuestsSchema,
   GuestGroup,
+  ErrorCode,
 } from '@wedding/shared';
 import { validate } from '../../middleware/validate';
 
@@ -43,6 +45,7 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
     const query = validate(request.query, paginationSchema.extend({
       group: z.nativeEnum(GuestGroup).optional(),
       status: z.enum(['belum_rsvp', 'confirmed', 'declined', 'checked_in']).optional(),
+      q: z.string().optional(),
       include: z.string().optional(),
     }), reply);
     
@@ -65,6 +68,7 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
       {
         group: query.group,
         status: query.status,
+        q: query.q,
       }
     );
 
@@ -78,7 +82,7 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
     // Notifications page requests a flat delivery-status focused shape
     if (query.include === 'delivery_status') {
       return reply.send({
-        guests: result.data.map((guest) => ({
+        data: result.data.map((guest) => ({
           id: guest.id,
           name: guest.name,
           slug: guest.slug,
@@ -86,6 +90,7 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
           delivery_status: guest.delivery_status,
           invitation_url: guest.invitation_url,
         })),
+        pagination: result.pagination,
       });
     }
 
@@ -118,7 +123,13 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
     });
 
     if (isGuestError(result)) {
-      return reply.status(result.code === 'RES_5001' ? 404 : 400).send({
+      let status = 400;
+      if (result.code === 'RES_5001') {
+        status = 404;
+      } else if (result.code === ErrorCode.GUEST_LIMIT_EXCEEDED) {
+        status = 403;
+      }
+      return reply.status(status).send({
         success: false,
         error: { code: result.code, message: result.message },
       });
@@ -159,6 +170,17 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
         error: { code: result.code, message: result.message },
       });
     }
+
+    return reply.send(result);
+  });
+
+  // POST /guests/bulk-delete
+  app.post('/bulk-delete', async (request, reply) => {
+    const user = request.user!;
+    const body = validate(request.body, bulkDeleteGuestsSchema, reply);
+    if (!body) return reply;
+
+    const result = await guestService.deleteGuests(body.ids, user.tenant_id);
 
     return reply.send(result);
   });

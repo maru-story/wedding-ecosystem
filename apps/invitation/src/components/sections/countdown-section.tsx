@@ -76,7 +76,7 @@ function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-[var(--color-primary)]/10">
-        <span className="font-heading text-2xl font-bold text-[var(--color-primary)]">
+        <span className="font-heading text-2xl font-bold text-[var(--color-primary)] tabular-nums">
           {String(value).padStart(2, '0')}
         </span>
       </div>
@@ -114,7 +114,7 @@ export function CountdownSection({ content, sortOrder }: CountdownSectionProps) 
 
   return (
     <SectionWrapper sectionType="countdown" sortOrder={sortOrder}>
-      <h2 className="mb-8 text-center font-heading text-2xl font-bold text-[var(--color-primary)]">
+      <h2 className="mb-8 text-center font-heading text-2xl font-bold text-[var(--color-primary)] text-balance">
         Hitung Mundur
       </h2>
 

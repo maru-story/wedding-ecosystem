@@ -5,6 +5,7 @@ import { PrismaAdminRepository } from '../repositories/admin.repository';
 import { PlanType, UserRole, ErrorCode, paginationSchema } from '@wedding/shared';
 import { z } from 'zod';
 import { validate } from '../middleware/validate';
+import { getCacheClient } from '../config/redis/redis';
 
 interface AdminRouteOptions extends FastifyPluginOptions {
   prisma: PrismaClient;
@@ -141,6 +142,8 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
       tenant_id: z.string().optional(),
       user_id: z.string().optional(),
       search: z.string().optional(),
+      start_date: z.string().optional(),
+      end_date: z.string().optional(),
     });
 
     const query = validate(request.query, querySchema, reply);
@@ -152,7 +155,9 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
       query.action === 'ALL' || !query.action ? undefined : query.action,
       query.tenant_id === 'ALL' || !query.tenant_id ? undefined : query.tenant_id,
       query.user_id === 'ALL' || !query.user_id ? undefined : query.user_id,
-      query.search || undefined
+      query.search || undefined,
+      query.start_date || undefined,
+      query.end_date || undefined
     );
 
     return reply.send({
@@ -219,6 +224,185 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
     return reply.send({
       success: true,
       message: 'Password berhasil diperbarui',
+    });
+  });
+
+  // PATCH /admin/users/:id/status
+  app.patch('/users/:id/status', async (request, reply) => {
+    const paramsSchema = z.object({
+      id: z.string().uuid({ message: 'ID user tidak valid' }),
+    });
+
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return reply;
+
+    const bodySchema = z.object({
+      is_active: z.boolean({ required_error: 'Status aktif/nonaktif harus ditentukan' }),
+    });
+
+    const body = validate(request.body, bodySchema, reply);
+    if (!body) return reply;
+
+    // Prevent admin from deactivating themselves
+    if (params.id === request.user?.id) {
+      return reply.status(400).send({
+        success: false,
+        error: {
+          code: ErrorCode.VALIDATION_FAILED,
+          message: 'Anda tidak dapat menonaktifkan akun Anda sendiri',
+        },
+      });
+    }
+
+    const result = await adminService.toggleUserStatus(params.id, body.is_active);
+    if ('code' in result) {
+      return reply.status(404).send({
+        success: false,
+        error: {
+          code: result.code,
+          message: result.message,
+        },
+      });
+    }
+
+    return reply.send({
+      success: true,
+      data: result,
+    });
+  });
+
+  // POST /admin/users/admin
+  app.post('/users/admin', async (request, reply) => {
+    const bodySchema = z.object({
+      email: z.string().email('Format email tidak valid'),
+      name: z.string().min(1, 'Nama tidak boleh kosong'),
+      password: z.string().min(8, 'Password minimal 8 karakter'),
+    });
+
+    const body = validate(request.body, bodySchema, reply);
+    if (!body) return reply;
+
+    const result = await adminService.createAdminUser(
+      body.email,
+      body.password,
+      body.name,
+      request.user!.tenant_id
+    );
+
+    if ('code' in result) {
+      return reply.status(400).send({
+        success: false,
+        error: {
+          code: result.code,
+          message: result.message,
+        },
+      });
+    }
+
+    return reply.status(201).send({
+      success: true,
+      data: result,
+    });
+  });
+
+  // GET /admin/tenants/:id/events - List events for a tenant with their config limits
+  app.get('/tenants/:id/events', async (request, reply) => {
+    const paramsSchema = z.object({
+      id: z.string().uuid({ message: 'ID tenant tidak valid' }),
+    });
+
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return reply;
+
+    const events = await prisma.event.findMany({
+      where: { tenant_id: params.id },
+      include: {
+        event_config: {
+          select: {
+            max_guests: true,
+            max_scanner_devices: true,
+          },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    return reply.send({
+      success: true,
+      data: events,
+    });
+  });
+
+  // PATCH /admin/events/:eventId/config - Update event config limits
+  app.patch('/events/:eventId/config', async (request, reply) => {
+    const paramsSchema = z.object({
+      eventId: z.string().uuid({ message: 'ID event tidak valid' }),
+    });
+
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return reply;
+
+    const bodySchema = z.object({
+      max_guests: z.number().int().min(1, 'Jumlah tamu minimal 1').max(100000).optional(),
+      max_scanner_devices: z.number().int().min(1, 'Jumlah scanner minimal 1').max(10).optional(),
+    });
+
+    const body = validate(request.body, bodySchema, reply);
+    if (!body) return reply;
+
+    // Verify the event exists first
+    const eventExists = await prisma.event.findUnique({
+      where: { id: params.eventId },
+    });
+
+    if (!eventExists) {
+      return reply.status(404).send({
+        success: false,
+        error: {
+          code: ErrorCode.NOT_FOUND,
+          message: 'Event tidak ditemukan',
+        },
+      });
+    }
+
+    // Upsert: create EventConfig with defaults if it doesn't exist yet
+    // (handles events created before the quota feature was added)
+    const updatedConfig = await prisma.eventConfig.upsert({
+      where: { event_id: params.eventId },
+      update: {
+        max_guests: body.max_guests,
+        max_scanner_devices: body.max_scanner_devices,
+      },
+      create: {
+        event_id: params.eventId,
+        theme_config: {},
+        active_sections: [],
+        max_guests: body.max_guests ?? 2000,
+        max_scanner_devices: body.max_scanner_devices ?? 2,
+      },
+    });
+
+    // Invalidate response cache for this tenant
+    const redis = getCacheClient();
+    if (redis) {
+      const scanPattern = `rc:events:${eventExists.tenant_id}:*`;
+      try {
+        let cursor = '0';
+        do {
+          const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', scanPattern, 'COUNT', 100);
+          cursor = nextCursor;
+          if (keys.length > 0) {
+            await redis.del(...keys);
+          }
+        } while (cursor !== '0');
+      } catch (err) {
+        request.log.error(err, 'Failed to invalidate cache for tenant event config update');
+      }
+    }
+
+    return reply.send({
+      success: true,
+      data: updatedConfig,
     });
   });
 }

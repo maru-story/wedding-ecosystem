@@ -82,20 +82,21 @@ sequenceDiagram
     participant WS as WebSocket
     participant Dashboard
 
-    Scanner->>API: POST /events/:id/checkin/verify {qr_payload}
+    Scanner->>API: POST /checkin/scan {qr_payload, event_id}
     API->>API: Decrypt QR payload → {guest_id, event_id}
     API->>DB: Find guest by ID + event
     alt QR Invalid
         API-->>Scanner: 🔴 RED {status: "invalid"}
     else Already Checked In
-        API->>DB: Find existing check-in
-        API-->>Scanner: 🟡 YELLOW {status: "duplicate", checked_in_at}
-    else Valid
-        API->>DB: Insert check-in record
-        API->>WS: broadcastCheckIn(event_id, guest_data)
+        API->>DB: Find check-in & increment scan_count
+        API->>WS: broadcastCheckIn(event_id, guest_data, scan_count)
         WS-->>Dashboard: guest_checked_in
-        WS-->>Scanner: guest_checked_in
-        API-->>Scanner: 🟢 GREEN {status: "valid", guest_name, group}
+        API-->>Scanner: 🟢 GREEN {status: "success", guest_name, scan_count}
+    else First Check-In
+        API->>DB: Insert check-in record (scan_count = 1)
+        API->>WS: broadcastCheckIn(event_id, guest_data, scan_count = 1)
+        WS-->>Dashboard: guest_checked_in
+        API-->>Scanner: 🟢 GREEN {status: "success", guest_name, scan_count: 1}
     end
 ```
 
@@ -199,27 +200,21 @@ sequenceDiagram
     Next-->>Guest: Full invitation page (animated)
 ```
 
-## Notification Sending Flow
+## Invitation Delivery Flow
 
 ```mermaid
 sequenceDiagram
     participant Client as Dashboard User
     participant API
     participant DB
-    participant WA as WhatsApp Provider
+    participant WA as WhatsApp Web API
 
-    Client->>API: POST /notifications/bulk {guest_ids, channel}
-    API->>API: Validate (max 500 per batch)
-    API->>DB: Fetch guests with contact info
-    API->>API: Decrypt PII (phone)
-
-    loop For each guest
-        API->>WA: Send personalized invitation link
-        WA-->>API: Delivery status
-        API->>DB: Update delivery_status (sent/failed)
-    end
-
-    API-->>Client: Bulk send report
+    Client->>API: POST /invitation-deliveries/send {guest_id, channel: "whatsapp"}
+    API->>DB: Fetch guest
+    API->>API: Compile message template with {nama_tamu} & {link_undangan}
+    API->>DB: Update guest delivery_status = 'sent'
+    API-->>Client: Send response with whatsapp_url
+    Client->>WA: window.open(whatsapp_url, '_blank')
 ```
 
 ## Deployment Flow

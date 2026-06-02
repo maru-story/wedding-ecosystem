@@ -123,7 +123,7 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Create `packages/api/src/services/checkin.service.ts`
     - Decrypt QR payload and validate against database
     - Use Redis atomic operations for duplicate detection (< 200ms)
-    - Return GREEN (valid, not checked-in), RED (invalid/not found/wrong event), or YELLOW (already checked-in with timestamp)
+    - Return GREEN (valid check-in or subsequent scan-bypass with incremented scan count) or RED (invalid/not found/wrong event)
     - Ensure idempotency: only one check-in record per guest regardless of attempts
     - Handle concurrent scan from 2 devices (atomic Redis SET NX)
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.8, 12.5_
@@ -344,9 +344,8 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
   - [x] 16.2 Implement QR scanner camera and verification UI
     - Integrate html5-qrcode 2.3 for camera QR scanning
     - Send scanned payload to API for verification
-    - Display GREEN screen (valid) with guest name and group (family/friend/colleague/VIP) for 5 seconds
+    - Display GREEN screen (valid check-in or subsequent scan-bypass with scan count badge) for 5 seconds
     - Display RED screen (invalid/not found/wrong event) with error message
-    - Display YELLOW screen (duplicate) with guest name and previous check-in timestamp
     - Return to scan-ready after 5 seconds or tap on screen
     - Verify against local cache when offline
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 12.1_

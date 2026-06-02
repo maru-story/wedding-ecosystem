@@ -21,6 +21,7 @@ export class RealtimeCheckInBroadcaster implements CheckInBroadcaster {
         guest_name: payload.guest_name,
         group: payload.guest_group,
         method: payload.method,
+        scan_count: payload.scan_count,
         checked_in_at: payload.checked_in_at.toISOString(),
         event_id: payload.event_id,
       });

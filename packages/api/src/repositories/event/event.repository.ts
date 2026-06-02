@@ -133,4 +133,39 @@ export class PrismaEventRepository implements EventRepository {
       where: { tenant_id: tenantId },
     });
   }
+
+  async updateEvent(
+    eventId: string,
+    tenantId: string,
+    data: Partial<EventRecord>
+  ): Promise<EventRecord | null> {
+    const result = await this.prisma.event.updateMany({
+      where: { id: eventId, tenant_id: tenantId },
+      data: {
+        slug: data.slug,
+        bride_name: data.bride_name,
+        groom_name: data.groom_name,
+        event_date: data.event_date,
+        venue_name: data.venue_name,
+        venue_address: data.venue_address,
+        venue_maps_url: data.venue_maps_url,
+        akad_start: data.akad_start,
+        akad_end: data.akad_end,
+        resepsi_start: data.resepsi_start,
+        resepsi_end: data.resepsi_end,
+        status: data.status,
+      },
+    });
+
+    if (result.count === 0) return null;
+
+    const updated = await this.prisma.event.findFirst({
+      where: { id: eventId, tenant_id: tenantId },
+    });
+
+    return updated ? {
+      ...updated,
+      status: updated.status as EventStatus,
+    } : null;
+  }
 }

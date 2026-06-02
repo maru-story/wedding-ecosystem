@@ -42,7 +42,12 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
 
   const [name, setName] = useState(guest?.name || '');
   const [group, setGroup] = useState<GuestGroup>(guest?.group || GuestGroup.FAMILY);
-  const [phone, setPhone] = useState(guest?.phone || '');
+  const [phone, setPhone] = useState(() => {
+    if (guest?.phone?.startsWith('+62')) {
+      return guest.phone.slice(3);
+    }
+    return guest?.phone || '';
+  });
   const [plusOneCount, setPlusOneCount] = useState(guest?.plus_one_count ?? 0);
   const [error, setError] = useState('');
 
@@ -57,7 +62,7 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
     const payload = {
       name: name.trim(),
       group,
-      phone: phone.trim() || undefined,
+      phone: phone.trim() ? `+62${phone.trim()}` : undefined,
       plus_one_count: plusOneCount,
     };
 
@@ -142,14 +147,25 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
 
           <div className="space-y-1.5">
             <Label htmlFor="guest-phone" className="text-foreground">Nomor Telepon</Label>
-            <Input
-              id="guest-phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+62812345678"
-              className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
-            />
+            <div className="flex items-center rounded-lg border border-border/60 bg-card pl-3 focus-within:ring-1 focus-within:ring-ring focus-within:border-ring transition-colors">
+              <span className="text-sm text-muted-foreground font-semibold pr-1 select-none">+62</span>
+              <Input
+                id="guest-phone"
+                type="text"
+                value={phone}
+                onChange={(e) => {
+                  let val = e.target.value.replace(/\D/g, '');
+                  if (val.startsWith('0')) {
+                    val = val.slice(1);
+                  } else if (val.startsWith('62')) {
+                    val = val.slice(2);
+                  }
+                  setPhone(val);
+                }}
+                placeholder="8xxxxxxxxxx"
+                className="bg-transparent border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-1"
+              />
+            </div>
           </div>
 
 

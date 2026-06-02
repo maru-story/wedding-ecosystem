@@ -34,6 +34,7 @@ vi.mock('../../services/guest/guest.service', async (importOriginal) => {
       getGuest: vi.fn(),
       updateGuest: vi.fn(),
       deleteGuest: vi.fn(),
+      deleteGuests: vi.fn(),
       listGuests: vi.fn(),
       searchGuests: vi.fn(),
       generateQRCode: vi.fn(),
@@ -225,10 +226,10 @@ describe('Guest Routes', () => {
       });
 
       const body = JSON.parse(response.body);
-      // Different shape — flat list under `guests` key
-      expect(body.guests).toBeDefined();
-      expect(body.guests[0]).toHaveProperty('delivery_status');
-      expect(body.guests[0]).toHaveProperty('invitation_url');
+      // Different shape — flat list under `data` key
+      expect(body.data).toBeDefined();
+      expect(body.data[0]).toHaveProperty('delivery_status');
+      expect(body.data[0]).toHaveProperty('invitation_url');
     });
 
     it('should return empty list when tenant has no events', async () => {
@@ -378,6 +379,54 @@ describe('Guest Routes', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+  });
+
+  // ─── POST /guests/bulk-delete ──────────────────────────────────────────────
+
+  describe('POST /guests/bulk-delete', () => {
+    it('should bulk delete guests and return deleted count', async () => {
+      const service = getServiceInstance(app);
+      service.deleteGuests.mockResolvedValue({ success: true, deletedCount: 3 });
+
+      const guestIds = [
+        '1a0db76b-1e72-4f7e-8015-6b05d2f3fc7c',
+        'c3268c2d-fae0-4284-ad70-249ef6a62682',
+        'c3268c2d-fae0-4284-ad70-249ef6a62683',
+      ];
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/guests/bulk-delete',
+        headers: { authorization: `Bearer ${token}` },
+        payload: { ids: guestIds },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body)).toEqual({ success: true, deletedCount: 3 });
+      expect(service.deleteGuests).toHaveBeenCalledWith(guestIds, 'tenant-001');
+    });
+
+    it('should return 400 when payload is invalid (empty list)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/guests/bulk-delete',
+        headers: { authorization: `Bearer ${token}` },
+        payload: { ids: [] },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 when payload is invalid (non-uuid strings)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/guests/bulk-delete',
+        headers: { authorization: `Bearer ${token}` },
+        payload: { ids: ['invalid-id'] },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 

@@ -77,7 +77,7 @@ export function ManualCheckIn({ eventId }: ManualCheckInProps) {
         if (isOnline) {
           // Online: search via API
           const response = await fetch(
-            `${apiBaseUrl}/guests/search?q=${encodeURIComponent(searchQuery)}&event_id=${eventId}`,
+            `${apiBaseUrl}/checkin/search?q=${encodeURIComponent(searchQuery)}&event_id=${eventId}`,
             {
               headers: {
                 'Content-Type': 'application/json',
@@ -88,16 +88,16 @@ export function ManualCheckIn({ eventId }: ManualCheckInProps) {
 
           if (response.ok) {
             const data = await response.json();
-            const guests: CachedGuest[] = (data.guests || [])
+            const guests: CachedGuest[] = (data.data || [])
               .slice(0, 10)
               .map((g: Record<string, unknown>) => ({
                 id: g.id as string,
                 name: g.name as string,
-                qrPayload: (g.qrPayload as string) || '',
+                qrPayload: (g.qr_payload as string) || (g.qrPayload as string) || '',
                 group: (g.group as string) || '',
-                checkedIn: g.checkedIn as boolean,
-                checkedInAt: g.checkedInAt as string | undefined,
-                eventId: g.eventId as string,
+                checkedIn: (g.is_checked_in as boolean) || (g.checkedIn as boolean) || false,
+                checkedInAt: (g.checked_in_at as string) || (g.checkedInAt as string) || undefined,
+                eventId: (g.event_id as string) || (g.eventId as string) || eventId,
               }));
             setResults(guests);
           } else {
@@ -159,15 +159,15 @@ export function ManualCheckIn({ eventId }: ManualCheckInProps) {
     try {
       if (isOnline) {
         // Online: POST to API
-        const response = await fetch(`${apiBaseUrl}/check-in/manual`, {
+        const response = await fetch(`${apiBaseUrl}/checkin/manual`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
           },
           body: JSON.stringify({
-            guestId: guest.id,
-            eventId,
+            guest_id: guest.id,
+            event_id: eventId,
           }),
         });
 
@@ -221,15 +221,15 @@ export function ManualCheckIn({ eventId }: ManualCheckInProps) {
     try {
       if (isOnline) {
         // Online: POST to API
-        const response = await fetch(`${apiBaseUrl}/guests/go-show`, {
+        const response = await fetch(`${apiBaseUrl}/checkin/go-show`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
           },
           body: JSON.stringify({
-            nama,
-            eventId,
+            name: nama,
+            event_id: eventId,
           }),
         });
 

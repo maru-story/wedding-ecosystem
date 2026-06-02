@@ -160,7 +160,9 @@ function createMockGuestRepository(): GuestRepository & {
 
     updateGuest: async () => null,
     deleteGuest: async () => true,
+    deleteGuests: async () => 0,
     deactivateQRCode: async () => true,
+    deactivateQRCodes: async () => 0,
     findQRCodeByGuestId: async () => null,
 
     checkSlugExists: async (eventId: string, slug: string) => {
@@ -179,6 +181,10 @@ function createMockGuestRepository(): GuestRepository & {
       id: eventId,
       slug: `event-${eventId.slice(0, 8)}`,
     }),
+    countGuestsByEvent: async (eventId) => {
+      const eventGuests = guests.get(eventId) || [];
+      return eventGuests.length;
+    },
     findGuestNamesByEvent: async () => [],
     searchGuestsByName: async () => [],
   };

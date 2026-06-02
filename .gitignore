@@ -36,3 +36,9 @@ coverage/
 
 # Misc
 *.tsbuildinfo
+
+# ECC Local Folder
+.agent/
+.claude/
+.claude-flow/
+.swarm/

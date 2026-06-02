@@ -56,7 +56,7 @@ export function MusicPlayer({ audioUrl, autoplay, title }: MusicPlayerProps) {
 
       <button
         onClick={togglePlay}
-        className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary)] text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+        className="fixed bottom-6 right-6 md:right-[calc(50%-13rem)] z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary)] text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
         aria-label={isPlaying ? 'Pause musik' : 'Play musik'}
         title={title || 'Musik'}
       >
@@ -73,6 +73,7 @@ export function MusicPlayer({ audioUrl, autoplay, title }: MusicPlayerProps) {
           </svg>
         ) : (
           <svg
+            className="pl-0.5"
             xmlns="http://www.w3.org/2000/svg"
             width="20"
             height="20"

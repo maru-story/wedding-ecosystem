@@ -30,7 +30,22 @@ function createMockRepository(): CheckInRepository {
     findGuestByIdAndEvent: vi.fn(),
     findQRCodeByPayload: vi.fn(),
     findCheckInByGuestId: vi.fn(),
-    createCheckIn: vi.fn(),
+    createCheckIn: vi.fn().mockImplementation(async (data) => ({
+      id: data.id,
+      guest_id: data.guest_id,
+      scanner_device_id: data.scanner_device_id,
+      method: data.method,
+      scan_count: 1,
+      checked_in_at: data.checked_in_at,
+    })),
+    incrementScanCount: vi.fn().mockImplementation(async (id) => ({
+      id,
+      guest_id: 'guest-001',
+      scanner_device_id: null,
+      method: CheckInMethod.QR_SCAN,
+      scan_count: 2,
+      checked_in_at: new Date(),
+    })),
     searchGuestsByName: vi.fn(),
     createGoShowGuest: vi.fn(),
     findEventById: vi.fn(),
@@ -265,54 +280,72 @@ describe('CheckInService', () => {
       });
     });
 
-    describe('YELLOW - already checked-in (Req 7.4)', () => {
-      it('should return YELLOW with guest name and previous check-in timestamp', async () => {
+    describe('Bypass duplicate - already checked-in (Req 7.4 / Option C)', () => {
+      it('should return GREEN with guest name and incremented scan count', async () => {
         const qrPayload = createValidQRPayload('guest-001', 'event-001');
         const mockGuest = createMockGuest();
-        const previousTimestamp = '2024-06-15T10:30:00.000Z';
+        const existingCheckIn: CheckInRecord = {
+          id: 'checkin-001',
+          guest_id: 'guest-001',
+          scanner_device_id: null,
+          method: CheckInMethod.QR_SCAN,
+          scan_count: 1,
+          checked_in_at: new Date('2024-06-15T10:30:00.000Z'),
+        };
 
         vi.mocked(repository.findGuestById).mockResolvedValue(mockGuest);
-        vi.mocked(redis.set).mockResolvedValue(null); // SET NX fails (key exists)
-        vi.mocked(redis.get).mockResolvedValue(previousTimestamp);
+        vi.mocked(repository.findCheckInByGuestId).mockResolvedValue(existingCheckIn);
+        vi.mocked(repository.incrementScanCount).mockResolvedValue({
+          ...existingCheckIn,
+          scan_count: 2,
+          checked_in_at: new Date(),
+        });
 
         const result = await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
 
-        expect(result.status).toBe(VerificationStatus.YELLOW);
+        expect(result.status).toBe(VerificationStatus.GREEN);
         expect(result.guest_name).toBe('John Doe');
         expect(result.guest_group).toBe(GuestGroup.FRIEND);
-        expect(result.message).toBe('Tamu sudah check-in sebelumnya');
-        expect(result.checked_in_at).toEqual(new Date(previousTimestamp));
+        expect(result.message).toBe('Check-in berhasil (Scan ke-2)');
+        expect(result.scan_count).toBe(2);
       });
 
-      it('should NOT create a new check-in record (idempotency, Req 7.8)', async () => {
+      it('should call incrementScanCount and NOT createCheckIn (idempotency, Req 7.8)', async () => {
         const qrPayload = createValidQRPayload('guest-001', 'event-001');
         const mockGuest = createMockGuest();
+        const existingCheckIn: CheckInRecord = {
+          id: 'checkin-001',
+          guest_id: 'guest-001',
+          scanner_device_id: null,
+          method: CheckInMethod.QR_SCAN,
+          scan_count: 1,
+          checked_in_at: new Date('2024-06-15T10:30:00.000Z'),
+        };
 
         vi.mocked(repository.findGuestById).mockResolvedValue(mockGuest);
-        vi.mocked(redis.set).mockResolvedValue(null); // Already checked in
-        vi.mocked(redis.get).mockResolvedValue('2024-06-15T10:30:00.000Z');
+        vi.mocked(repository.findCheckInByGuestId).mockResolvedValue(existingCheckIn);
+        vi.mocked(repository.incrementScanCount).mockResolvedValue({
+          ...existingCheckIn,
+          scan_count: 2,
+          checked_in_at: new Date(),
+        });
 
         await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
 
-        // Should NOT create a new check-in record
+        // Should call incrementScanCount, NOT createCheckIn
         expect(repository.createCheckIn).not.toHaveBeenCalled();
+        expect(repository.incrementScanCount).toHaveBeenCalledWith('checkin-001');
       });
 
-      it('should handle concurrent scans - second device gets YELLOW (Req 7.5)', async () => {
+      it('should handle concurrent scans - second device increments count (Req 7.5)', async () => {
         const qrPayload = createValidQRPayload('guest-001', 'event-001');
         const mockGuest = createMockGuest();
 
         vi.mocked(repository.findGuestById).mockResolvedValue(mockGuest);
 
-        // First scan succeeds
+        // First scan succeeds as new check-in
+        vi.mocked(repository.findCheckInByGuestId).mockResolvedValueOnce(null);
         vi.mocked(redis.set).mockResolvedValueOnce('OK');
-        vi.mocked(repository.createCheckIn).mockResolvedValue({
-          id: 'checkin-001',
-          guest_id: 'guest-001',
-          scanner_device_id: 'scanner-001',
-          method: CheckInMethod.QR_SCAN,
-          checked_in_at: new Date(),
-        });
 
         const result1 = await service.verifyQRScan(
           'tenant-001',
@@ -321,10 +354,23 @@ describe('CheckInService', () => {
           'scanner-001'
         );
         expect(result1.status).toBe(VerificationStatus.GREEN);
+        expect(result1.scan_count).toBe(1);
 
-        // Second scan fails (SET NX returns null)
-        vi.mocked(redis.set).mockResolvedValueOnce(null);
-        vi.mocked(redis.get).mockResolvedValue(new Date().toISOString());
+        // Second scan finds existing and increments
+        const existingCheckIn: CheckInRecord = {
+          id: 'checkin-001',
+          guest_id: 'guest-001',
+          scanner_device_id: 'scanner-001',
+          method: CheckInMethod.QR_SCAN,
+          scan_count: 1,
+          checked_in_at: new Date(),
+        };
+        vi.mocked(repository.findCheckInByGuestId).mockResolvedValueOnce(existingCheckIn);
+        vi.mocked(repository.incrementScanCount).mockResolvedValueOnce({
+          ...existingCheckIn,
+          scan_count: 2,
+          checked_in_at: new Date(),
+        });
 
         const result2 = await service.verifyQRScan(
           'tenant-001',
@@ -332,39 +378,42 @@ describe('CheckInService', () => {
           'event-001',
           'scanner-002'
         );
-        expect(result2.status).toBe(VerificationStatus.YELLOW);
+        expect(result2.status).toBe(VerificationStatus.GREEN);
+        expect(result2.scan_count).toBe(2);
+        expect(result2.message).toBe('Check-in berhasil (Scan ke-2)');
       });
     });
 
     describe('idempotency (Req 7.8)', () => {
-      it('should only create one check-in record regardless of attempts', async () => {
+      it('should only create one check-in record and increment scan count on subsequent attempts', async () => {
         const qrPayload = createValidQRPayload('guest-001', 'event-001');
         const mockGuest = createMockGuest();
 
         vi.mocked(repository.findGuestById).mockResolvedValue(mockGuest);
-        vi.mocked(repository.createCheckIn).mockResolvedValue({
+
+        // First attempt: no existing check-in, creates check-in
+        vi.mocked(repository.findCheckInByGuestId).mockResolvedValueOnce(null);
+        await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
+
+        // Second attempt: existing check-in found, increments check-in
+        const checkInRec: CheckInRecord = {
           id: 'checkin-001',
           guest_id: 'guest-001',
           scanner_device_id: null,
           method: CheckInMethod.QR_SCAN,
+          scan_count: 1,
           checked_in_at: new Date(),
-        });
-
-        // First attempt: SET NX succeeds
-        vi.mocked(redis.set).mockResolvedValueOnce('OK');
+        };
+        vi.mocked(repository.findCheckInByGuestId).mockResolvedValueOnce(checkInRec);
         await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
 
-        // Second attempt: SET NX fails
-        vi.mocked(redis.set).mockResolvedValueOnce(null);
-        vi.mocked(redis.get).mockResolvedValue(new Date().toISOString());
-        await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
-
-        // Third attempt: SET NX fails
-        vi.mocked(redis.set).mockResolvedValueOnce(null);
+        // Third attempt: existing check-in found, increments check-in
+        vi.mocked(repository.findCheckInByGuestId).mockResolvedValueOnce({ ...checkInRec, scan_count: 2 });
         await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
 
         // Only one createCheckIn call should have been made
         expect(repository.createCheckIn).toHaveBeenCalledTimes(1);
+        expect(repository.incrementScanCount).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -582,25 +631,32 @@ describe('CheckInService', () => {
       }
     });
 
-    it('should reject check-in if guest already checked-in (Req 8.4)', async () => {
+    it('should bypass and increment check-in if guest already checked-in (Req 8.4)', async () => {
       const mockGuest = createMockGuest();
       const existingCheckIn: CheckInRecord = {
         id: 'checkin-001',
         guest_id: 'guest-001',
         scanner_device_id: null,
         method: CheckInMethod.QR_SCAN,
+        scan_count: 1,
         checked_in_at: new Date('2024-06-15T09:00:00Z'),
       };
 
       vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
       vi.mocked(repository.findGuestByIdAndEvent).mockResolvedValue(mockGuest);
       vi.mocked(repository.findCheckInByGuestId).mockResolvedValue(existingCheckIn);
+      vi.mocked(repository.incrementScanCount).mockResolvedValue({
+        ...existingCheckIn,
+        scan_count: 2,
+        checked_in_at: new Date(),
+      });
 
       const result = await service.manualCheckIn('tenant-001', 'guest-001', 'event-001');
 
-      expect(isServiceError(result)).toBe(true);
-      if (isServiceError(result)) {
-        expect(result.code).toBe(ErrorCode.ALREADY_CHECKED_IN);
+      expect(isServiceError(result)).toBe(false);
+      if (!isServiceError(result)) {
+        expect(result.guest.id).toBe('guest-001');
+        expect(result.check_in.scan_count).toBe(2);
       }
     });
 
@@ -656,23 +712,32 @@ describe('CheckInService', () => {
       });
     });
 
-    it('should NOT broadcast when check-in fails (already checked-in)', async () => {
+    it('should broadcast guest_checked_in with incremented count when already checked-in', async () => {
       const mockGuest = createMockGuest();
       const existingCheckIn: CheckInRecord = {
         id: 'checkin-001',
         guest_id: 'guest-001',
         scanner_device_id: null,
         method: CheckInMethod.QR_SCAN,
+        scan_count: 1,
         checked_in_at: new Date(),
       };
 
       vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
       vi.mocked(repository.findGuestByIdAndEvent).mockResolvedValue(mockGuest);
       vi.mocked(repository.findCheckInByGuestId).mockResolvedValue(existingCheckIn);
+      vi.mocked(repository.incrementScanCount).mockResolvedValue({
+        ...existingCheckIn,
+        scan_count: 2,
+        checked_in_at: new Date(),
+      });
 
       await service.manualCheckIn('tenant-001', 'guest-001', 'event-001');
 
-      expect(broadcaster.broadcast).not.toHaveBeenCalled();
+      expect(broadcaster.broadcast).toHaveBeenCalledWith('event-001', expect.objectContaining({
+        event_type: 'guest_checked_in',
+        scan_count: 2,
+      }));
     });
 
     it('should pass scanner_device_id when provided', async () => {

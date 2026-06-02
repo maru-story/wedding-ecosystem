@@ -294,22 +294,15 @@ sequenceDiagram
 
     S->>CAM: Activate camera
     CAM-->>S: QR code detected (payload)
-    S->>API: POST /check-in (qr_payload)
+    S->>API: POST /checkin/scan (qr_payload)
     API->>CACHE: Check duplicate (guest_id)
     
     alt Already Checked-in
         CACHE-->>API: Duplicate found
-        API-->>S: 409 Duplicate (Yellow status)
-        S-->>S: Display "DUPLICATE" (Yellow)
-    else Valid QR
-        CACHE-->>API: Not found
-        API->>DB: Validate QR + Get guest info
-        DB-->>API: Guest data (valid)
-        API->>DB: Mark as checked-in
-        API->>CACHE: Set checked-in flag
-        API-->>S: 200 OK (guest_name, Green status)
+        API->>DB: Increment scan_count
+        API-->>S: 200 OK (guest_name, Green status, scan_count)
         S-->>S: Display "VALID - [Nama]" (Green)
-        API->>WS: Broadcast "guest_checked_in"
+        API->>WS: Broadcast "guest_checked_in" with scan_count
         WS-->>D: Real-time check-in update
     else Invalid QR
         DB-->>API: Not found / invalid
@@ -776,7 +769,7 @@ EVENT_CONFIG.theme_config = {
 
 ### Property 10: Scanner Verification Status Mapping
 
-*For any* QR code scan attempt, the Scanner System SHALL return exactly one of three statuses: GREEN (valid QR, not yet checked-in) with guest name, RED (invalid/not found QR, or valid format but fails event-specific validation such as belonging to a different event), or YELLOW (already checked-in) with guest name — and the status SHALL correctly correspond to the actual state of the QR code and guest record.
+*For any* QR code scan attempt, the Scanner System SHALL return exactly one of two statuses: GREEN (valid QR check-in or subsequent scan-bypass) with guest name and incremented scan_count, or RED (invalid/not found QR, or valid format but fails event-specific validation such as belonging to a different event) — and the status SHALL correctly correspond to the actual state of the QR code and guest record.
 
 **Validates: Requirements 7.2, 7.3, 7.4**
 

@@ -57,7 +57,7 @@ Aplikasi web responsif untuk mengelola seluruh aspek undangan pernikahan.
 
 | Fitur            | Deskripsi                                                   |
 | ---------------- | ----------------------------------------------------------- |
-| Manajemen Tamu   | CRUD tamu, import CSV (max 2000), filter per grup           |
+| Manajemen Tamu   | CRUD tamu, bulk delete, import CSV (max 2000), filter per grup |
 | QR Code          | Generate otomatis per tamu, payload terenkripsi             |
 | RSVP Tracking    | Monitor konfirmasi kehadiran real-time                      |
 | Check-in Monitor | Dashboard real-time via WebSocket                           |
@@ -92,16 +92,15 @@ Progressive Web App (PWA) untuk verifikasi kehadiran tamu di venue.
 | Manual Check-in     | Cari nama tamu, check-in tanpa QR                     |
 | Go-Show             | Daftarkan tamu walk-in di hari-H                      |
 | Offline-first       | Service worker + IndexedDB, sync otomatis saat online |
-| Duplicate Detection | Scan kedua menampilkan warning (YELLOW)               |
+| Duplicate Detection | Scan kedua diperbolehkan dan menambah jumlah scan     |
 | Real-time Sync      | WebSocket untuk koordinasi antar scanner device       |
 | Max 2 Device        | Maksimal 2 scanner per event (Lane 1 & Lane 2)        |
 | Auth Flow           | Login → Pilih Event → Register Device → Scan          |
 
 **Verification Status**:
 
-- 🟢 GREEN — Check-in berhasil
+- 🟢 GREEN — Check-in/scan berhasil (menyertakan jumlah scan)
 - 🔴 RED — QR tidak valid
-- 🟡 YELLOW — Tamu sudah check-in sebelumnya
 
 ### 4. Backend API (`packages/api`)
 
@@ -171,7 +170,7 @@ Berikut adalah spesifikasi lengkap hak akses untuk masing-masing peran (*role*):
 * **Lingkup Kerja (Scope)**: Tenant Milik Sendiri (Hanya dapat mengakses data dalam tenant mereka sendiri).
 * **Dapat Melakukan (Allowed)**:
   * Membuat, memperbarui, dan menghapus event pernikahan di dalam tenant milik sendiri.
-  * Mengelola daftar tamu secara penuh (CRUD tamu, generate otomatis QR Code, ekspor data, dan import bulk via CSV).
+  * Mengelola daftar tamu secara penuh (CRUD tamu, bulk delete, generate otomatis QR Code, ekspor data, dan import bulk via CSV).
   * Mengonfigurasi CMS Undangan (mengaktifkan/menonaktifkan dan menyusun ulang urutan 14 section undangan).
   * Memilih preset warna tema undangan dan melakukan kustomisasi warna hex.
   * Mengirimkan broadcast notifikasi undangan secara massal (batch max 500 tamu).
@@ -500,9 +499,8 @@ npx prisma migrate deploy
 4. **Scan QR**:
    - Arahkan kamera ke QR code tamu
    - Hasil muncul dalam < 2 detik:
-     - 🟢 GREEN: Check-in berhasil (nama + grup tamu)
+     - 🟢 GREEN: Check-in/scan berhasil (nama + grup + jumlah scan ke-N)
      - 🔴 RED: QR tidak valid
-     - 🟡 YELLOW: Sudah check-in sebelumnya (tampilkan waktu check-in pertama)
 5. **Manual Check-in**:
    - Cari nama tamu (min 3 karakter)
    - Tap "Check-in" pada hasil pencarian
@@ -524,6 +522,12 @@ npx prisma migrate deploy
 ```bash
 # Semua tests dari root
 npm run test
+
+# Playwright E2E integration tests (packages/api)
+npm run test:e2e --workspace=packages/api
+
+# Playwright UI smoke tests (apps/invitation - Mobile Chrome)
+npx playwright test --config=apps/invitation/playwright.config.ts
 
 # Per package
 npx turbo test --filter=@wedding/api        # ~924 tests

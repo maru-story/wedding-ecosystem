@@ -43,7 +43,7 @@
 |------|-----|--------|----------------|
 | ~~**Testing patterns**~~ | ~~No dedicated testing documentation~~ | ✅ Resolved | `testing.md` added with full mock strategies, property-based patterns, 2-level mocking guide |
 | ~~**Repository migration**~~ | ~~Only Guest and CheckIn domains have *.repository.ts files~~ | ✅ Resolved | All domains migrated to full Route → Service → Repository stack (July 2026) |
-| **Theme system** | Theme presets and customization logic not detailed | Low | Document the 5 preset themes and hex customization flow |
+| ~~**Theme system**~~ | ~~Theme presets and customization logic not detailed~~ | ✅ Deleted | Theme customization has been clean deleted from dashboard (May 2026) |
 | **Media upload pipeline** | Virus scanning and R2 upload flow not in workflows | Low | Add workflow diagram for media upload |
 | **Secret rotation** | `config/secret-rotation/` exists but not documented in workflows | Low | Document rotation schedule and grace period logic |
 | **Monitoring/Alerting** | `docs/monitoring/alert-rules.md` exists but not referenced | Low | Cross-reference monitoring docs |

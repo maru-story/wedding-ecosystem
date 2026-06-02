@@ -10,7 +10,7 @@ import {
 import { authRoutes } from './routes/auth';
 import { guestRoutes } from './routes/guests/guests';
 import { eventRoutes } from './routes/events';
-import { notificationRoutes } from './routes/notifications';
+import { invitationDeliveryRoutes } from './routes/invitation-deliveries';
 import { invitationRoutes } from './routes/invitations';
 import { checkinRoutes } from './routes/checkin';
 import { rsvpRoutes } from './routes/rsvp';
@@ -37,6 +37,7 @@ import { getFastifyLoggerConfig } from './config/logger/logger';
 import { getFastifyProductionOptions, getProductionConfig } from './config/production';
 import { getCacheClient, disconnectRedis } from './config/redis/redis';
 import { validateEnv } from './config/env';
+import multipart from '@fastify/multipart';
 
 // --- Config ---
 const env = validateEnv();
@@ -74,6 +75,12 @@ app.register(responseCache, {
 // Auth & Rate Limiting
 app.register(auth, { jwtSecret: JWT_SECRET });
 app.register(rateLimiter);
+app.register(multipart, {
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB
+    files: 1,
+  },
+});
 
 // --- CORS Middleware (Req 13.7) ---
 const corsConfig = createDefaultCORSConfig({
@@ -104,7 +111,7 @@ app.register(healthRoutes, { prisma, getRealtimeServer: () => realtime });
 // Protected routes
 app.register(guestRoutes, { prefix: '/guests', prisma });
 app.register(eventRoutes, { prefix: '/events', prisma });
-app.register(notificationRoutes, { prefix: '/notifications', prisma });
+app.register(invitationDeliveryRoutes, { prefix: '/invitation-deliveries', prisma });
 app.register(cmsRoutes, { prefix: '/cms', prisma });
 app.register(scannerRoutes, { prefix: '/scanner', prisma });
 app.register(adminRoutes, { prefix: '/admin', prisma });

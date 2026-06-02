@@ -251,7 +251,7 @@ describe('Media Upload Middleware', () => {
 
       expect(cloudStorage.upload).toHaveBeenCalledWith(
         expect.any(Buffer),
-        expect.stringContaining('tenant-001/event-001/media/'),
+        expect.stringContaining('tenant-001/event-001/cms/media/'),
         'image/jpeg'
       );
     });

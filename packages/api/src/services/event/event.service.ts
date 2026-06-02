@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { ErrorCode, EventStatus, SectionType } from '@wedding/shared';
-import type { CreateEventInput, ThemeConfig, DashboardTheme, InvitationTheme } from '@wedding/shared';
+import type { CreateEventInput, ThemeConfig, DashboardTheme, InvitationTheme, UpdateEventInput } from '@wedding/shared';
 
 // --- Constants ---
 
@@ -151,6 +151,12 @@ export interface EventRepository {
   findEventById(eventId: string, tenantId: string): Promise<EventRecord | null>;
 
   countEventsByTenant(tenantId: string): Promise<number>;
+
+  updateEvent(
+    eventId: string,
+    tenantId: string,
+    data: Partial<EventRecord>
+  ): Promise<EventRecord | null>;
 }
 
 // --- Event Service ---
@@ -293,6 +299,50 @@ export class EventService {
 
     return sections;
   }
+
+  /**
+   * Update event metadata with validation and tenant isolation.
+   */
+  async updateEvent(
+    eventId: string,
+    tenantId: string,
+    input: UpdateEventInput
+  ): Promise<EventRecord | EventServiceError> {
+    // 1. Verify event belongs to tenant
+    const existingEvent = await this.repository.findEventById(eventId, tenantId);
+    if (!existingEvent) {
+      return {
+        code: ErrorCode.NOT_FOUND,
+        message: 'Event tidak ditemukan',
+      };
+    }
+
+    // 2. If slug is being updated, check slug uniqueness
+    if (input.slug && input.slug !== existingEvent.slug) {
+      const slugConflict = await this.repository.findEventBySlug(input.slug);
+      if (slugConflict) {
+        return {
+          code: ErrorCode.ALREADY_EXISTS,
+          message: 'Slug event sudah digunakan',
+        };
+      }
+    }
+
+    // 3. Update the event
+    const updatedEvent = await this.repository.updateEvent(eventId, tenantId, {
+      ...input,
+      event_date: input.event_date ? new Date(input.event_date) : undefined,
+    });
+
+    if (!updatedEvent) {
+      return {
+        code: ErrorCode.NOT_FOUND,
+        message: 'Gagal memperbarui event',
+      };
+    }
+
+    return updatedEvent;
+  }
 }
 
 // --- Type guard ---
@@ -301,7 +351,7 @@ export class EventService {
  * Type guard to check if a result is an EventServiceError
  */
 export function isEventError(
-  result: CreatedEventResult | EventServiceError
+  result: any
 ): result is EventServiceError {
-  return 'code' in result && 'message' in result && !('event' in result);
+  return result && typeof result === 'object' && 'code' in result && 'message' in result;
 }

@@ -72,7 +72,6 @@ const arbInvalidMime = fc.constantFrom(
   'image/tiff',
   'video/avi',
   'video/mkv',
-  'audio/mp3',
   'application/zip',
   'application/octet-stream'
 );

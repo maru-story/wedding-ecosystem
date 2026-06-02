@@ -34,6 +34,7 @@ export interface GuestCheckedInPayload {
   guest_name: string;
   group: string;
   method: string;
+  scan_count: number;
   checked_in_at: string;
   event_id: string;
 }

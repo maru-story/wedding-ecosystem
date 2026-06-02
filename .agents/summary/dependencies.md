@@ -39,7 +39,7 @@ graph TB
 | `bcrypt` | 6.0.0 | Password hashing |
 | `zod` | 3.25.3 | Runtime input validation |
 | `sharp` | 0.34.5 | Image processing (resize, format conversion) |
-| `multer` | 1.4.5-lts.2 | Multipart file upload handling |
+| `@fastify/multipart` | 10.0.0 | Multipart file upload handling (replaces multer) |
 | `@aws-sdk/client-s3` | 3.777.0 | Cloudflare R2 storage (S3-compatible) |
 | `@aws-sdk/s3-request-presigner` | 3.777.0 | Signed URL generation for media |
 
@@ -117,12 +117,12 @@ graph TB
 |---------|---------|---------|
 | `typescript` | 5.9.3 | Type system |
 | `vitest` | 3.2.4 | Test runner |
-| `@playwright/test` | 1.50.1 | Playwright E2E test runner (API/real-time) |
-| `playwright` | 1.50.1 | Playwright browser binaries and core automation |
+| `@playwright/test` | 1.55.1 | Playwright E2E test runner (API/real-time) |
+| `playwright` | 1.55.1 | Playwright browser binaries and core automation |
 | `fast-check` | 4.8.0 | Property-based testing |
 | `tailwindcss` | 4.3.0 | Utility-first CSS |
 | `@tailwindcss/postcss` | 4.3.0 | PostCSS integration |
-| `postcss` | 8.5.3 | CSS processing |
+| `postcss` | 8.5.10 | CSS processing |
 | `prettier` | 3.8.3 | Code formatting |
 | `prettier-plugin-tailwindcss` | 0.8.0 | Tailwind class sorting |
 | `tsx` | 4.20.3 | TypeScript execution (dev server, scripts) |

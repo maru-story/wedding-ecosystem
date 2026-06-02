@@ -78,6 +78,7 @@ export interface ScanVerificationResult {
   guest_name: string | null;
   guest_group: string | null;
   message: string;
+  scan_count: number;
   checked_in_at: Date | null;
 }
 
@@ -128,6 +129,7 @@ export interface WsCheckInEvent {
   guest_id: string;
   guest_name: string;
   method: string;
+  scan_count: number;
   checked_in_at: Date;
 }
 

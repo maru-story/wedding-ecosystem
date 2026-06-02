@@ -51,8 +51,8 @@ test.describe('Guests UI E2E', () => {
     // Verify Guest appears in the table
     const row = page.locator('tr:has-text("Guest E2E UI Test")');
     await expect(row).toBeVisible();
-    await expect(row.locator('td:nth-child(2)')).toContainText('VIP');
-    await expect(row.locator('td:nth-child(5)')).toContainText('+2');
+    await expect(row.locator('td:nth-child(3)')).toContainText('VIP');
+    await expect(row.locator('td:nth-child(6)')).toContainText('+2');
 
     // 3. Edit the Guest
     await row.locator('button[title="Edit tamu"]').click();
@@ -64,7 +64,7 @@ test.describe('Guests UI E2E', () => {
     // Verify updated details
     const editedRow = page.locator('tr:has-text("Guest E2E UI Test Edited")');
     await expect(editedRow).toBeVisible();
-    await expect(editedRow.locator('td:nth-child(2)')).toContainText('Teman');
+    await expect(editedRow.locator('td:nth-child(3)')).toContainText('Teman');
 
     // 4. CSV Import
     await page.click('button:has-text("Import CSV")');
@@ -98,8 +98,29 @@ test.describe('Guests UI E2E', () => {
     // Handle confirmation dialog before clicking delete button
     await editedRow.locator('button[title="Hapus tamu"]').click();
     await page.click('button:has-text("Hapus Tamu")');
+    await expect(editedRow).not.toBeVisible();
 
-    // Verify deleted guest is no longer visible
-    await expect(page.locator('tr:has-text("Guest E2E UI Test Edited")')).not.toBeVisible();
+    // 6. Test Bulk Delete UI
+    const rowAgus = page.locator('tr:has-text("Agus Budi E2E")');
+    const rowCici = page.locator('tr:has-text("Cici Cantika E2E")');
+
+    // Check the checkboxes for both
+    await rowAgus.locator('button[role="checkbox"]').click();
+    await rowCici.locator('button[role="checkbox"]').click();
+
+    // Verify bulk delete banner appears
+    await expect(page.locator('button:has-text("Hapus Terpilih")')).toBeVisible();
+    await expect(page.locator('span:has-text("2 tamu terpilih")')).toBeVisible();
+
+    // Click "Hapus Terpilih"
+    await page.click('button:has-text("Hapus Terpilih")');
+    await expect(page.locator('h2:has-text("Hapus Beberapa Tamu")')).toBeVisible();
+
+    // Confirm bulk delete
+    await page.locator('[role="dialog"]').locator('button:has-text("Hapus Terpilih")').click();
+
+    // Verify they are gone
+    await expect(rowAgus).not.toBeVisible();
+    await expect(rowCici).not.toBeVisible();
   });
 });

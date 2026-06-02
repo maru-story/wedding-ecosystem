@@ -422,7 +422,7 @@ describe('PrismaGuestRepository', () => {
       prisma.event.findFirst.mockResolvedValue({ id: 'event-001', slug: 'romeo-juliet' });
 
       const result = await repo.findEventById('event-001', 'tenant-001');
-      expect(result).toEqual({ id: 'event-001', slug: 'romeo-juliet' });
+      expect(result).toEqual({ id: 'event-001', slug: 'romeo-juliet', max_guests: 2000 });
     });
 
     it('should return null for cross-tenant access (Req 1.2)', async () => {

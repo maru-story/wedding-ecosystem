@@ -36,7 +36,7 @@
 ### workflows.md
 **Purpose**: Key processes and user/system workflows.
 **Consult when**: You need to understand how a feature works end-to-end, the sequence of operations for a user action, or how different components interact during a workflow.
-**Key content**: Sequence diagrams for: authentication (login + refresh), guest management (add + CSV import), RSVP submission, QR check-in (3 states), offline check-in + sync, go-show registration, CMS section management, invitation rendering (SSR), notification sending (bulk), deployment (CI/CD + blue-green), scanner device registration, real-time stats aggregation.
+**Key content**: Sequence diagrams for: authentication (login + refresh), guest management (add + CSV import), RSVP submission, QR check-in (3 states), offline check-in + sync, go-show registration, CMS section management, invitation rendering (SSR), invitation delivery sending, deployment (CI/CD + blue-green), scanner device registration, real-time stats aggregation.
 
 ### dependencies.md
 **Purpose**: External dependencies, their versions, and usage rationale.

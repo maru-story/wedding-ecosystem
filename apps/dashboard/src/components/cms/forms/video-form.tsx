@@ -1,26 +1,38 @@
 'use client';
 
 import { MediaUpload } from '../media-upload';
+import { uploadMedia } from '@/lib/cms';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+interface EventData {
+  id?: string;
+}
 
 interface VideoFormProps {
   content: Record<string, unknown>;
   onChange: (content: Record<string, unknown>) => void;
+  event?: EventData | null;
 }
 
-export function VideoForm({ content, onChange }: VideoFormProps) {
+export function VideoForm({ content, onChange, event }: VideoFormProps) {
   const videoUrl = (content.video_url as string) || '';
   const thumbnailUrl = (content.thumbnail_url as string) || '';
   const videoType = (content.type as string) || 'youtube';
 
   const handleUpload = async (file: File): Promise<string> => {
+    if (event?.id) {
+      const res = await uploadMedia(event.id, file, 'video');
+      return res.url;
+    }
     return URL.createObjectURL(file);
   };
 
   return (
     <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Tipe Video</label>
-        <div className="flex gap-3">
+      <div className="space-y-2">
+        <Label>Tipe Video</Label>
+        <div className="flex gap-4">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
@@ -28,9 +40,9 @@ export function VideoForm({ content, onChange }: VideoFormProps) {
               value="youtube"
               checked={videoType === 'youtube'}
               onChange={() => onChange({ ...content, type: 'youtube' })}
-              className="text-primary focus:ring-primary"
+              className="h-4 w-4 border-border text-primary focus:ring-ring focus:ring-offset-background"
             />
-            <span className="text-sm text-gray-700">YouTube</span>
+            <span className="text-sm text-foreground">YouTube</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -39,27 +51,24 @@ export function VideoForm({ content, onChange }: VideoFormProps) {
               value="upload"
               checked={videoType === 'upload'}
               onChange={() => onChange({ ...content, type: 'upload' })}
-              className="text-primary focus:ring-primary"
+              className="h-4 w-4 border-border text-primary focus:ring-ring focus:ring-offset-background"
             />
-            <span className="text-sm text-gray-700">Upload</span>
+            <span className="text-sm text-foreground">Upload</span>
           </label>
         </div>
       </div>
 
       {videoType === 'youtube' ? (
-        <div>
-          <label htmlFor="video-url" className="block text-sm font-medium text-gray-700">
-            URL YouTube
-          </label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="video-url">URL YouTube</Label>
+          <Input
             id="video-url"
             type="url"
             value={videoUrl}
             onChange={(e) => onChange({ ...content, video_url: e.target.value })}
             placeholder="https://www.youtube.com/watch?v=..."
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Paste link YouTube video prewedding atau cinematic Anda.
           </p>
         </div>

@@ -28,11 +28,16 @@ function createMockRepository(): GuestRepository {
     findGuestsByEvent: vi.fn(),
     updateGuest: vi.fn(),
     deleteGuest: vi.fn(),
+    deleteGuests: vi.fn(),
     deactivateQRCode: vi.fn(),
+    deactivateQRCodes: vi.fn(),
     findQRCodeByGuestId: vi.fn(),
     checkSlugExists: vi.fn(),
     checkQRPayloadExists: vi.fn(),
     findEventById: vi.fn(),
+    countGuestsByEvent: vi.fn(async () => 0),
+    findGuestNamesByEvent: vi.fn(),
+    searchGuestsByName: vi.fn(),
   };
 }
 
@@ -326,12 +331,44 @@ describe('Guest CSV Import Service', () => {
     });
 
     it('should handle optional fields gracefully', () => {
-      const row: CSVRow = { nama: 'John', grup: 'vip', phone: '+62812' };
+      const row: CSVRow = { nama: 'John', grup: 'vip', phone: '+6281234567890' };
       const result = validateRow(row, new Set());
 
       expect(typeof result).not.toBe('string');
       if (typeof result !== 'string') {
-        expect(result.phone).toBe('+62812');
+        expect(result.phone).toBe('+6281234567890');
+      }
+    });
+
+    it('should support both "telepon" and "phone" headers for phone numbers', () => {
+      const rowTelepon: CSVRow = { nama: 'John', grup: 'vip', telepon: '+6281234567890' };
+      const resultTelepon = validateRow(rowTelepon, new Set());
+      expect(typeof resultTelepon).not.toBe('string');
+      if (typeof resultTelepon !== 'string') {
+        expect(resultTelepon.phone).toBe('+6281234567890');
+      }
+
+      const rowPhone: CSVRow = { nama: 'John', grup: 'vip', phone: '+6281234567890' };
+      const resultPhone = validateRow(rowPhone, new Set());
+      expect(typeof resultPhone).not.toBe('string');
+      if (typeof resultPhone !== 'string') {
+        expect(resultPhone.phone).toBe('+6281234567890');
+      }
+    });
+
+    it('should support both "jumlah_tamu" and "plus_one_count" headers for plus one count', () => {
+      const rowJumlahTamu: CSVRow = { nama: 'John', grup: 'vip', jumlah_tamu: '3' };
+      const resultJumlahTamu = validateRow(rowJumlahTamu, new Set());
+      expect(typeof resultJumlahTamu).not.toBe('string');
+      if (typeof resultJumlahTamu !== 'string') {
+        expect(resultJumlahTamu.plus_one_count).toBe(3);
+      }
+
+      const rowPlusOneCount: CSVRow = { nama: 'John', grup: 'vip', plus_one_count: '3' };
+      const resultPlusOneCount = validateRow(rowPlusOneCount, new Set());
+      expect(typeof resultPlusOneCount).not.toBe('string');
+      if (typeof resultPlusOneCount !== 'string') {
+        expect(resultPlusOneCount.plus_one_count).toBe(3);
       }
     });
 

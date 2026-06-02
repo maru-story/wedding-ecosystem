@@ -5,102 +5,9 @@ import { SECTION_TYPE_LABELS, SECTION_TYPE_ICONS } from '@/lib/cms';
 import type { InvitationSection } from '@/lib/cms';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useEvent, useCmsSections } from '@/hooks/queries';
+import { Loader2 } from 'lucide-react';
 
-// Mock active sections for preview (in production, fetch from API)
-const MOCK_ACTIVE_SECTIONS: InvitationSection[] = [
-  {
-    id: '1',
-    event_id: 'evt-1',
-    section_type: 'cover',
-    sort_order: 1,
-    is_active: true,
-    content: {
-      title: 'The Wedding of',
-      subtitle: 'Romeo & Juliet',
-      background_image: '',
-      opening_text: 'Buka Undangan',
-    },
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    event_id: 'evt-1',
-    section_type: 'bride_groom',
-    sort_order: 2,
-    is_active: true,
-    content: {
-      bride: {
-        name: 'Juliet Capulet',
-        parent_info: 'Putri dari Bapak Capulet & Ibu Capulet',
-        photo: '',
-        instagram: '@juliet',
-      },
-      groom: {
-        name: 'Romeo Montague',
-        parent_info: 'Putra dari Bapak Montague & Ibu Montague',
-        photo: '',
-        instagram: '@romeo',
-      },
-    },
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    event_id: 'evt-1',
-    section_type: 'verse',
-    sort_order: 3,
-    is_active: true,
-    content: {
-      text: 'Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan hidup dari jenismu sendiri, supaya kamu merasa tenteram kepadanya.',
-      source: 'QS. Ar-Rum: 21',
-    },
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '4',
-    event_id: 'evt-1',
-    section_type: 'countdown',
-    sort_order: 4,
-    is_active: true,
-    content: { target_date: '2026-01-12T08:00', calendar_link: '' },
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '5',
-    event_id: 'evt-1',
-    section_type: 'akad_resepsi',
-    sort_order: 5,
-    is_active: true,
-    content: {
-      akad: { date: '2026-01-12', time_start: '08:00', time_end: '10:00' },
-      resepsi: { date: '2026-01-12', time_start: '11:00', time_end: '14:00' },
-      venue: 'Grand Ballroom Hotel',
-      maps_url: 'https://maps.google.com',
-    },
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '6',
-    event_id: 'evt-1',
-    section_type: 'rsvp',
-    sort_order: 6,
-    is_active: true,
-    content: { max_plus_one: 1 },
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '7',
-    event_id: 'evt-1',
-    section_type: 'closing',
-    sort_order: 7,
-    is_active: true,
-    content: {
-      text: 'Merupakan suatu kehormatan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir.',
-      thank_you_message: 'Terima kasih atas doa dan restu yang diberikan.',
-    },
-    updated_at: new Date().toISOString(),
-  },
-];
 
 function PreviewSection({ section }: { section: InvitationSection }) {
   const renderContent = () => {
@@ -179,6 +86,32 @@ function PreviewSection({ section }: { section: InvitationSection }) {
 
 export default function PreviewPage() {
   const [deviceView, setDeviceView] = useState<'mobile' | 'desktop'>('mobile');
+  const { data: event, isLoading: eventLoading } = useEvent();
+  const { data: sections, isLoading: sectionsLoading } = useCmsSections(event?.id);
+
+  if (eventLoading || sectionsLoading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          <p className="mt-3 text-sm text-muted-foreground font-medium">Memuat preview...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center text-center p-4">
+        <div>
+          <p className="text-destructive font-semibold">Gagal memuat detail acara</p>
+          <p className="text-sm text-muted-foreground mt-1">Event tidak ditemukan untuk akun ini.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const activeSections = (sections || []).filter((s) => s.is_active);
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -246,9 +179,15 @@ export default function PreviewPage() {
             </div>
           )}
           <div className="max-h-[600px] overflow-y-auto">
-            {MOCK_ACTIVE_SECTIONS.filter((s) => s.is_active).map((section) => (
-              <PreviewSection key={section.id} section={section} />
-            ))}
+            {activeSections.length > 0 ? (
+              activeSections.map((section) => (
+                <PreviewSection key={section.id} section={section} />
+              ))
+            ) : (
+              <div className="py-12 text-center text-sm text-muted-foreground">
+                Belum ada section yang aktif
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { type AuthUser } from '@wedding/shared';
 export type { AuthUser };
+import { STORAGE_KEY_USER } from './constants';
 import { apiFetch, setTokens, clearTokens, startAutoRefresh, stopAutoRefresh, getAccessToken } from './api';
 
 export interface LoginResponse {
@@ -31,7 +32,7 @@ export async function login(email: string, password: string): Promise<LoginRespo
 
   // Store user info
   if (typeof window !== 'undefined') {
-    localStorage.setItem('wedding_user', JSON.stringify(response.user));
+    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(response.user));
   }
 
   return response;
@@ -44,7 +45,7 @@ export function logout(): void {
   clearTokens();
   stopAutoRefresh();
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('wedding_user');
+    localStorage.removeItem(STORAGE_KEY_USER);
     window.location.href = '/login';
   }
 }
@@ -54,7 +55,7 @@ export function logout(): void {
  */
 export function getStoredUser(): AuthUser | null {
   if (typeof window === 'undefined') return null;
-  const stored = localStorage.getItem('wedding_user');
+  const stored = localStorage.getItem(STORAGE_KEY_USER);
   if (!stored) return null;
   try {
     return JSON.parse(stored);
@@ -69,3 +70,13 @@ export function getStoredUser(): AuthUser | null {
 export function isAuthenticated(): boolean {
   return !!getAccessToken();
 }
+
+/**
+ * Update stored user info in localStorage
+ */
+export function updateStoredUser(user: AuthUser): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+  }
+}
+

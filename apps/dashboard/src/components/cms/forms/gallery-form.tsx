@@ -1,10 +1,19 @@
 'use client';
 
 import { MediaUpload } from '../media-upload';
+import { uploadMedia } from '@/lib/cms';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Plus, Trash2 } from 'lucide-react';
+
+interface EventData {
+  id?: string;
+}
 
 interface GalleryFormProps {
   content: Record<string, unknown>;
   onChange: (content: Record<string, unknown>) => void;
+  event?: EventData | null;
 }
 
 interface Photo {
@@ -13,7 +22,7 @@ interface Photo {
   order: number;
 }
 
-export function GalleryForm({ content, onChange }: GalleryFormProps) {
+export function GalleryForm({ content, onChange, event }: GalleryFormProps) {
   const photos = (content.photos as Photo[]) || [];
 
   const addPhoto = () => {
@@ -38,45 +47,52 @@ export function GalleryForm({ content, onChange }: GalleryFormProps) {
   };
 
   const handleUpload = async (file: File): Promise<string> => {
+    if (event?.id) {
+      const res = await uploadMedia(event.id, file, 'gallery');
+      return res.url;
+    }
     return URL.createObjectURL(file);
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Upload foto prewedding untuk galeri undangan.
         </p>
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={addPhoto}
-          className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="gap-1.5"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
+          <Plus className="h-4 w-4" />
           Tambah Foto
-        </button>
+        </Button>
       </div>
 
       {photos.length === 0 && (
-        <div className="rounded-lg border-2 border-dashed border-gray-200 p-8 text-center">
-          <p className="text-sm text-gray-500">Belum ada foto. Klik tombol di atas untuk menambahkan.</p>
+        <div className="rounded-lg border-2 border-dashed border-border/60 p-8 text-center bg-card">
+          <p className="text-sm text-muted-foreground">Belum ada foto. Klik tombol di atas untuk menambahkan.</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {photos.map((photo, index) => (
-          <div key={index} className="rounded-lg border border-gray-200 bg-gray-50 p-3 space-y-2">
+          <div key={index} className="rounded-xl border border-border/40 bg-card p-4 space-y-3 shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-500">Foto #{photo.order}</span>
-              <button
+              <span className="text-xs font-semibold text-muted-foreground">Foto #{photo.order}</span>
+              <Button
                 type="button"
+                variant="ghost"
+                size="xs"
                 onClick={() => removePhoto(index)}
-                className="text-xs text-red-500 hover:text-red-700"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
               >
+                <Trash2 className="h-3.5 w-3.5 mr-1" />
                 Hapus
-              </button>
+              </Button>
             </div>
 
             <MediaUpload
@@ -90,13 +106,14 @@ export function GalleryForm({ content, onChange }: GalleryFormProps) {
               onRemove={() => updatePhoto(index, 'url', '')}
             />
 
-            <input
-              type="text"
-              value={photo.caption}
-              onChange={(e) => updatePhoto(index, 'caption', e.target.value)}
-              placeholder="Caption (opsional)"
-              className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
+            <div className="space-y-1">
+              <Input
+                type="text"
+                value={photo.caption}
+                onChange={(e) => updatePhoto(index, 'caption', e.target.value)}
+                placeholder="Caption (opsional)"
+              />
+            </div>
           </div>
         ))}
       </div>

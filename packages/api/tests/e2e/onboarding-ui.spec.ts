@@ -123,7 +123,7 @@ test.describe('Onboarding UI E2E', () => {
     await expect(page).toHaveURL('http://localhost:3000/');
 
     // On the homepage, since the event has now been created, we should see the dashboard elements
-    await expect(page.locator('h2:has-text("Statistik Acara Saat Ini")')).toBeVisible();
+    await expect(page.locator('h1:has-text("Dashboard Klien")')).toBeVisible();
 
     // Verify navigating back to "/onboarding" redirects back to dashboard home "/" (Onboarding reverse guard)
     await page.goto('http://localhost:3000/onboarding');

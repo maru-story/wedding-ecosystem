@@ -4,6 +4,7 @@ import { RsvpForm } from './rsvp-form';
 
 interface RsvpSectionProps {
   guestId: string;
+  eventId?: string;
   plusOneCount: number;
 }
 
@@ -11,7 +12,7 @@ interface RsvpSectionProps {
  * RSVP section wrapper that provides section heading and layout.
  * Renders the RSVP form within the invitation section context.
  */
-export function RsvpSection({ guestId, plusOneCount }: RsvpSectionProps) {
+export function RsvpSection({ guestId, eventId, plusOneCount }: RsvpSectionProps) {
   return (
     <div className="mx-auto max-w-lg px-6 py-12">
       <div className="mb-8 text-center">
@@ -24,7 +25,7 @@ export function RsvpSection({ guestId, plusOneCount }: RsvpSectionProps) {
       </div>
 
       <div className="rounded-xl border border-[var(--color-text)]/5 bg-[var(--color-background)] p-6 shadow-sm">
-        <RsvpForm guestId={guestId} plusOneCount={plusOneCount} />
+        <RsvpForm guestId={guestId} eventId={eventId ?? ''} plusOneCount={plusOneCount} />
       </div>
     </div>
   );

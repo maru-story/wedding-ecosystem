@@ -1,11 +1,10 @@
-import { GuestGroup, GuestType } from '@wedding/shared';
-import { MAX_CSV_ROWS } from '@wedding/shared';
+import { GuestGroup, GuestType, MAX_CSV_ROWS, normalizePhoneNumber, isValidPhoneNumber } from '@wedding/shared';
 import { GuestService, isGuestError } from '../guest/guest.service';
 
 // --- Constants ---
 
 const REQUIRED_COLUMNS = ['nama', 'grup'] as const;
-const OPTIONAL_COLUMNS = ['phone', 'plus_one_count'] as const;
+const OPTIONAL_COLUMNS = ['phone', 'telepon', 'plus_one_count', 'jumlah_tamu'] as const;
 const ALL_COLUMNS = [...REQUIRED_COLUMNS, ...OPTIONAL_COLUMNS] as const;
 
 const VALID_GROUPS: string[] = Object.values(GuestGroup);
@@ -16,7 +15,9 @@ export interface CSVRow {
   nama?: string;
   grup?: string;
   phone?: string;
+  telepon?: string;
   plus_one_count?: string;
+  jumlah_tamu?: string;
   [key: string]: string | undefined;
 }
 
@@ -200,21 +201,33 @@ export function validateRow(row: CSVRow, existingNames: Set<string>): ValidatedR
 
   // Validate plus_one_count if provided
   let plusOneCount = 0;
-  if (row.plus_one_count !== undefined && row.plus_one_count.trim() !== '') {
-    const parsed = parseInt(row.plus_one_count.trim(), 10);
+  const plusOneRaw = row.jumlah_tamu !== undefined ? row.jumlah_tamu : row.plus_one_count;
+  const plusOneKey = row.jumlah_tamu !== undefined ? 'jumlah_tamu' : 'plus_one_count';
+  if (plusOneRaw !== undefined && plusOneRaw.trim() !== '') {
+    const parsed = parseInt(plusOneRaw.trim(), 10);
     if (isNaN(parsed) || parsed < 0) {
-      return `plus_one_count tidak valid: "${row.plus_one_count}". Harus bilangan bulat >= 0`;
+      return `${plusOneKey} tidak valid: "${plusOneRaw}". Harus bilangan bulat >= 0`;
     }
     if (parsed > 10) {
-      return `plus_one_count melebihi batas maksimal 10`;
+      return `${plusOneKey} melebihi batas maksimal 10`;
     }
     plusOneCount = parsed;
+  }
+
+  let phone = row.telepon?.trim() || row.phone?.trim() || undefined;
+  if (phone && phone !== '') {
+    phone = normalizePhoneNumber(phone);
+    if (!isValidPhoneNumber(phone)) {
+      return `Format nomor telepon tidak valid: "${row.telepon?.trim() || row.phone?.trim()}". Harus berupa nomor seluler Indonesia yang valid (contoh: 08xxxxxxxxxx atau +628xxxxxxxxxx).`;
+    }
+  } else {
+    phone = undefined;
   }
 
   return {
     name: nama,
     group: grup as GuestGroup,
-    phone: row.phone?.trim() || undefined,
+    phone,
     plus_one_count: plusOneCount,
   };
 }
@@ -297,7 +310,7 @@ export async function bulkImportGuests(
       name: validationResult.name,
       group: validationResult.group,
       type: GuestType.INVITED,
-      phone: validationResult.phone,
+      phone: validationResult.phone ?? '',
       plus_one_count: validationResult.plus_one_count,
     });
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
-import { type AuthUser, getStoredUser, isAuthenticated, logout, login as authLogin } from '@/lib/auth';
+import { type AuthUser, getStoredUser, isAuthenticated, logout, login as authLogin, updateStoredUser } from '@/lib/auth';
 import { startAutoRefresh, stopAutoRefresh } from '@/lib/api';
 
 interface AuthContextValue {
@@ -10,6 +10,7 @@ interface AuthContextValue {
   isLoggedIn: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateUser: (user: AuthUser) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -42,6 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout();
   }, []);
 
+  const handleUpdateUser = useCallback((updatedUser: AuthUser) => {
+    setUser(updatedUser);
+    updateStoredUser(updatedUser);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -50,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoggedIn: !!user,
         login: handleLogin,
         logout: handleLogout,
+        updateUser: handleUpdateUser,
       }}
     >
       {children}
@@ -64,3 +71,4 @@ export function useAuth(): AuthContextValue {
   }
   return context;
 }
+

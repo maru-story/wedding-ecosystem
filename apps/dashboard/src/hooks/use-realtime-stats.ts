@@ -20,6 +20,9 @@ export interface RsvpTrackingItem {
   attendance: 'akad' | 'resepsi' | 'both' | 'decline';
   guest_count: number;
   submitted_at: string;
+  group?: string;
+  phone?: string | null;
+  delivery_status?: string;
 }
 
 interface UseRealtimeStatsOptions {

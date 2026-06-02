@@ -105,7 +105,7 @@ Guest record within an event, directly tenant-scoped for query performance.
 | `type` | GuestType | Default: `invited` | Invited vs go-show |
 | `plus_one_count` | Int | Default: `0` | Additional guests |
 | `invitation_url` | String? | Optional | Generated invitation link |
-| `delivery_status` | DeliveryStatus | Default: `not_sent` | Notification status |
+| `delivery_status` | DeliveryStatus | Default: `not_sent` | Invitation delivery status |
 | `created_at` | DateTime | Auto | Creation timestamp |
 
 **Indexes**: `[tenant_id]`, `[event_id]`, `[slug]`, Unique `[event_id, slug]`

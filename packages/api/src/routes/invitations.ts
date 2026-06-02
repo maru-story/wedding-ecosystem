@@ -41,6 +41,12 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
     // Find guest by slug within the event
     const guest = await prisma.guest.findFirst({
       where: { slug: params.guestSlug, event_id: event.id },
+      include: {
+        qr_codes: {
+          where: { is_active: true },
+          take: 1,
+        },
+      },
     });
 
     if (!guest) {
@@ -96,6 +102,7 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
         slug: guest.slug,
         group: guest.group,
         plus_one_count: guest.plus_one_count,
+        qr_payload: guest.qr_codes[0]?.qr_payload || null,
       },
       theme: invitationTheme,
       sections: sections.map((s) => ({

@@ -66,7 +66,7 @@ graph TB
 | `RsvpService` | `rsvp/rsvp.service.ts` | RSVP submission and retrieval |
 | `CMSService` | `cms/cms.service.ts` | Section CRUD, sort order management, toggle active state |
 | `EventService` | `event/event.service.ts` | Event creation with default sections and theme |
-| `NotificationService` | `notification/notification.service.ts` | Bulk invitation sending (WhatsApp), delivery status tracking |
+| `InvitationDeliveryService` | `invitation-delivery/invitation-delivery.service.ts` | Single invitation sending (WhatsApp), message template and delivery status tracking |
 | `ScannerDeviceService` | `scanner-device/scanner-device.service.ts` | Device registration, lane assignment, heartbeat, max 2 per event |
 | `MediaUploadService` | `media-upload/media-upload.service.ts` | File validation, virus scanning, cloud storage upload |
 | `StorageService` | `storage/storage.ts` | R2 client, signed URLs, tenant storage quota enforcement |
@@ -153,9 +153,8 @@ graph TB
         CMS["cms/page.tsx"]
         CMSEdit["cms/edit/[sectionId]/page.tsx"]
         CMSPreview["cms/preview/page.tsx"]
-        Theme["theme/page.tsx"]
         RSVP["rsvp/page.tsx"]
-        Notifications["notifications/page.tsx"]
+        SendInvitation["send-invitation/page.tsx"]
         AdminLayout["admin/layout.tsx"]
         AdminOverview["admin/overview/page.tsx"]
         AdminTenants["admin/tenants/page.tsx"]
@@ -168,16 +167,16 @@ graph TB
         GuestTable["guests/GuestTable + Filters + AddModal + CSVImport + QRModal"]
         CMSComp["cms/SectionList + SectionEditorForm + MediaUpload"]
         Forms["cms/forms/ (14 section-specific forms)"]
-        UI["ui/ (shadcn: Button, Dialog, Table, Card, Select, etc.)"]
+        UI["ui/ (shadcn: Button, Dialog, Table, Card, Select, etc. + DataTable)"]
     end
 
     subgraph "Hooks & Lib"
         UseSocket["hooks/use-socket.ts"]
         UseStats["hooks/use-realtime-stats.ts"]
+        UseTable["hooks/use-table-state.ts"]
         AuthLib["lib/auth.ts"]
         APILib["lib/api.ts"]
         CMSLib["lib/cms.ts"]
-        ThemeLib["lib/theme.ts"]
         SocketLib["lib/socket.ts"]
     end
 ```

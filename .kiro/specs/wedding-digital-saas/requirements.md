@@ -65,7 +65,7 @@ Wedding Digital SaaS adalah platform multi-tenant yang menyediakan ekosistem len
 #### Acceptance Criteria
 
 1. WHEN seorang client menambahkan tamu baru dengan data nama, grup, dan opsional phone/email/plus_one_count, THE Backend_API SHALL membuat record tamu dan otomatis men-generate QR code unik untuk tamu tersebut dalam waktu kurang dari 3 detik
-2. THE Dashboard SHALL menyediakan fitur import bulk tamu melalui file CSV dengan kolom wajib (nama, grup) dan kolom opsional (phone, email, plus_one_count), dengan maksimal 2000 baris per file
+2. THE Dashboard SHALL menyediakan fitur import bulk tamu melalui file CSV dengan kolom wajib (nama, grup) dan kolom opsional (phone, email, plus_one_count), dengan maksimal {max_guests} baris per file
 3. WHEN tamu di-import via CSV, THE Backend_API SHALL memvalidasi setiap baris dan men-generate QR code untuk setiap tamu yang lolos validasi, serta mengembalikan laporan hasil import berisi jumlah berhasil dan daftar baris yang gagal beserta alasannya
 4. IF sebuah baris CSV memiliki data tidak valid (nama kosong, grup tidak sesuai enum, atau duplikat nama dalam event yang sama), THEN THE Backend_API SHALL melewati baris tersebut tanpa menghentikan proses import dan mencatat error pada laporan hasil
 5. THE Dashboard SHALL menyediakan fitur CRUD (Create, Read, Update, Delete) untuk data tamu

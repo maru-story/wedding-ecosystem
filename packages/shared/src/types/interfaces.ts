@@ -132,6 +132,7 @@ export interface CheckIn {
   guest_id: string;
   scanner_device_id: string | null;
   method: CheckInMethod;
+  scan_count: number;
   checked_in_at: Date;
 }
 

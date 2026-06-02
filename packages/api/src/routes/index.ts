@@ -1,7 +1,7 @@
 export { authRoutes } from './auth';
 export { guestRoutes } from './guests/guests';
 export { eventRoutes } from './events';
-export { notificationRoutes } from './notifications';
+export { invitationDeliveryRoutes } from './invitation-deliveries';
 export { invitationRoutes } from './invitations';
 export { checkinRoutes } from './checkin';
 export { rsvpRoutes } from './rsvp';

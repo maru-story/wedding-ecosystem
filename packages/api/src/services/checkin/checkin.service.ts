@@ -26,6 +26,7 @@ export interface CheckInRecord {
   guest_id: string;
   scanner_device_id: string | null;
   method: CheckInMethod;
+  scan_count: number;
   checked_in_at: Date;
 }
 
@@ -93,6 +94,7 @@ export interface CheckInBroadcastPayload {
   guest_group: GuestGroup;
   guest_type: GuestType;
   method: CheckInMethod;
+  scan_count: number;
   checked_in_at: Date;
 }
 
@@ -110,6 +112,7 @@ export interface CheckInRepository {
     method: CheckInMethod;
     checked_in_at: Date;
   }): Promise<CheckInRecord>;
+  incrementScanCount(checkInId: string): Promise<CheckInRecord>;
   searchGuestsByName(
     eventId: string,
     query: string,
@@ -204,6 +207,7 @@ export class CheckInService {
         guest_name: null,
         guest_group: null,
         message: 'Event tidak ditemukan',
+        scan_count: 0,
         checked_in_at: null,
       };
     }
@@ -216,6 +220,7 @@ export class CheckInService {
         guest_name: null,
         guest_group: null,
         message: 'QR code tidak valid',
+        scan_count: 0,
         checked_in_at: null,
       };
     }
@@ -229,6 +234,7 @@ export class CheckInService {
         guest_name: null,
         guest_group: null,
         message: 'QR code bukan untuk event ini',
+        scan_count: 0,
         checked_in_at: null,
       };
     }
@@ -241,16 +247,55 @@ export class CheckInService {
         guest_name: null,
         guest_group: null,
         message: 'Tamu tidak ditemukan',
+        scan_count: 0,
         checked_in_at: null,
       };
     }
 
-    // Step 4: Atomic duplicate detection using Redis SET NX (Req 7.5, 7.8, 12.5)
     const redisKey = `${CHECKIN_KEY_PREFIX}${guestId}`;
     const now = new Date();
     const timestamp = now.toISOString();
 
-    // SET NX: only succeeds if key doesn't exist (atomic operation)
+    // Step 4: Check if already checked-in in DB to perform bypass/increment
+    const existingCheckIn = await this.repository.findCheckInByGuestId(guestId);
+    if (existingCheckIn) {
+      const updated = await this.repository.incrementScanCount(existingCheckIn.id);
+
+      // Ensure Redis caches the latest check-in time
+      await this.redis.set(
+        redisKey,
+        updated.checked_in_at.toISOString(),
+        'EX',
+        CHECKIN_KEY_TTL_SECONDS,
+        'NX'
+      );
+
+      // Broadcast via WebSocket
+      if (this.broadcaster) {
+        this.broadcaster.broadcast(eventId, {
+          event_type: 'guest_checked_in',
+          event_id: eventId,
+          guest_id: guest.id,
+          guest_name: guest.name,
+          guest_group: guest.group,
+          guest_type: GuestType.INVITED,
+          method: CheckInMethod.QR_SCAN,
+          scan_count: updated.scan_count,
+          checked_in_at: updated.checked_in_at,
+        });
+      }
+
+      return {
+        status: VerificationStatus.GREEN,
+        guest_name: guest.name,
+        guest_group: guest.group,
+        message: `Check-in berhasil (Scan ke-${updated.scan_count})`,
+        scan_count: updated.scan_count,
+        checked_in_at: updated.checked_in_at,
+      };
+    }
+
+    // Redis SET NX lock
     const setResult = await this.redis.set(
       redisKey,
       timestamp,
@@ -260,22 +305,42 @@ export class CheckInService {
     );
 
     if (setResult === null) {
-      // Key already exists — guest was already checked in (YELLOW)
-      const previousTimestamp = await this.redis.get(redisKey);
-      const checkedInAt = previousTimestamp ? new Date(previousTimestamp) : null;
+      // Concurrent request got there first. Wait a brief moment if needed and try to find the check-in.
+      let checkIn = await this.repository.findCheckInByGuestId(guestId);
+      if (!checkIn) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        checkIn = await this.repository.findCheckInByGuestId(guestId);
+      }
 
-      return {
-        status: VerificationStatus.YELLOW,
-        guest_name: guest.name,
-        guest_group: guest.group,
-        message: 'Tamu sudah check-in sebelumnya',
-        checked_in_at: checkedInAt,
-      };
+      if (checkIn) {
+        const updated = await this.repository.incrementScanCount(checkIn.id);
+        if (this.broadcaster) {
+          this.broadcaster.broadcast(eventId, {
+            event_type: 'guest_checked_in',
+            event_id: eventId,
+            guest_id: guest.id,
+            guest_name: guest.name,
+            guest_group: guest.group,
+            guest_type: GuestType.INVITED,
+            method: CheckInMethod.QR_SCAN,
+            scan_count: updated.scan_count,
+            checked_in_at: updated.checked_in_at,
+          });
+        }
+        return {
+          status: VerificationStatus.GREEN,
+          guest_name: guest.name,
+          guest_group: guest.group,
+          message: `Check-in berhasil (Scan ke-${updated.scan_count})`,
+          scan_count: updated.scan_count,
+          checked_in_at: updated.checked_in_at,
+        };
+      }
     }
 
     // Step 5: First check-in — create DB record (GREEN)
     const checkInId = randomUUID();
-    await this.repository.createCheckIn({
+    const checkIn = await this.repository.createCheckIn({
       id: checkInId,
       guest_id: guestId,
       scanner_device_id: scannerDeviceId,
@@ -283,12 +348,24 @@ export class CheckInService {
       checked_in_at: now,
     });
 
+    if (setResult !== null) {
+      // Ensure Redis is populated if it wasn't already
+      await this.redis.set(
+        redisKey,
+        timestamp,
+        'EX',
+        CHECKIN_KEY_TTL_SECONDS,
+        'NX'
+      );
+    }
+
     return {
       status: VerificationStatus.GREEN,
       guest_name: guest.name,
       guest_group: guest.group,
       message: 'Check-in berhasil',
-      checked_in_at: now,
+      scan_count: checkIn.scan_count,
+      checked_in_at: checkIn.checked_in_at,
     };
   }
 
@@ -341,7 +418,8 @@ export class CheckInService {
     tenantId: string,
     guestId: string,
     eventId: string,
-    scannerDeviceId?: string | null
+    scannerDeviceId?: string | null,
+    checkedInAt?: Date
   ): Promise<ManualCheckInResult | CheckInServiceError> {
     // Verify event exists and belongs to tenant
     const event = await this.repository.findEventById(eventId);
@@ -361,23 +439,37 @@ export class CheckInService {
       };
     }
 
-    // Check if already checked-in (Req 8.4)
+    // Check if already checked-in (Req 8.4) - now bypass and increment
     const existingCheckIn = await this.repository.findCheckInByGuestId(guestId);
     if (existingCheckIn) {
-      return {
-        code: ErrorCode.ALREADY_CHECKED_IN,
-        message: 'Tamu sudah check-in sebelumnya',
-      };
+      const checkIn = await this.repository.incrementScanCount(existingCheckIn.id);
+
+      // Broadcast via WebSocket (Req 8.8 - < 500ms)
+      if (this.broadcaster) {
+        this.broadcaster.broadcast(eventId, {
+          event_type: 'guest_checked_in',
+          event_id: eventId,
+          guest_id: guest.id,
+          guest_name: guest.name,
+          guest_group: guest.group,
+          guest_type: GuestType.INVITED,
+          method: CheckInMethod.MANUAL,
+          scan_count: checkIn.scan_count,
+          checked_in_at: checkIn.checked_in_at,
+        });
+      }
+
+      return { guest, check_in: checkIn };
     }
 
     // Create check-in record with method="manual" (Req 8.2)
-    const now = new Date();
+    const timestamp = checkedInAt ?? new Date();
     const checkIn = await this.repository.createCheckIn({
       id: randomUUID(),
       guest_id: guestId,
       scanner_device_id: scannerDeviceId ?? null,
       method: CheckInMethod.MANUAL,
-      checked_in_at: now,
+      checked_in_at: timestamp,
     });
 
     // Broadcast via WebSocket (Req 8.8 - < 500ms)
@@ -390,6 +482,7 @@ export class CheckInService {
         guest_group: guest.group,
         guest_type: GuestType.INVITED,
         method: CheckInMethod.MANUAL,
+        scan_count: checkIn.scan_count,
         checked_in_at: checkIn.checked_in_at,
       });
     }
@@ -456,6 +549,7 @@ export class CheckInService {
         guest_group: guest.group,
         guest_type: GuestType.GO_SHOW,
         method: CheckInMethod.GO_SHOW,
+        scan_count: checkIn.scan_count,
         checked_in_at: checkIn.checked_in_at,
       });
     }
@@ -477,17 +571,18 @@ export class CheckInService {
         tenantId,
         record.guest_id,
         record.event_id,
-        record.scanner_device_id || null
+        record.scanner_device_id || null,
+        new Date(record.checked_in_at)
       );
 
       if (isServiceError(syncResult)) {
-        if (syncResult.code === ErrorCode.ALREADY_CHECKED_IN) {
-          results.push({ guest_id: record.guest_id, status: 'duplicate' });
-        } else {
-          results.push({ guest_id: record.guest_id, status: 'error', message: syncResult.message });
-        }
+        results.push({ guest_id: record.guest_id, status: 'error', message: syncResult.message });
       } else {
-        results.push({ guest_id: record.guest_id, status: 'synced' });
+        const isDuplicate = syncResult.check_in.scan_count > 1;
+        results.push({
+          guest_id: record.guest_id,
+          status: isDuplicate ? 'duplicate' : 'synced',
+        });
       }
     }
 

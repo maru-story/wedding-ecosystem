@@ -1,164 +1,81 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { SectionList } from '@/components/cms/section-list';
 import type { InvitationSection } from '@/lib/cms';
 import Link from 'next/link';
-
 import { buttonVariants } from '@/components/ui/button';
-
-// Mock data for initial development (will be replaced with API calls)
-const MOCK_SECTIONS: InvitationSection[] = [
-  {
-    id: '1',
-    event_id: 'evt-1',
-    section_type: 'cover',
-    sort_order: 1,
-    is_active: true,
-    content: {
-      title: 'Wedding Invitation',
-      subtitle: 'We are getting married',
-      background_image: '',
-      opening_text: 'Buka Undangan',
-    },
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    event_id: 'evt-1',
-    section_type: 'bride_groom',
-    sort_order: 2,
-    is_active: true,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    event_id: 'evt-1',
-    section_type: 'story',
-    sort_order: 3,
-    is_active: true,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '4',
-    event_id: 'evt-1',
-    section_type: 'verse',
-    sort_order: 4,
-    is_active: true,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '5',
-    event_id: 'evt-1',
-    section_type: 'countdown',
-    sort_order: 5,
-    is_active: true,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '6',
-    event_id: 'evt-1',
-    section_type: 'akad_resepsi',
-    sort_order: 6,
-    is_active: true,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '7',
-    event_id: 'evt-1',
-    section_type: 'rsvp',
-    sort_order: 7,
-    is_active: true,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '8',
-    event_id: 'evt-1',
-    section_type: 'attire',
-    sort_order: 8,
-    is_active: true,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '9',
-    event_id: 'evt-1',
-    section_type: 'gallery',
-    sort_order: 9,
-    is_active: true,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '10',
-    event_id: 'evt-1',
-    section_type: 'video',
-    sort_order: 10,
-    is_active: true,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '11',
-    event_id: 'evt-1',
-    section_type: 'gift',
-    sort_order: 11,
-    is_active: true,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '12',
-    event_id: 'evt-1',
-    section_type: 'messages',
-    sort_order: 12,
-    is_active: true,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '13',
-    event_id: 'evt-1',
-    section_type: 'closing',
-    sort_order: 13,
-    is_active: true,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '14',
-    event_id: 'evt-1',
-    section_type: 'music',
-    sort_order: 14,
-    is_active: false,
-    content: {},
-    updated_at: new Date().toISOString(),
-  },
-];
+import {
+  useEvent,
+  useCmsSections,
+  useToggleCmsSectionActive,
+  useReorderCmsSection,
+} from '@/hooks/queries';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 export default function CMSPage() {
-  const [sections, setSections] = useState<InvitationSection[]>(MOCK_SECTIONS);
-  const [error] = useState<string | null>(null);
+  const { data: event, isLoading: eventLoading } = useEvent();
+  const { data: sections, isLoading: sectionsLoading } = useCmsSections(event?.id);
+  const toggleActiveMutation = useToggleCmsSectionActive();
+  const reorderMutation = useReorderCmsSection();
 
-  const handleReorder = useCallback((reorderedSections: InvitationSection[]) => {
-    const updated = reorderedSections.map((section, index) => ({
-      ...section,
-      sort_order: index + 1,
-    }));
-    setSections(updated);
-  }, []);
+  const handleReorder = useCallback(
+    async (sectionId: string, position: number) => {
+      if (!event?.id) return;
+      try {
+        await reorderMutation.mutateAsync({
+          eventId: event.id,
+          sectionId,
+          position,
+        });
+        toast.success('Urutan section berhasil diperbarui');
+      } catch (err: any) {
+        toast.error(err.data?.error?.message || 'Gagal mengubah urutan section');
+        throw err;
+      }
+    },
+    [event?.id, reorderMutation]
+  );
 
-  const handleToggleActive = useCallback(async (sectionId: string, isActive: boolean) => {
-    setSections((prev) =>
-      prev.map((s) => (s.id === sectionId ? { ...s, is_active: isActive } : s))
+  const handleToggleActive = useCallback(
+    async (sectionId: string, isActive: boolean) => {
+      if (!event?.id) return;
+      try {
+        await toggleActiveMutation.mutateAsync({
+          eventId: event.id,
+          sectionId,
+          isActive,
+        });
+        toast.success(isActive ? 'Section diaktifkan' : 'Section dinonaktifkan');
+      } catch (err: any) {
+        toast.error(err.data?.error?.message || 'Gagal mengubah status aktif section');
+      }
+    },
+    [event?.id, toggleActiveMutation]
+  );
+
+  if (eventLoading || sectionsLoading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          <p className="mt-3 text-sm text-muted-foreground font-medium">Memuat editor...</p>
+        </div>
+      </div>
     );
-  }, []);
+  }
+
+  if (!event) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center text-center p-4">
+        <div>
+          <p className="text-destructive font-semibold">Gagal memuat detail acara</p>
+          <p className="text-sm text-muted-foreground mt-1">Event tidak ditemukan untuk akun ini.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -196,16 +113,6 @@ export default function CMSPage() {
         </Link>
       </div>
 
-      {/* Error message */}
-      {error && (
-        <div
-          className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive"
-          role="alert"
-        >
-          {error}
-        </div>
-      )}
-
       {/* Info */}
       <div className="mb-4 rounded-lg border border-info/20 bg-info/10 p-3 text-sm text-info">
         <strong>Tips:</strong> Seret section untuk mengubah urutan. Klik toggle untuk
@@ -214,7 +121,7 @@ export default function CMSPage() {
 
       {/* Section List */}
       <SectionList
-        sections={sections}
+        sections={sections || []}
         onReorder={handleReorder}
         onToggleActive={handleToggleActive}
       />

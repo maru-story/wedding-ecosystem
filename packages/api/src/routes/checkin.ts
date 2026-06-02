@@ -80,6 +80,7 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
       guest_name: result.guest_name,
       guest_group: result.guest_group,
       message: result.message,
+      scan_count: result.scan_count,
       checked_in_at: result.checked_in_at?.toISOString() ?? null,
     });
   });
@@ -110,6 +111,7 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
     return reply.send({
       success: true,
       guest_name: result.guest.name,
+      scan_count: result.check_in.scan_count,
       checked_in_at: result.check_in.checked_in_at.toISOString(),
     });
   });
