@@ -37,14 +37,14 @@ export function CoverForm({ content, onChange, event }: CoverFormProps) {
     <div className="space-y-4">
       {/* Info mempelai dari pengaturan acara */}
       {hasCoupleName && (
-        <div className="rounded-lg border border-border/40 bg-muted/40 px-4 py-3">
-          <p className="text-xs font-medium text-muted-foreground">
+        <div className="border-border/40 bg-muted/40 rounded-lg border px-4 py-3">
+          <p className="text-muted-foreground text-xs font-medium">
             Nama mempelai dari Pengaturan Acara:
           </p>
-          <p className="mt-0.5 text-sm font-semibold text-foreground">
+          <p className="text-foreground mt-0.5 text-sm font-semibold">
             {event.groom_name} & {event.bride_name}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground/80">
+          <p className="text-muted-foreground/80 mt-1 text-xs">
             Gunakan nama ini sebagai referensi untuk mengisi subtitle di bawah.
           </p>
         </div>
@@ -68,7 +68,9 @@ export function CoverForm({ content, onChange, event }: CoverFormProps) {
           type="text"
           value={subtitle}
           onChange={(e) => onChange({ ...content, subtitle: e.target.value })}
-          placeholder={hasCoupleName ? `${event.groom_name} & ${event.bride_name}` : 'Contoh: Romeo & Juliet'}
+          placeholder={
+            hasCoupleName ? `${event.groom_name} & ${event.bride_name}` : 'Contoh: Romeo & Juliet'
+          }
         />
       </div>
 

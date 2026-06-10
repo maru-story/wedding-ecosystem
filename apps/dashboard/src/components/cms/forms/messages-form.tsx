@@ -15,14 +15,16 @@ export function MessagesForm({ content, onChange }: MessagesFormProps) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-foreground">
+      <div className="border-primary/20 bg-primary/5 text-foreground rounded-lg border p-3 text-sm">
         Section ini menampilkan form ucapan dari tamu dan daftar ucapan yang sudah masuk.
       </div>
 
-      <div className="flex items-center justify-between rounded-xl border border-border/40 bg-card p-4 shadow-sm">
+      <div className="border-border/40 bg-card flex items-center justify-between rounded-xl border p-4 shadow-sm">
         <div className="space-y-0.5">
-          <Label className="text-sm font-semibold text-foreground">Aktifkan Form Ucapan</Label>
-          <p className="text-xs text-muted-foreground">Tamu dapat mengirim ucapan melalui undangan</p>
+          <Label className="text-foreground text-sm font-semibold">Aktifkan Form Ucapan</Label>
+          <p className="text-muted-foreground text-xs">
+            Tamu dapat mengirim ucapan melalui undangan
+          </p>
         </div>
         <Switch
           checked={isEnabled}
@@ -40,7 +42,7 @@ export function MessagesForm({ content, onChange }: MessagesFormProps) {
           onChange={(e) => onChange({ ...content, placeholder_text: e.target.value })}
           placeholder="Contoh: Tulis ucapan untuk pengantin..."
         />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Teks ini akan muncul sebagai placeholder di form ucapan tamu.
         </p>
       </div>

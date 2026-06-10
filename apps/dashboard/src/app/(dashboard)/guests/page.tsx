@@ -56,7 +56,12 @@ export default function GuestsPage() {
   const [qrGuest, setQrGuest] = useState<GuestListItem | null>(null);
 
   // Fetch guests using React Query
-  const { data, isLoading, error: queryError, refetch } = useGuests({
+  const {
+    data,
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useGuests({
     page: tableState.page,
     perPage: tableState.perPage,
     group: groupFilter || undefined,
@@ -130,7 +135,10 @@ export default function GuestsPage() {
                 Kelola tamu undangan pernikahan Anda (Kapasitas: {totalGuests} / {maxGuests})
               </p>
               {isFiltered && (
-                <Badge variant="secondary" className="font-normal text-xs bg-accent/30 text-accent-foreground border-accent/20">
+                <Badge
+                  variant="secondary"
+                  className="bg-accent/30 text-accent-foreground border-accent/20 text-xs font-normal"
+                >
                   {pagination.total} hasil ditemukan
                 </Badge>
               )}

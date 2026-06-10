@@ -63,7 +63,11 @@ test.describe('Admin Enhancements E2E', () => {
     });
   });
 
-  test('should support user deactivation/blocking and admin creation', async ({ request, playwright, baseURL }) => {
+  test('should support user deactivation/blocking and admin creation', async ({
+    request,
+    playwright,
+    baseURL,
+  }) => {
     const adminContext = await playwright.request.newContext({
       baseURL,
       extraHTTPHeaders: {
@@ -171,10 +175,151 @@ test.describe('Admin Enhancements E2E', () => {
     expect(newAdminStatsResponse.status()).toBe(200);
 
     // Clean up temporary user
-    await prisma.user.delete({ where: { id: clientUser.id } });
-    await prisma.user.delete({ where: { id: createAdminBody.data.id } });
+    await prisma.user.delete({ where: { id: clientUser.id } }).catch(() => {});
+    await prisma.user.delete({ where: { id: createAdminBody.data.id } }).catch(() => {});
 
     await adminContext.dispose();
     await newAdminContext.dispose();
+  });
+
+  test('should support tenant and user deletion with safety protections', async ({
+    playwright,
+    baseURL,
+  }) => {
+    const adminContext = await playwright.request.newContext({
+      baseURL,
+      extraHTTPHeaders: {
+        Authorization: `Bearer ${adminToken}`,
+      },
+    });
+
+    // 1. Test user deletion
+    // Create temporary tenant and client user
+    const tempTenantId = randomUUID();
+    const tempUserId = randomUUID();
+    await prisma.tenant.create({
+      data: {
+        id: tempTenantId,
+        name: 'Delete Test Tenant',
+        slug: `del-tenant-${randomUUID().slice(0, 8)}`,
+      },
+    });
+
+    await prisma.user.create({
+      data: {
+        id: tempUserId,
+        tenant_id: tempTenantId,
+        email: `del-user-${randomUUID().slice(0, 8)}@test.com`,
+        password_hash: 'hash',
+        role: 'client',
+        name: 'Del User',
+      },
+    });
+
+    // Verify user exists in DB
+    let userRecord = await prisma.user.findUnique({ where: { id: tempUserId } });
+    expect(userRecord).not.toBeNull();
+
+    // Call user deletion endpoint
+    const deleteUserResponse = await adminContext.delete(`/admin/users/${tempUserId}`);
+    expect(deleteUserResponse.status()).toBe(200);
+    const deleteUserBody = await deleteUserResponse.json();
+    expect(deleteUserBody.success).toBe(true);
+
+    // Verify user is gone from DB
+    userRecord = await prisma.user.findUnique({ where: { id: tempUserId } });
+    expect(userRecord).toBeNull();
+
+    // 2. Prevent self-deletion
+    const deleteSelfResponse = await adminContext.delete(`/admin/users/${adminId}`);
+    expect(deleteSelfResponse.status()).toBe(400);
+    const deleteSelfBody = await deleteSelfResponse.json();
+    expect(deleteSelfBody.success).toBe(false);
+    expect(deleteSelfBody.error.message).toContain('tidak dapat menghapus akun Anda sendiri');
+
+    // 3. Prevent deleting other admin users
+    const otherAdminId = randomUUID();
+    await prisma.user.create({
+      data: {
+        id: otherAdminId,
+        tenant_id: tempTenantId,
+        email: `other-admin-${randomUUID().slice(0, 8)}@test.com`,
+        password_hash: 'hash',
+        role: 'admin',
+        name: 'Other Admin',
+      },
+    });
+
+    const deleteOtherAdminResponse = await adminContext.delete(`/admin/users/${otherAdminId}`);
+    expect(deleteOtherAdminResponse.status()).toBe(400);
+    const deleteOtherAdminBody = await deleteOtherAdminResponse.json();
+    expect(deleteOtherAdminBody.success).toBe(false);
+    expect(deleteOtherAdminBody.error.message).toContain('Pengguna dengan peran Administrator tidak dapat dihapus');
+
+    // Clean up other admin manually via prisma
+    await prisma.user.delete({ where: { id: otherAdminId } });
+
+    // 4. Test tenant deletion (which should cascade delete all users and events)
+    const clientUserId = randomUUID();
+    await prisma.user.create({
+      data: {
+        id: clientUserId,
+        tenant_id: tempTenantId,
+        email: `del-client-${randomUUID().slice(0, 8)}@test.com`,
+        password_hash: 'hash',
+        role: 'client',
+        name: 'Del Client',
+      },
+    });
+
+    // Verify tenant and user exist
+    let tenantRecord = await prisma.tenant.findUnique({ where: { id: tempTenantId } });
+    expect(tenantRecord).not.toBeNull();
+    userRecord = await prisma.user.findUnique({ where: { id: clientUserId } });
+    expect(userRecord).not.toBeNull();
+
+    // 5. Prevent deleting the tenant they currently belong to
+    const deleteOwnTenantResponse = await adminContext.delete(`/admin/tenants/${tenantId}`);
+    expect(deleteOwnTenantResponse.status()).toBe(400);
+    const deleteOwnTenantBody = await deleteOwnTenantResponse.json();
+    expect(deleteOwnTenantBody.success).toBe(false);
+    expect(deleteOwnTenantBody.error.message).toContain('tidak dapat menghapus tenant tempat akun Anda terdaftar');
+
+    // 6. Prevent deleting any tenant that contains admin users
+    // Create an admin user under the tempTenantId
+    const tempAdminId = randomUUID();
+    await prisma.user.create({
+      data: {
+        id: tempAdminId,
+        tenant_id: tempTenantId,
+        email: `temp-admin-${randomUUID().slice(0, 8)}@test.com`,
+        password_hash: 'hash',
+        role: 'admin',
+        name: 'Temp Admin 2',
+      },
+    });
+
+    const deleteTenantWithAdminResponse = await adminContext.delete(`/admin/tenants/${tempTenantId}`);
+    expect(deleteTenantWithAdminResponse.status()).toBe(400);
+    const deleteTenantWithAdminBody = await deleteTenantWithAdminResponse.json();
+    expect(deleteTenantWithAdminBody.success).toBe(false);
+    expect(deleteTenantWithAdminBody.error.message).toContain('tidak dapat dihapus karena memiliki pengguna dengan peran Administrator');
+
+    // Clean up the temp admin user so we can delete the tenant
+    await prisma.user.delete({ where: { id: tempAdminId } });
+
+    // 7. Delete tenant via endpoint (should succeed now that tempAdminId is deleted)
+    const deleteTenantResponse = await adminContext.delete(`/admin/tenants/${tempTenantId}`);
+    expect(deleteTenantResponse.status()).toBe(200);
+    const deleteTenantBody = await deleteTenantResponse.json();
+    expect(deleteTenantBody.success).toBe(true);
+
+    // Verify tenant and user are cascade deleted from DB
+    tenantRecord = await prisma.tenant.findUnique({ where: { id: tempTenantId } });
+    expect(tenantRecord).toBeNull();
+    userRecord = await prisma.user.findUnique({ where: { id: clientUserId } });
+    expect(userRecord).toBeNull();
+
+    await adminContext.dispose();
   });
 });

@@ -311,7 +311,12 @@ describe('registerRoomAuthorization', () => {
   it('should emit error when event ID is invalid', async () => {
     const socket = createMockSocket();
     const repository = createMockRepository();
-    socket.data.user = { id: 'user-1', tenant_id: 'tenant-1', role: UserRole.CLIENT, email: 'a@b.com' };
+    socket.data.user = {
+      id: 'user-1',
+      tenant_id: 'tenant-1',
+      role: UserRole.CLIENT,
+      email: 'a@b.com',
+    };
 
     registerRoomAuthorization(socket as any, repository);
 
@@ -355,7 +360,12 @@ describe('registerRoomAuthorization', () => {
     const socket = createMockSocket();
     const ownedEvents = new Map([['tenant-2', ['event-1']]]);
     const repository = createMockRepository(ownedEvents);
-    socket.data.user = { id: 'user-1', tenant_id: 'tenant-1', role: UserRole.CLIENT, email: 'a@b.com' };
+    socket.data.user = {
+      id: 'user-1',
+      tenant_id: 'tenant-1',
+      role: UserRole.CLIENT,
+      email: 'a@b.com',
+    };
 
     registerRoomAuthorization(socket as any, repository);
 
@@ -378,7 +388,12 @@ describe('registerRoomAuthorization', () => {
     const socket = createMockSocket();
     const ownedEvents = new Map([['tenant-1', ['event-abc']]]);
     const repository = createMockRepository(ownedEvents);
-    socket.data.user = { id: 'user-1', tenant_id: 'tenant-1', role: UserRole.CLIENT, email: 'a@b.com' };
+    socket.data.user = {
+      id: 'user-1',
+      tenant_id: 'tenant-1',
+      role: UserRole.CLIENT,
+      email: 'a@b.com',
+    };
 
     registerRoomAuthorization(socket as any, repository);
 
@@ -399,7 +414,12 @@ describe('registerRoomAuthorization', () => {
   it('should allow admin to join any event room without DB check', async () => {
     const socket = createMockSocket();
     const repository = createMockRepository(); // empty — no events owned
-    socket.data.user = { id: 'admin-1', tenant_id: 'system', role: UserRole.ADMIN, email: 'admin@x.com' };
+    socket.data.user = {
+      id: 'admin-1',
+      tenant_id: 'system',
+      role: UserRole.ADMIN,
+      email: 'admin@x.com',
+    };
 
     registerRoomAuthorization(socket as any, repository);
 

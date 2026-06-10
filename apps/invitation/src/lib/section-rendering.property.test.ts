@@ -25,7 +25,6 @@ const SECTION_TYPES = [
 /** All section types including cover */
 const ALL_SECTION_TYPES = ['cover', ...SECTION_TYPES] as const;
 
-
 /** Generates a realistic event configuration with all 14 section types */
 const arbEventSections: fc.Arbitrary<SectionData[]> = fc
   .shuffledSubarray([...ALL_SECTION_TYPES], { minLength: 1, maxLength: 14 })
@@ -89,9 +88,7 @@ describe('Property 7: Active Section Rendering', () => {
 
         // Verify sort_order is strictly non-decreasing
         for (let i = 1; i < rendered.length; i++) {
-          expect(rendered[i].sort_order).toBeGreaterThanOrEqual(
-            rendered[i - 1].sort_order
-          );
+          expect(rendered[i].sort_order).toBeGreaterThanOrEqual(rendered[i - 1].sort_order);
         }
       }),
       { numRuns: 200 }
@@ -110,9 +107,7 @@ describe('Property 7: Active Section Rendering', () => {
         const rendered = getActiveSectionsForRendering(sections);
 
         // Count active non-cover sections in input
-        const expectedActive = sections.filter(
-          (s) => s.is_active && s.section_type !== 'cover'
-        );
+        const expectedActive = sections.filter((s) => s.is_active && s.section_type !== 'cover');
 
         expect(rendered.length).toBe(expectedActive.length);
 
@@ -134,25 +129,21 @@ describe('Property 7: Active Section Rendering', () => {
    */
   it('ordering is consistent regardless of input order', () => {
     fc.assert(
-      fc.property(
-        arbEventSections,
-        fc.context(),
-        (sections, _ctx) => {
-          // Render with original order
-          const rendered1 = getActiveSectionsForRendering(sections);
+      fc.property(arbEventSections, fc.context(), (sections, _ctx) => {
+        // Render with original order
+        const rendered1 = getActiveSectionsForRendering(sections);
 
-          // Render with reversed input order
-          const reversed = [...sections].reverse();
-          const rendered2 = getActiveSectionsForRendering(reversed);
+        // Render with reversed input order
+        const reversed = [...sections].reverse();
+        const rendered2 = getActiveSectionsForRendering(reversed);
 
-          // Both should produce the same output
-          expect(rendered1.length).toBe(rendered2.length);
-          for (let i = 0; i < rendered1.length; i++) {
-            expect(rendered1[i].id).toBe(rendered2[i].id);
-            expect(rendered1[i].sort_order).toBe(rendered2[i].sort_order);
-          }
+        // Both should produce the same output
+        expect(rendered1.length).toBe(rendered2.length);
+        for (let i = 0; i < rendered1.length; i++) {
+          expect(rendered1[i].id).toBe(rendered2[i].id);
+          expect(rendered1[i].sort_order).toBe(rendered2[i].sort_order);
         }
-      ),
+      }),
       { numRuns: 200 }
     );
   });

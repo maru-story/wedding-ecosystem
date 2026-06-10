@@ -109,7 +109,10 @@ export function validateMediaFile(
       break;
   }
 
-  if (!allowedFormats.includes(file.type) && !(mediaType === 'audio' && file.name.endsWith('.mp3'))) {
+  if (
+    !allowedFormats.includes(file.type) &&
+    !(mediaType === 'audio' && file.name.endsWith('.mp3'))
+  ) {
     return {
       type: 'format',
       message: `Format file tidak didukung. Gunakan format ${formatNames}.`,
@@ -166,12 +169,17 @@ export async function reorderSection(
   });
 }
 
-export async function uploadMedia(eventId: string, file: File, section?: string): Promise<{ url: string }> {
+export async function uploadMedia(
+  eventId: string,
+  file: File,
+  section?: string
+): Promise<{ url: string }> {
   const formData = new FormData();
   formData.append('file', file);
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-  const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY_ACCESS_TOKEN) : null;
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY_ACCESS_TOKEN) : null;
 
   const queryParams = section ? `?section=${encodeURIComponent(section)}` : '';
   const response = await fetch(`${API_BASE_URL}/events/${eventId}/media/upload${queryParams}`, {

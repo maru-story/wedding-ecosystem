@@ -2,11 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { createDecipheriv } from 'crypto';
 import { GuestGroup, GuestType, DeliveryStatus } from '@wedding/shared';
-import {
-  GuestService,
-  GuestRepository,
-  GUEST_CONSTANTS,
-} from './guest.service';
+import { GuestService, GuestRepository, GUEST_CONSTANTS } from './guest.service';
 
 // --- Constants ---
 
@@ -253,9 +249,7 @@ describe('Property 5: QR Code Encryption', () => {
           const wrongGuestId = segments[0];
           const wrongEventId = segments[1];
           // Even if decryption doesn't throw, the data should be garbage
-          expect(wrongGuestId === guestId && wrongEventId === eventId).toBe(
-            false
-          );
+          expect(wrongGuestId === guestId && wrongEventId === eventId).toBe(false);
         }
       }),
       { numRuns: 100 }

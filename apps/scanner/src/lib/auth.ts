@@ -51,6 +51,13 @@ export interface EventInfo {
   event_date: string;
   venue_name: string;
   status: string;
+  scanner_devices?: {
+    id: string;
+    is_active: boolean;
+  }[];
+  _count?: {
+    guests: number;
+  };
 }
 
 // --- Token Management ---
@@ -193,44 +200,57 @@ export async function login(email: string, password: string): Promise<LoginRespo
   return data as LoginResponse;
 }
 
+// Global module-level promise cache to deduplicate concurrent token refresh calls
+let refreshPromise: Promise<AuthTokens | null> | null = null;
+
 /**
  * Refresh the access token using the stored refresh token.
  * Returns new tokens on success.
  */
 export async function refreshAccessToken(): Promise<AuthTokens | null> {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
   const refreshToken = getRefreshToken();
   if (!refreshToken) return null;
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    });
+  refreshPromise = (async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
 
-    if (!response.ok) {
-      // Refresh failed — clear auth and force re-login
-      clearAuthData();
+      if (!response.ok) {
+        // Refresh failed — clear auth and force re-login
+        clearAuthData();
+        return null;
+      }
+
+      const data = await response.json();
+      const tokens: AuthTokens = {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_in: data.expires_in,
+      };
+
+      // Update stored tokens
+      const user = getStoredUser();
+      if (user) {
+        storeAuthData(user, tokens);
+      }
+
+      return tokens;
+    } catch {
       return null;
+    } finally {
+      refreshPromise = null;
     }
+  })();
 
-    const data = await response.json();
-    const tokens: AuthTokens = {
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-      expires_in: data.expires_in,
-    };
-
-    // Update stored tokens
-    const user = getStoredUser();
-    if (user) {
-      storeAuthData(user, tokens);
-    }
-
-    return tokens;
-  } catch {
-    return null;
-  }
+  return refreshPromise;
 }
 
 /**
@@ -260,7 +280,6 @@ export async function fetchEvents(): Promise<EventInfo[]> {
   const response = await fetch(`${API_BASE_URL}/events`, {
     headers: {
       Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
     },
   });
 
@@ -283,13 +302,19 @@ export async function registerDevice(eventId: string, deviceName: string): Promi
   const token = await getValidAccessToken();
   if (!token) throw new AuthError('Sesi berakhir. Silakan login ulang.', 'AUTH_EXPIRED');
 
+  const storedDeviceId = getStoredDeviceId();
+
   const response = await fetch(`${API_BASE_URL}/scanner/devices/register`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ event_id: eventId, device_name: deviceName }),
+    body: JSON.stringify({
+      event_id: eventId,
+      device_name: deviceName,
+      device_id: storedDeviceId || undefined,
+    }),
   });
 
   if (!response.ok) {
@@ -303,6 +328,62 @@ export async function registerDevice(eventId: string, deviceName: string): Promi
   const device = await response.json();
   storeDeviceId(device.id);
   return device.id;
+}
+
+/**
+ * Deactivate the scanner device on the backend.
+ */
+export async function deactivateDevice(deviceId: string): Promise<void> {
+  const token = await getValidAccessToken();
+  if (!token) return;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/scanner/devices/${deviceId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      if (typeof window !== 'undefined') {
+        // Keep DEVICE_ID in localStorage to allow reuse/reactivation
+        // when entering the same event again, preventing DB row spam.
+        // It is cleared on full logout.
+      }
+    }
+  } catch (err) {
+    console.error('Failed to deactivate device:', err);
+  }
+}
+
+/**
+ * Clear the stored event ID.
+ */
+export function clearStoredEventId(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(STORAGE_KEYS.EVENT_ID);
+}
+
+/**
+ * Send heartbeat to the backend to keep the device active.
+ */
+export async function sendHeartbeat(deviceId: string): Promise<boolean> {
+  const token = await getValidAccessToken();
+  if (!token) return false;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/scanner/devices/${deviceId}/heartbeat`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.ok;
+  } catch (err) {
+    console.error('Failed to send heartbeat:', err);
+    return false;
+  }
 }
 
 /**

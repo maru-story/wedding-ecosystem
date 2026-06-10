@@ -71,11 +71,7 @@ export class AuthService {
   private readonly refreshSecret: string;
   private readonly repository: AuthRepository;
 
-  constructor(config: {
-    jwtSecret: string;
-    refreshSecret: string;
-    repository: AuthRepository;
-  }) {
+  constructor(config: { jwtSecret: string; refreshSecret: string; repository: AuthRepository }) {
     this.jwtSecret = config.jwtSecret;
     this.refreshSecret = config.refreshSecret;
     this.repository = config.repository;
@@ -104,10 +100,7 @@ export class AuthService {
    * - Returns generic error for invalid credentials (Req 2.3)
    * - Locks account after 5 failed attempts for 15 minutes (Req 2.4)
    */
-  async login(
-    tenantId: string,
-    credentials: LoginInput
-  ): Promise<LoginResult | AuthServiceError> {
+  async login(tenantId: string, credentials: LoginInput): Promise<LoginResult | AuthServiceError> {
     const { email, password } = credentials;
 
     // Find user by email within tenant
@@ -185,7 +178,6 @@ export class AuthService {
       name: user.name,
     };
 
-
     // Generate access token (15 min expiry)
     const access_token = jwt.sign(payload, this.jwtSecret, {
       expiresIn: ACCESS_TOKEN_EXPIRY,
@@ -193,16 +185,12 @@ export class AuthService {
 
     // Generate refresh token (7 day expiry)
     const refreshTokenId = randomUUID();
-    const refreshTokenValue = jwt.sign(
-      { sub: user.id, jti: refreshTokenId },
-      this.refreshSecret,
-      { expiresIn: `${REFRESH_TOKEN_EXPIRY_DAYS}d` }
-    );
+    const refreshTokenValue = jwt.sign({ sub: user.id, jti: refreshTokenId }, this.refreshSecret, {
+      expiresIn: `${REFRESH_TOKEN_EXPIRY_DAYS}d`,
+    });
 
     // Store refresh token in database
-    const expiresAt = new Date(
-      Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000
-    );
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 
     await this.repository.storeRefreshToken({
       id: refreshTokenId,
@@ -224,9 +212,7 @@ export class AuthService {
   /**
    * Refresh token rotation: validate old refresh token, revoke it, issue new pair (Req 2.9, 2.10)
    */
-  async refreshTokens(
-    refreshToken: string
-  ): Promise<AuthTokens | AuthServiceError> {
+  async refreshTokens(refreshToken: string): Promise<AuthTokens | AuthServiceError> {
     // Verify the refresh token JWT signature and expiry
     try {
       jwt.verify(refreshToken, this.refreshSecret) as {

@@ -14,13 +14,13 @@ export default function ManualCheckInPage() {
   const { eventId } = usePWA();
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="bg-cream min-h-screen">
       {/* Navigation header */}
-      <header className="sticky top-10 z-40 border-b border-gray-200 bg-white px-4 py-3">
+      <header className="border-border/60 bg-card sticky top-10 z-40 border-b px-4 py-3">
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="inline-flex items-center justify-center rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+            className="text-charcoal/80 hover:bg-blush/40 inline-flex items-center justify-center rounded-lg p-2 transition-colors"
             aria-label="Kembali ke beranda"
           >
             <svg
@@ -38,7 +38,7 @@ export default function ManualCheckInPage() {
               />
             </svg>
           </Link>
-          <h1 className="text-lg font-semibold text-gray-900">Check-in Manual</h1>
+          <h1 className="font-heading text-charcoal text-lg font-bold">Check-in Manual</h1>
         </div>
       </header>
 

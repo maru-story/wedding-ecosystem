@@ -1,7 +1,14 @@
 import { type AuthUser } from '@wedding/shared';
 export type { AuthUser };
 import { STORAGE_KEY_USER } from './constants';
-import { apiFetch, setTokens, clearTokens, startAutoRefresh, stopAutoRefresh, getAccessToken } from './api';
+import {
+  apiFetch,
+  setTokens,
+  clearTokens,
+  startAutoRefresh,
+  stopAutoRefresh,
+  getAccessToken,
+} from './api';
 
 export interface LoginResponse {
   user: AuthUser;
@@ -79,4 +86,3 @@ export function updateStoredUser(user: AuthUser): void {
     localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
   }
 }
-

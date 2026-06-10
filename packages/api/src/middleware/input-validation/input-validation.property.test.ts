@@ -27,8 +27,12 @@ function createMockRequest(options: {
 function createMockReply(): FastifyReply & { statusCode: number; body: unknown } {
   const state = { statusCode: 200, body: null as unknown };
   const reply = {
-    get statusCode() { return state.statusCode; },
-    get body() { return state.body; },
+    get statusCode() {
+      return state.statusCode;
+    },
+    get body() {
+      return state.body;
+    },
     status(code: number) {
       state.statusCode = code;
       return reply;
@@ -37,7 +41,9 @@ function createMockReply(): FastifyReply & { statusCode: number; body: unknown }
       state.body = body;
       return reply;
     },
-    header() { return reply; },
+    header() {
+      return reply;
+    },
   } as unknown as FastifyReply & { statusCode: number; body: unknown };
   return reply;
 }
@@ -47,20 +53,20 @@ function createMockReply(): FastifyReply & { statusCode: number; body: unknown }
 /** Generates strings that exceed the max text length (1000 chars) using printable ASCII */
 const arbOverlengthString = fc
   .integer({ min: MAX_TEXT_LENGTH + 1, max: MAX_TEXT_LENGTH + 200 })
-  .chain((len) =>
-    fc.stringMatching(new RegExp(`^[a-zA-Z0-9]{${len}}$`))
-  );
+  .chain((len) => fc.stringMatching(new RegExp(`^[a-zA-Z0-9]{${len}}$`)));
 
 /** Generates invalid email formats (strings that are clearly not valid emails) */
 const arbInvalidEmail = fc.oneof(
   // No @ sign at all
   fc.stringMatching(/^[a-z0-9]{5,20}$/),
   // Multiple @ signs
-  fc.tuple(
-    fc.stringMatching(/^[a-z]{3,8}$/),
-    fc.stringMatching(/^[a-z]{3,8}$/),
-    fc.stringMatching(/^[a-z]{3,5}\.[a-z]{2,3}$/)
-  ).map(([a, b, c]) => `${a}@${b}@${c}`),
+  fc
+    .tuple(
+      fc.stringMatching(/^[a-z]{3,8}$/),
+      fc.stringMatching(/^[a-z]{3,8}$/),
+      fc.stringMatching(/^[a-z]{3,5}\.[a-z]{2,3}$/)
+    )
+    .map(([a, b, c]) => `${a}@${b}@${c}`),
   // Missing domain part entirely
   fc.stringMatching(/^[a-z0-9]{3,10}$/).map((s) => `${s}@`),
   // Only special characters
@@ -163,9 +169,7 @@ describe('Property 18: Server-Side Input Validation', () => {
             error: { details: Array<{ field: string; code: string }> };
           };
           expect(body.error.details.some((d) => d.field === 'name')).toBe(true);
-          expect(
-            body.error.details.some((d) => d.code === ErrorCode.FIELD_TOO_LONG)
-          ).toBe(true);
+          expect(body.error.details.some((d) => d.code === ErrorCode.FIELD_TOO_LONG)).toBe(true);
         }),
         { numRuns: 100 }
       );
@@ -279,33 +283,29 @@ describe('Property 18: Server-Side Input Validation', () => {
       });
 
       fc.assert(
-        fc.property(
-          arbInvalidEmail,
-          arbInvalidPhone,
-          (invalidEmail, invalidPhone) => {
-            const result = validateInput(schema, {
-              email: invalidEmail,
-              phone: invalidPhone,
-              name: 'Valid Name',
-            });
+        fc.property(arbInvalidEmail, arbInvalidPhone, (invalidEmail, invalidPhone) => {
+          const result = validateInput(schema, {
+            email: invalidEmail,
+            phone: invalidPhone,
+            name: 'Valid Name',
+          });
 
-            expect(result.success).toBe(false);
-            if (!result.success) {
-              // Must have at least one error
-              expect(result.errors.length).toBeGreaterThan(0);
+          expect(result.success).toBe(false);
+          if (!result.success) {
+            // Must have at least one error
+            expect(result.errors.length).toBeGreaterThan(0);
 
-              // Each error must specify the field and a message
-              for (const error of result.errors) {
-                expect(error.field).toBeDefined();
-                expect(error.field.length).toBeGreaterThan(0);
-                expect(error.message).toBeDefined();
-                expect(error.message.length).toBeGreaterThan(0);
-                expect(error.code).toBeDefined();
-                expect(error.code.length).toBeGreaterThan(0);
-              }
+            // Each error must specify the field and a message
+            for (const error of result.errors) {
+              expect(error.field).toBeDefined();
+              expect(error.field.length).toBeGreaterThan(0);
+              expect(error.message).toBeDefined();
+              expect(error.message.length).toBeGreaterThan(0);
+              expect(error.code).toBeDefined();
+              expect(error.code.length).toBeGreaterThan(0);
             }
           }
-        ),
+        }),
         { numRuns: 100 }
       );
     });

@@ -71,18 +71,21 @@ export function AttireForm({ content, onChange, event }: AttireFormProps) {
 
       <div className="space-y-2">
         <Label>Color Palette</Label>
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className="mb-2 flex flex-wrap gap-2">
           {colorPalette.map((color, index) => (
-            <div key={index} className="flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 shadow-sm">
+            <div
+              key={index}
+              className="border-border bg-card flex items-center gap-1.5 rounded-full border px-2.5 py-1 shadow-sm"
+            >
               <div
-                className="h-4 w-4 rounded-full border border-border"
+                className="border-border h-4 w-4 rounded-full border"
                 style={{ backgroundColor: color }}
               />
-              <span className="text-xs font-medium text-foreground">{color}</span>
+              <span className="text-foreground text-xs font-medium">{color}</span>
               <button
                 type="button"
                 onClick={() => removeColor(index)}
-                className="ml-1 text-muted-foreground hover:text-destructive text-sm leading-none transition-colors"
+                className="text-muted-foreground hover:text-destructive ml-1 text-sm leading-none transition-colors"
                 aria-label={`Hapus warna ${color}`}
               >
                 ×
@@ -98,16 +101,11 @@ export function AttireForm({ content, onChange, event }: AttireFormProps) {
             placeholder="#RRGGBB"
             className="w-32"
           />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addColor}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={addColor}>
             Tambah
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Tambahkan warna dalam format hex (#RRGGBB) untuk panduan dress code tamu.
         </p>
       </div>

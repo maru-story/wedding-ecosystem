@@ -25,12 +25,14 @@ export async function invitationDeliveryRoutes(app: FastifyInstance, opts: Route
     send: async () => ({ success: true }),
   };
   const invitationOrigin = process.env.INVITATION_ORIGIN || 'http://localhost:3001';
+  const encryptionKey = process.env.ENCRYPTION_KEY_AES256 || process.env.AES_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
 
   const service = new InvitationDeliveryService({
     repository,
     whatsappProvider,
     emailProvider,
     invitationOrigin,
+    encryptionKey,
   });
 
   // Auth hook for all invitation delivery routes

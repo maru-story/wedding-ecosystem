@@ -461,10 +461,7 @@ export class CMSService {
   /**
    * Placeholder for media upload functionality
    */
-  async uploadMedia(
-    eventId: string,
-    tenantId: string
-  ): Promise<{ url: string } | CMSServiceError> {
+  async uploadMedia(eventId: string, tenantId: string): Promise<{ url: string } | CMSServiceError> {
     // Verify event exists and belongs to tenant
     const event = await this.repository.findEventById(eventId, tenantId);
     if (!event) {

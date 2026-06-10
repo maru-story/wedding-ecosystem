@@ -1,11 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { createCipheriv, randomBytes } from 'crypto';
-import {
-  CheckInMethod,
-  GuestGroup,
-  VerificationStatus,
-} from '@wedding/shared';
+import { CheckInMethod, GuestGroup, VerificationStatus } from '@wedding/shared';
 import {
   CheckInService,
   CheckInRepository,
@@ -17,8 +13,7 @@ import {
 
 // --- Constants ---
 
-const TEST_ENCRYPTION_KEY =
-  'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
+const TEST_ENCRYPTION_KEY = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
 
 // --- Arbitraries ---
 
@@ -143,9 +138,7 @@ function createInMemoryRepository(
       group: GuestGroup.FRIEND,
     }),
     findEventById: async (eventId: string) => {
-      return eventId === guest.event_id
-        ? { id: eventId, tenant_id: 'tenant-001' }
-        : null;
+      return eventId === guest.event_id ? { id: eventId, tenant_id: 'tenant-001' } : null;
     },
   };
 }
@@ -200,9 +193,7 @@ describe('Property 11: Check-in Idempotency', () => {
           }
 
           // Property: exactly one check-in record exists
-          const guestCheckIns = repository.checkIns.filter(
-            (c) => c.guest_id === guestId
-          );
+          const guestCheckIns = repository.checkIns.filter((c) => c.guest_id === guestId);
           expect(guestCheckIns).toHaveLength(1);
 
           // Property: first attempt returns GREEN, scan_count = 1
@@ -263,15 +254,13 @@ describe('Property 11: Check-in Idempotency', () => {
           ]);
 
           // Property: exactly one check-in record exists
-          const guestCheckIns = repository.checkIns.filter(
-            (c) => c.guest_id === guestId
-          );
+          const guestCheckIns = repository.checkIns.filter((c) => c.guest_id === guestId);
           expect(guestCheckIns).toHaveLength(1);
 
           // Property: both return GREEN
           expect(result1.status).toBe(VerificationStatus.GREEN);
           expect(result2.status).toBe(VerificationStatus.GREEN);
-          
+
           // One of the concurrent requests is first (scan_count = 1), the other is second (scan_count = 2)
           const scanCounts = [result1.scan_count, result2.scan_count].sort();
           expect(scanCounts).toEqual([1, 2]);
@@ -331,9 +320,7 @@ describe('Property 11: Check-in Idempotency', () => {
           }
 
           // Property: still exactly one check-in record
-          const guestCheckIns = repository.checkIns.filter(
-            (c) => c.guest_id === guestId
-          );
+          const guestCheckIns = repository.checkIns.filter((c) => c.guest_id === guestId);
           expect(guestCheckIns).toHaveLength(1);
 
           // Property: the single record has method QR_SCAN (first successful method)
@@ -386,9 +373,7 @@ describe('Property 11: Check-in Idempotency', () => {
           }
 
           // Property: check-in record count NEVER exceeds 1
-          const guestCheckIns = repository.checkIns.filter(
-            (c) => c.guest_id === guestId
-          );
+          const guestCheckIns = repository.checkIns.filter((c) => c.guest_id === guestId);
           expect(guestCheckIns.length).toBeLessThanOrEqual(1);
           expect(guestCheckIns.length).toBe(1); // Exactly 1 (first attempt always succeeds)
         }

@@ -42,6 +42,7 @@ export interface AuthUser {
   role: UserRole;
   email: string;
   name: string;
+  username?: string | null;
 }
 
 /**

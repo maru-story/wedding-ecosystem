@@ -1,11 +1,8 @@
 import { randomUUID, createCipheriv, randomBytes } from 'crypto';
 import { ErrorCode } from '@wedding/shared';
-import type {
-  CreateGuestInput,
-  UpdateGuestInput,
-  PaginationInput,
-} from '@wedding/shared';
+import type { CreateGuestInput, UpdateGuestInput, PaginationInput } from '@wedding/shared';
 import { GuestGroup, GuestType, DeliveryStatus } from '@wedding/shared';
+import { PIIEncryption } from '../../middleware/encryption/encryption';
 
 // --- Constants ---
 
@@ -108,10 +105,7 @@ export interface GuestRepository {
 
   findGuestById(guestId: string, tenantId: string): Promise<GuestRecord | null>;
 
-  findGuestBySlug(
-    eventId: string,
-    slug: string
-  ): Promise<GuestRecord | null>;
+  findGuestBySlug(eventId: string, slug: string): Promise<GuestRecord | null>;
 
   findGuestsByEvent(
     eventId: string,
@@ -147,7 +141,10 @@ export interface GuestRepository {
 
   checkQRPayloadExists(payload: string): Promise<boolean>;
 
-  findEventById(eventId: string, tenantId: string): Promise<{ id: string; slug: string; max_guests?: number } | null>;
+  findEventById(
+    eventId: string,
+    tenantId: string
+  ): Promise<{ id: string; slug: string; max_guests?: number } | null>;
 
   countGuestsByEvent(eventId: string, tenantId: string): Promise<number>;
 
@@ -174,15 +171,15 @@ export interface GuestRepository {
 export class GuestService {
   private readonly repository: GuestRepository;
   private readonly encryptionKey: Buffer;
+  private readonly piiEncryption: PIIEncryption;
 
   constructor(config: { repository: GuestRepository; encryptionKey: string }) {
     this.repository = config.repository;
+    this.piiEncryption = new PIIEncryption({ encryptionKey: config.encryptionKey });
     // AES-256 requires a 32-byte key
     this.encryptionKey = Buffer.from(config.encryptionKey, 'hex');
     if (this.encryptionKey.length !== 32) {
-      throw new Error(
-        'Encryption key must be 32 bytes (64 hex characters) for AES-256'
-      );
+      throw new Error('Encryption key must be 32 bytes (64 hex characters) for AES-256');
     }
   }
 
@@ -213,7 +210,8 @@ export class GuestService {
     if (currentCount >= (event.max_guests ?? 2000)) {
       return {
         code: ErrorCode.GUEST_LIMIT_EXCEEDED,
-        message: 'Kapasitas tamu untuk acara ini telah penuh. Silakan hubungi administrator untuk menambah kuota.',
+        message:
+          'Kapasitas tamu untuk acara ini telah penuh. Silakan hubungi administrator untuk menambah kuota.',
       };
     }
 
@@ -230,7 +228,7 @@ export class GuestService {
       tenant_id: tenantId,
       name: input.name,
       slug,
-      phone: input.phone || null,
+      phone: this.piiEncryption.encrypt(input.phone || null),
       group: input.group,
       type: input.type ?? GuestType.INVITED,
       plus_one_count: input.plus_one_count ?? 0,
@@ -243,6 +241,7 @@ export class GuestService {
 
     return {
       ...guest,
+      phone: this.piiEncryption.decrypt(guest.phone),
       qr_code: qrCode,
     };
   }
@@ -252,10 +251,7 @@ export class GuestService {
   /**
    * Get a single guest by ID (Req 3.5)
    */
-  async getGuest(
-    guestId: string,
-    tenantId: string
-  ): Promise<GuestWithQR | GuestServiceError> {
+  async getGuest(guestId: string, tenantId: string): Promise<GuestWithQR | GuestServiceError> {
     const guest = await this.repository.findGuestById(guestId, tenantId);
     if (!guest) {
       return {
@@ -268,6 +264,7 @@ export class GuestService {
 
     return {
       ...guest,
+      phone: this.piiEncryption.decrypt(guest.phone),
       qr_code: qrCode,
     };
   }
@@ -304,25 +301,18 @@ export class GuestService {
     if (input.name !== undefined) {
       updateData.name = input.name;
       // Regenerate slug if name changes
-      const newSlug = await this.generateUniqueSlug(
-        existing.event_id,
-        input.name,
-        existing.slug
-      );
+      const newSlug = await this.generateUniqueSlug(existing.event_id, input.name, existing.slug);
       updateData.slug = newSlug;
 
       // Update invitation URL with new slug
-      const event = await this.repository.findEventById(
-        existing.event_id,
-        tenantId
-      );
+      const event = await this.repository.findEventById(existing.event_id, tenantId);
       if (event) {
         updateData.invitation_url = `/${event.slug}?to=${newSlug}`;
       }
     }
 
     if (input.phone !== undefined) {
-      updateData.phone = input.phone || null;
+      updateData.phone = this.piiEncryption.encrypt(input.phone || null);
     }
 
     if (input.group !== undefined) {
@@ -333,11 +323,7 @@ export class GuestService {
       updateData.plus_one_count = input.plus_one_count;
     }
 
-    const updated = await this.repository.updateGuest(
-      guestId,
-      tenantId,
-      updateData
-    );
+    const updated = await this.repository.updateGuest(guestId, tenantId, updateData);
 
     if (!updated) {
       return {
@@ -346,7 +332,10 @@ export class GuestService {
       };
     }
 
-    return updated;
+    return {
+      ...updated,
+      phone: this.piiEncryption.decrypt(updated.phone),
+    };
   }
 
   // --- Delete Guest ---
@@ -424,12 +413,16 @@ export class GuestService {
       per_page: Math.min(pagination.per_page ?? GUESTS_PER_PAGE, 100),
     };
 
-    return this.repository.findGuestsByEvent(
-      eventId,
-      tenantId,
-      sanitizedPagination,
-      filters
-    );
+    const result = await this.repository.findGuestsByEvent(eventId, tenantId, sanitizedPagination, filters);
+    if ('code' in result) return result;
+
+    return {
+      ...result,
+      data: result.data.map((item) => ({
+        ...item,
+        phone: this.piiEncryption.decrypt(item.phone),
+      })),
+    };
   }
 
   // --- Search Guests ---
@@ -459,7 +452,11 @@ export class GuestService {
       };
     }
 
-    return this.repository.searchGuestsByName(query, eventId, tenantId, MAX_SEARCH_RESULTS);
+    const guests = await this.repository.searchGuestsByName(query, eventId, tenantId, MAX_SEARCH_RESULTS);
+    return guests.map((g) => ({
+      ...g,
+      phone: this.piiEncryption.decrypt(g.phone),
+    }));
   }
 
   // --- QR Code Generation ---
@@ -468,10 +465,7 @@ export class GuestService {
    * Generate encrypted QR code payload (Req 3.6, 3.7)
    * Payload contains guest_id + event_id encrypted with AES-256
    */
-  async generateQRCode(
-    guestId: string,
-    eventId: string
-  ): Promise<QRCodeRecord> {
+  async generateQRCode(guestId: string, eventId: string): Promise<QRCodeRecord> {
     const payload = await this.createEncryptedPayload(guestId, eventId);
 
     const qrCode = await this.repository.createQRCode({
@@ -489,10 +483,7 @@ export class GuestService {
    * Format: iv:encrypted_data (hex encoded)
    * Plaintext: guest_id|event_id|timestamp|random_nonce
    */
-  async createEncryptedPayload(
-    guestId: string,
-    eventId: string
-  ): Promise<string> {
+  async createEncryptedPayload(guestId: string, eventId: string): Promise<string> {
     // Include timestamp and random nonce to ensure uniqueness (Req 3.7)
     const nonce = randomBytes(16).toString('hex');
     const plaintext = `${guestId}|${eventId}|${Date.now()}|${nonce}`;
@@ -522,11 +513,7 @@ export class GuestService {
    * Generate a unique slug for the guest within the event
    * Format: kebab-case name with optional numeric suffix
    */
-  async generateUniqueSlug(
-    eventId: string,
-    name: string,
-    currentSlug?: string
-  ): Promise<string> {
+  async generateUniqueSlug(eventId: string, name: string, currentSlug?: string): Promise<string> {
     const baseSlug = this.nameToSlug(name);
 
     // If the slug hasn't changed, keep it
@@ -576,14 +563,15 @@ export class GuestService {
  * Type guard to check if a result is a GuestServiceError
  */
 export function isGuestError(
-  result:
-    | GuestWithQR
-    | GuestRecord
-    | PaginatedGuestList
-    | { success: boolean }
-    | GuestServiceError
+  result: GuestWithQR | GuestRecord | PaginatedGuestList | { success: boolean } | GuestServiceError
 ): result is GuestServiceError {
-  return 'code' in result && 'message' in result && !('id' in result) && !('data' in result) && !('success' in result);
+  return (
+    'code' in result &&
+    'message' in result &&
+    !('id' in result) &&
+    !('data' in result) &&
+    !('success' in result)
+  );
 }
 
 // --- Exported constants for testing ---

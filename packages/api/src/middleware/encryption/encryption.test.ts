@@ -12,16 +12,16 @@ describe('PIIEncryption', () => {
     });
 
     it('should throw error for invalid key length', () => {
-      expect(
-        () => new PIIEncryption({ encryptionKey: 'short' })
-      ).toThrow('Encryption key must be 32 bytes (64 hex characters) for AES-256');
+      expect(() => new PIIEncryption({ encryptionKey: 'short' })).toThrow(
+        'Encryption key must be 32 bytes (64 hex characters) for AES-256'
+      );
     });
 
     it('should throw error for 16-byte key', () => {
       const shortKey = randomBytes(16).toString('hex');
-      expect(
-        () => new PIIEncryption({ encryptionKey: shortKey })
-      ).toThrow('Encryption key must be 32 bytes (64 hex characters) for AES-256');
+      expect(() => new PIIEncryption({ encryptionKey: shortKey })).toThrow(
+        'Encryption key must be 32 bytes (64 hex characters) for AES-256'
+      );
     });
   });
 
@@ -94,10 +94,8 @@ describe('PIIEncryption', () => {
       expect(pii.decrypt('')).toBeNull();
     });
 
-    it('should throw for invalid ciphertext format', () => {
-      expect(() => pii.decrypt('invalid')).toThrow(
-        'Invalid ciphertext format'
-      );
+    it('should return plain text as-is for invalid ciphertext format', () => {
+      expect(pii.decrypt('invalid')).toBe('invalid');
     });
 
     it('should not decrypt with a different key', () => {

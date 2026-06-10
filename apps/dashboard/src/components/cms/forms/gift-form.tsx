@@ -54,28 +54,27 @@ export function GiftForm({ content, onChange }: GiftFormProps) {
 
       <div className="flex items-center justify-between">
         <Label>Rekening</Label>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addAccount}
-          className="gap-1.5"
-        >
+        <Button type="button" variant="outline" size="sm" onClick={addAccount} className="gap-1.5">
           <Plus className="h-4 w-4" />
           Tambah Rekening
         </Button>
       </div>
 
       {accounts.length === 0 && (
-        <div className="rounded-lg border-2 border-dashed border-border/60 p-6 text-center bg-card">
-          <p className="text-sm text-muted-foreground">Belum ada rekening. Klik tombol di atas untuk menambahkan.</p>
+        <div className="border-border/60 bg-card rounded-lg border-2 border-dashed p-6 text-center">
+          <p className="text-muted-foreground text-sm">
+            Belum ada rekening. Klik tombol di atas untuk menambahkan.
+          </p>
         </div>
       )}
 
       {accounts.map((account, index) => (
-        <div key={index} className="rounded-xl border border-border/40 bg-card p-4 space-y-4 shadow-sm">
-          <div className="flex items-center justify-between border-b border-border/40 pb-2">
-            <h4 className="text-sm font-semibold text-foreground">Rekening {index + 1}</h4>
+        <div
+          key={index}
+          className="border-border/40 bg-card space-y-4 rounded-xl border p-4 shadow-sm"
+        >
+          <div className="border-border/40 flex items-center justify-between border-b pb-2">
+            <h4 className="text-foreground text-sm font-semibold">Rekening {index + 1}</h4>
             <Button
               type="button"
               variant="ghost"
@@ -83,7 +82,7 @@ export function GiftForm({ content, onChange }: GiftFormProps) {
               onClick={() => removeAccount(index)}
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
             >
-              <Trash2 className="h-3.5 w-3.5 mr-1" />
+              <Trash2 className="mr-1 h-3.5 w-3.5" />
               Hapus
             </Button>
           </div>

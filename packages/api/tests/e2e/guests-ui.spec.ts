@@ -1,10 +1,15 @@
 import { test, expect } from './fixtures/test-fixtures';
 
 test.describe('Guests UI E2E', () => {
-  test('should support full Guest CRUD and CSV Import lifecycle in UI', async ({ page, tenantA }) => {
+  test('should support full Guest CRUD and CSV Import lifecycle in UI', async ({
+    page,
+    tenantA,
+  }) => {
     // Add logging for browser console and request failures
-    page.on('console', msg => console.log(`[BROWSER CONSOLE] ${msg.type()}: ${msg.text()}`));
-    page.on('requestfailed', req => console.log(`[BROWSER REQ FAILED] ${req.method()} ${req.url()}: ${req.failure()?.errorText}`));
+    page.on('console', (msg) => console.log(`[BROWSER CONSOLE] ${msg.type()}: ${msg.text()}`));
+    page.on('requestfailed', (req) =>
+      console.log(`[BROWSER REQ FAILED] ${req.method()} ${req.url()}: ${req.failure()?.errorText}`)
+    );
     page.on('requestfinished', async (req) => {
       const resp = await req.response();
       console.log(`[BROWSER REQ] ${req.method()} ${req.url()} -> ${resp?.status()}`);
@@ -12,22 +17,25 @@ test.describe('Guests UI E2E', () => {
 
     // Navigate to local dashboard login page context first to allow setting localStorage
     await page.goto('http://localhost:3000/login');
-    
+
     // Inject the generated tenant JWT token into localStorage
-    await page.evaluate(({ token, userId, tenantId }) => {
-      localStorage.setItem('wedding_access_token', token);
-      localStorage.setItem('wedding_refresh_token', 'dummy-refresh-token');
-      localStorage.setItem('wedding_token_expiry', (Date.now() + 3600000).toString());
-      
-      const user = {
-        id: userId,
-        tenant_id: tenantId,
-        email: 'user-a-test@test.com',
-        name: 'User A',
-        role: 'client'
-      };
-      localStorage.setItem('wedding_user', JSON.stringify(user));
-    }, { token: tenantA.token, userId: tenantA.userId, tenantId: tenantA.tenantId });
+    await page.evaluate(
+      ({ token, userId, tenantId }) => {
+        localStorage.setItem('wedding_access_token', token);
+        localStorage.setItem('wedding_refresh_token', 'dummy-refresh-token');
+        localStorage.setItem('wedding_token_expiry', (Date.now() + 3600000).toString());
+
+        const user = {
+          id: userId,
+          tenant_id: tenantId,
+          email: 'user-a-test@test.com',
+          name: 'User A',
+          role: 'client',
+        };
+        localStorage.setItem('wedding_user', JSON.stringify(user));
+      },
+      { token: tenantA.token, userId: tenantA.userId, tenantId: tenantA.tenantId }
+    );
 
     // Navigate to the guests page
     await page.goto('http://localhost:3000/guests');
@@ -38,14 +46,14 @@ test.describe('Guests UI E2E', () => {
     // 2. Create a Guest
     await page.click('button:has-text("+ Tambah Tamu")');
     await page.fill('#guest-name', 'Guest E2E UI Test');
-    
+
     // Select group (VIP) using shadcn Select component selectors
     await page.click('button:has-text("Keluarga")'); // Default trigger
     await page.click('span:has-text("VIP")'); // Dropdown item
-    
+
     await page.fill('#guest-phone', '628123456789');
     await page.fill('#guest-plus-one', '2');
-    
+
     await page.click('button[type="submit"]:has-text("Tambah Tamu")');
 
     // Verify Guest appears in the table
@@ -71,8 +79,9 @@ test.describe('Guests UI E2E', () => {
     await expect(page.locator('#import-modal-title')).toContainText('Import Tamu dari CSV');
 
     // Prepare CSV data matching Bahasa Indonesia headers
-    const csvContent = 'nama,grup,telepon\nAgus Budi E2E,family,628111222333\nCici Cantika E2E,vip,628222333444';
-    
+    const csvContent =
+      'nama,grup,telepon\nAgus Budi E2E,family,628111222333\nCici Cantika E2E,vip,628222333444';
+
     // Mock the file input selection using Playwright
     const buffer = Buffer.from(csvContent, 'utf-8');
     await page.locator('input[type="file"]').setInputFiles({
@@ -83,9 +92,15 @@ test.describe('Guests UI E2E', () => {
 
     // Check successful import results in the modal
     await expect(page.locator('p:has-text("Import selesai")')).toBeVisible();
-    await expect(page.locator('p:has-text("Total Baris")').locator('..').locator('p:first-child')).toHaveText('2');
-    await expect(page.locator('p:has-text("Berhasil")').locator('..').locator('p:first-child')).toHaveText('2');
-    await expect(page.locator('p:has-text("Gagal")').locator('..').locator('p:first-child')).toHaveText('0');
+    await expect(
+      page.locator('p:has-text("Total Baris")').locator('..').locator('p:first-child')
+    ).toHaveText('2');
+    await expect(
+      page.locator('p:has-text("Berhasil")').locator('..').locator('p:first-child')
+    ).toHaveText('2');
+    await expect(
+      page.locator('p:has-text("Gagal")').locator('..').locator('p:first-child')
+    ).toHaveText('0');
 
     // Click "Selesai" to close the modal
     await page.click('button:has-text("Selesai")');

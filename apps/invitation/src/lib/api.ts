@@ -90,12 +90,9 @@ export async function fetchInvitationData(
  */
 export async function fetchEventBySlug(eventSlug: string): Promise<EventData | null> {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/invitations/${encodeURIComponent(eventSlug)}`,
-      {
-        next: { revalidate: 60 },
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/invitations/${encodeURIComponent(eventSlug)}`, {
+      next: { revalidate: 60 },
+    });
 
     if (!response.ok) {
       return null;
@@ -166,7 +163,6 @@ export async function fetchRsvp(guestId: string): Promise<RsvpResponse | null> {
     return null;
   }
 }
-
 
 // --- Messages API ---
 

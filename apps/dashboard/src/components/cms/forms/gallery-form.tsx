@@ -57,32 +57,33 @@ export function GalleryForm({ content, onChange, event }: GalleryFormProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Upload foto prewedding untuk galeri undangan.
         </p>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addPhoto}
-          className="gap-1.5"
-        >
+        <Button type="button" variant="outline" size="sm" onClick={addPhoto} className="gap-1.5">
           <Plus className="h-4 w-4" />
           Tambah Foto
         </Button>
       </div>
 
       {photos.length === 0 && (
-        <div className="rounded-lg border-2 border-dashed border-border/60 p-8 text-center bg-card">
-          <p className="text-sm text-muted-foreground">Belum ada foto. Klik tombol di atas untuk menambahkan.</p>
+        <div className="border-border/60 bg-card rounded-lg border-2 border-dashed p-8 text-center">
+          <p className="text-muted-foreground text-sm">
+            Belum ada foto. Klik tombol di atas untuk menambahkan.
+          </p>
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {photos.map((photo, index) => (
-          <div key={index} className="rounded-xl border border-border/40 bg-card p-4 space-y-3 shadow-sm">
+          <div
+            key={index}
+            className="border-border/40 bg-card space-y-3 rounded-xl border p-4 shadow-sm"
+          >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted-foreground">Foto #{photo.order}</span>
+              <span className="text-muted-foreground text-xs font-semibold">
+                Foto #{photo.order}
+              </span>
               <Button
                 type="button"
                 variant="ghost"
@@ -90,7 +91,7 @@ export function GalleryForm({ content, onChange, event }: GalleryFormProps) {
                 onClick={() => removePhoto(index)}
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
               >
-                <Trash2 className="h-3.5 w-3.5 mr-1" />
+                <Trash2 className="mr-1 h-3.5 w-3.5" />
                 Hapus
               </Button>
             </div>

@@ -14,8 +14,7 @@ import { GuestGroup, GuestType, DeliveryStatus, ErrorCode } from '@wedding/share
 
 // --- Test Helpers ---
 
-const TEST_ENCRYPTION_KEY =
-  'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
+const TEST_ENCRYPTION_KEY = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
 
 function createMockRepository(): GuestRepository {
   return {
@@ -123,7 +122,7 @@ describe('GuestService', () => {
         group: GuestGroup.FRIEND,
         phone: '+6281234567890',
         plus_one_count: 1,
-        type: GuestType.INVITED
+        type: GuestType.INVITED,
       });
 
       expect(isGuestError(result)).toBe(false);
@@ -165,7 +164,7 @@ describe('GuestService', () => {
         name: 'John Doe',
         group: GuestGroup.FRIEND,
         type: GuestType.INVITED,
-        plus_one_count: 0
+        plus_one_count: 0,
       });
 
       expect(isGuestError(result)).toBe(true);
@@ -191,7 +190,7 @@ describe('GuestService', () => {
         name: 'Budi Santoso',
         group: GuestGroup.FAMILY,
         type: GuestType.INVITED,
-        plus_one_count: 0
+        plus_one_count: 0,
       });
 
       expect(repository.createGuest).toHaveBeenCalledWith(
@@ -219,7 +218,7 @@ describe('GuestService', () => {
         name: 'Jane',
         group: GuestGroup.VIP,
         type: GuestType.INVITED,
-        plus_one_count: 0
+        plus_one_count: 0,
       });
 
       expect(repository.createGuest).toHaveBeenCalledWith(
@@ -352,9 +351,7 @@ describe('GuestService', () => {
       const mockGuest = createMockGuest();
 
       vi.mocked(repository.findGuestById).mockResolvedValue(mockGuest);
-      vi.mocked(repository.updateGuest).mockResolvedValue(
-        createMockGuest({ phone: null })
-      );
+      vi.mocked(repository.updateGuest).mockResolvedValue(createMockGuest({ phone: null }));
 
       await service.updateGuest('guest-001', 'tenant-001', {
         phone: '',
@@ -611,11 +608,7 @@ describe('GuestService', () => {
     });
 
     it('should keep current slug if name produces same slug', async () => {
-      const slug = await service.generateUniqueSlug(
-        'event-001',
-        'John Doe',
-        'john-doe'
-      );
+      const slug = await service.generateUniqueSlug('event-001', 'John Doe', 'john-doe');
       expect(slug).toBe('john-doe');
       // Should not check repository since slug matches
       expect(repository.checkSlugExists).not.toHaveBeenCalled();
@@ -624,7 +617,10 @@ describe('GuestService', () => {
 
   describe('searchGuests', () => {
     it('should return matching guests for a valid query', async () => {
-      const mockGuests = [createMockGuest(), createMockGuest({ id: 'guest-002', name: 'John Smith', slug: 'john-smith' })];
+      const mockGuests = [
+        createMockGuest(),
+        createMockGuest({ id: 'guest-002', name: 'John Smith', slug: 'john-smith' }),
+      ];
 
       vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', slug: 'wedding' });
       vi.mocked(repository.searchGuestsByName).mockResolvedValue(mockGuests);
@@ -698,9 +694,7 @@ describe('GuestService', () => {
 
   describe('isGuestError type guard', () => {
     it('should return true for error objects', () => {
-      expect(
-        isGuestError({ code: ErrorCode.GUEST_NOT_FOUND, message: 'Not found' })
-      ).toBe(true);
+      expect(isGuestError({ code: ErrorCode.GUEST_NOT_FOUND, message: 'Not found' })).toBe(true);
     });
 
     it('should return false for guest records', () => {

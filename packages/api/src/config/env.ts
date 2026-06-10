@@ -94,7 +94,9 @@ export function validateEnv(): EnvConfig {
     HOST: process.env.HOST,
     JWT_SECRET: process.env.JWT_SECRET || (isProduction ? undefined : 'dev-jwt-secret'),
     REFRESH_SECRET: process.env.REFRESH_SECRET || (isProduction ? undefined : 'dev-refresh-secret'),
-    DATABASE_URL: process.env.DATABASE_URL || (isProduction ? undefined : 'postgresql://postgres:postgres@localhost:5432/wedding'), // nosecret
+    DATABASE_URL:
+      process.env.DATABASE_URL ||
+      (isProduction ? undefined : 'postgresql://postgres:postgres@localhost:5432/wedding'), // nosecret
     DASHBOARD_ORIGIN: process.env.DASHBOARD_ORIGIN,
     INVITATION_ORIGIN: process.env.INVITATION_ORIGIN,
     SCANNER_ORIGIN: process.env.SCANNER_ORIGIN,
@@ -115,9 +117,11 @@ export function validateEnv(): EnvConfig {
 
     if (isProduction) {
       // Warn about recommended vars
-      const missingRecommended = PRODUCTION_RECOMMENDED_VARS.filter(v => !process.env[v]);
+      const missingRecommended = PRODUCTION_RECOMMENDED_VARS.filter((v) => !process.env[v]);
       if (missingRecommended.length > 0) {
-        console.warn(`[ENV] ⚠️  Recommended environment variables not set in production: ${missingRecommended.join(', ')}`); // eslint-disable-line no-console
+        console.warn(
+          `[ENV] ⚠️  Recommended environment variables not set in production: ${missingRecommended.join(', ')}`
+        ); // eslint-disable-line no-console
       }
 
       // Warn if CORS origins are still localhost
@@ -130,16 +134,18 @@ export function validateEnv(): EnvConfig {
       }
     } else if (!isTest) {
       // Development warnings
-      const missingVars = PRODUCTION_REQUIRED_VARS.filter(v => !process.env[v]);
+      const missingVars = PRODUCTION_REQUIRED_VARS.filter((v) => !process.env[v]);
       if (missingVars.length > 0) {
-        console.warn(`[ENV] ⚠️  Missing environment variables: ${missingVars.join(', ')}. Using dev fallbacks.`); // eslint-disable-line no-console
+        console.warn(
+          `[ENV] ⚠️  Missing environment variables: ${missingVars.join(', ')}. Using dev fallbacks.`
+        ); // eslint-disable-line no-console
       }
     }
 
     return config;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const issues = error.issues.map(i => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
+      const issues = error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
       throw new Error(`[ENV] Environment validation failed:\n${issues}`);
     }
     throw error;

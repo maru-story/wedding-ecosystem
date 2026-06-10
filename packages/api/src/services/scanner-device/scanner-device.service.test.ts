@@ -149,9 +149,7 @@ describe('ScannerDeviceService', () => {
         expect(isScannerDeviceError(result)).toBe(true);
         if (isScannerDeviceError(result)) {
           expect(result.code).toBe(ErrorCode.SCANNER_LIMIT_REACHED);
-          expect(result.message).toBe(
-            'Batas maksimal 2 scanner device per event telah tercapai'
-          );
+          expect(result.message).toBe('Batas maksimal 2 scanner device per event telah tercapai');
         }
       });
 
@@ -302,10 +300,7 @@ describe('ScannerDeviceService', () => {
 
       await service.getActiveDevices('event-001');
 
-      expect(repository.deactivateStaleDevices).toHaveBeenCalledWith(
-        'event-001',
-        expect.any(Date)
-      );
+      expect(repository.deactivateStaleDevices).toHaveBeenCalledWith('event-001', expect.any(Date));
     });
   });
 

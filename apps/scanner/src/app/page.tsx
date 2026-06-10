@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { usePWA } from '@/components/pwa-provider';
 import { useAuth } from '@/components/auth-provider';
@@ -15,12 +15,59 @@ import { QRScanner } from '@/components/qr-scanner';
 import { VerificationResultDisplay } from '@/components/verification-result';
 import { verifyQRCode, type VerificationResult } from '@/lib/checkin-service';
 
+// Module-level cache/promise registry for active device count fetches to prevent duplicate concurrent network requests
+const activeDeviceFetches = new Map<string, Promise<number | null>>();
+
 export default function ScannerPage() {
   const { isOnline, apiBaseUrl, authToken, eventId, resetEvent } = usePWA();
   const { user, logout } = useAuth();
   const [isScanning, setIsScanning] = useState(true);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [activeScannersCount, setActiveScannersCount] = useState<number>(1);
+
+  const fetchActiveScanners = useCallback(async () => {
+    if (!eventId || !authToken || !isOnline) return;
+
+    let fetchPromise = activeDeviceFetches.get(eventId);
+    if (!fetchPromise) {
+      fetchPromise = (async () => {
+        try {
+          const response = await fetch(`${apiBaseUrl}/scanner/devices/${eventId}`, {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+          if (response.ok) {
+            const result = await response.json();
+            return result.data?.length || 1;
+          }
+        } catch (err) {
+          console.error('Gagal mengambil data scanner aktif:', err);
+        } finally {
+          activeDeviceFetches.delete(eventId);
+        }
+        return null;
+      })();
+      activeDeviceFetches.set(eventId, fetchPromise);
+    }
+
+    try {
+      const count = await fetchPromise;
+      if (count !== null) {
+        setActiveScannersCount(count);
+      }
+    } catch {
+      // ignore
+    }
+  }, [apiBaseUrl, authToken, eventId, isOnline]);
+
+  useEffect(() => {
+    fetchActiveScanners();
+    // Poll every 30 seconds to keep it fresh
+    const interval = setInterval(fetchActiveScanners, 30000);
+    return () => clearInterval(interval);
+  }, [fetchActiveScanners]);
 
   // Prevent duplicate scans of the same QR within a short window
   const lastScannedRef = useRef<string>('');
@@ -73,22 +120,28 @@ export default function ScannerPage() {
   }, []);
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-4 py-6">
+    <main className="bg-cream flex min-h-screen flex-col items-center px-4 py-6">
       {/* Header */}
       <header className="mb-6 w-full max-w-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-gray-900">Wedding Scanner</h1>
-            <p className="mt-0.5 text-xs text-gray-500">{user?.name || 'Scanner Operator'}</p>
+            <h1 className="font-heading text-charcoal text-lg font-bold">Wedding Scanner</h1>
+            <div className="mt-0.5 flex flex-col gap-0.5">
+              <p className="text-charcoal/60 text-xs">{user?.name || 'Scanner Operator'}</p>
+              <p className="text-sage flex items-center gap-1 text-[10px] font-semibold">
+                <span className="bg-sage h-1.5 w-1.5 animate-pulse rounded-full" />
+                {activeScannersCount}/2 Scanner Aktif
+              </p>
+            </div>
           </div>
           <div className="flex gap-2">
             <button
               onClick={resetEvent}
-              className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100"
+              className="border-border/60 bg-card text-charcoal/80 hover:bg-blush/40 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors"
               title="Ganti Event"
             >
               <svg
-                className="h-4 w-4"
+                className="text-charcoal/70 h-4 w-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -104,11 +157,11 @@ export default function ScannerPage() {
             </button>
             <button
               onClick={logout}
-              className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100"
+              className="border-border/60 bg-card text-charcoal/80 hover:bg-blush/40 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors"
               title="Keluar"
             >
               <svg
-                className="h-4 w-4"
+                className="text-charcoal/70 h-4 w-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -133,19 +186,17 @@ export default function ScannerPage() {
 
       {/* Verifying indicator */}
       {isVerifying && (
-        <div className="mt-6 flex items-center gap-2 text-gray-600">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+        <div className="text-charcoal/80 mt-6 flex items-center gap-2">
+          <div className="border-sage/40 border-t-sage h-4 w-4 animate-spin rounded-full border-2" />
           <span className="text-sm">Memverifikasi...</span>
         </div>
       )}
 
       {/* Status info */}
-      <div className="mt-6 w-full max-w-sm rounded-lg border border-gray-200 p-3 text-center">
-        <p className="text-xs text-gray-500">
+      <div className="border-border/60 bg-card mt-6 w-full max-w-sm rounded-xl border p-3 text-center shadow-sm">
+        <p className="text-charcoal/60 text-xs">
           Mode:{' '}
-          <span
-            className={isOnline ? 'font-medium text-emerald-600' : 'font-medium text-amber-600'}
-          >
+          <span className={isOnline ? 'text-success font-medium' : 'text-warning font-medium'}>
             {isOnline ? 'Online' : 'Offline — Verifikasi Lokal'}
           </span>
         </p>
@@ -154,7 +205,7 @@ export default function ScannerPage() {
       {/* Manual check-in link */}
       <Link
         href="/manual"
-        className="mt-4 inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+        className="border-border/60 bg-card text-charcoal hover:bg-blush/40 focus:ring-sage/20 mt-4 inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm transition-colors focus:ring-2 focus:outline-none"
       >
         <svg
           className="h-4 w-4"

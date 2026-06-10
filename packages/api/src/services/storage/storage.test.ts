@@ -20,8 +20,12 @@ vi.mock('@aws-sdk/s3-request-presigner', () => ({
 }));
 
 vi.mock('@aws-sdk/client-s3', () => ({
-  S3Client: vi.fn().mockImplementation(() => ({})),
-  PutObjectCommand: vi.fn().mockImplementation((input) => ({ input })),
+  S3Client: vi.fn().mockImplementation(function() {
+    return {};
+  }),
+  PutObjectCommand: vi.fn().mockImplementation(function(input) {
+    return { input };
+  }),
 }));
 
 // --- Test Helpers ---

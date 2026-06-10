@@ -153,10 +153,7 @@ export class RsvpService {
   /**
    * Get RSVP for a guest
    */
-  async getRsvp(
-    guestId: string,
-    eventId: string
-  ): Promise<RsvpRecord | null | RsvpServiceError> {
+  async getRsvp(guestId: string, eventId: string): Promise<RsvpRecord | null | RsvpServiceError> {
     // Verify guest exists and belongs to event
     const guest = await this.repository.findGuestByIdAndEvent(guestId, eventId);
     if (!guest) {
@@ -178,5 +175,11 @@ export class RsvpService {
 export function isRsvpError(
   result: RsvpRecord | null | RsvpServiceError
 ): result is RsvpServiceError {
-  return result !== null && typeof result === 'object' && 'code' in result && 'message' in result && !('id' in result);
+  return (
+    result !== null &&
+    typeof result === 'object' &&
+    'code' in result &&
+    'message' in result &&
+    !('id' in result)
+  );
 }

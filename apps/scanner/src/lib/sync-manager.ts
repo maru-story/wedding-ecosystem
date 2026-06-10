@@ -123,6 +123,9 @@ export async function syncPendingCheckIns(
   }
 }
 
+// Module-level promise cache to deduplicate concurrent guest cache refreshes
+let refreshCachePromise: Promise<void> | null = null;
+
 /**
  * Refresh the local guest cache from the server.
  * Called on connectivity restore and before event start.
@@ -132,37 +135,47 @@ export async function refreshGuestCache(
   authToken: string,
   eventId: string
 ): Promise<void> {
-  try {
-    const response = await fetchWithTimeout(
-      `${apiBaseUrl}/guests/cache?eventId=${eventId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      },
-      SYNC_TIMEOUT_MS
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      const guests: CachedGuest[] = (data.guests || []).map((g: Record<string, unknown>) => ({
-        id: g.id as string,
-        name: g.name as string,
-        qrPayload: g.qrPayload as string,
-        group: g.group as string,
-        checkedIn: g.checkedIn as boolean,
-        checkedInAt: g.checkedInAt as string | undefined,
-        eventId: g.eventId as string,
-      }));
-
-      // Replace entire cache with fresh data
-      await clearGuestCache();
-      await cacheGuests(guests);
-    }
-  } catch {
-    // Silently fail — keep existing cache
-    console.warn('[SyncManager] Failed to refresh guest cache');
+  if (refreshCachePromise) {
+    return refreshCachePromise;
   }
+
+  refreshCachePromise = (async () => {
+    try {
+      const response = await fetchWithTimeout(
+        `${apiBaseUrl}/guests/cache?eventId=${eventId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        },
+        SYNC_TIMEOUT_MS
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const guests: CachedGuest[] = (data.guests || []).map((g: Record<string, unknown>) => ({
+          id: g.id as string,
+          name: g.name as string,
+          qrPayload: g.qrPayload as string,
+          group: g.group as string,
+          checkedIn: g.checkedIn as boolean,
+          checkedInAt: g.checkedInAt as string | undefined,
+          eventId: g.eventId as string,
+        }));
+
+        // Replace entire cache with fresh data
+        await clearGuestCache();
+        await cacheGuests(guests);
+      }
+    } catch {
+      // Silently fail — keep existing cache
+      console.warn('[SyncManager] Failed to refresh guest cache');
+    } finally {
+      refreshCachePromise = null;
+    }
+  })();
+
+  return refreshCachePromise;
 }
 
 /**

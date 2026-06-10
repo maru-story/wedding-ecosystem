@@ -105,6 +105,7 @@ model User {
   id            String   @id @default(uuid()) @db.Uuid
   tenant_id     String   @db.Uuid
   email         String
+  username      String?  @unique
   password_hash String
   role          UserRole
   name          String
@@ -125,7 +126,7 @@ model Event {
   slug           String      @unique
   bride_name     String
   groom_name     String
-  event_date     DateTime
+  event_date     DateTime    @db.Timestamptz
   venue_name     String
   venue_address  String
   venue_maps_url String
@@ -236,6 +237,7 @@ model CheckIn {
   scanner_device ScannerDevice? @relation(fields: [scanner_device_id], references: [id], onDelete: SetNull)
 
   @@index([guest_id])
+  @@index([scanner_device_id])
   @@index([checked_in_at])
   @@map("check_ins")
 }

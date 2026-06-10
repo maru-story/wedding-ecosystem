@@ -47,10 +47,7 @@ export class StatsService {
   private readonly repository: StatsRepository;
   private readonly broadcaster: StatsBroadcaster;
 
-  constructor(config: {
-    repository: StatsRepository;
-    broadcaster: StatsBroadcaster;
-  }) {
+  constructor(config: { repository: StatsRepository; broadcaster: StatsBroadcaster }) {
     this.repository = config.repository;
     this.broadcaster = config.broadcaster;
   }
@@ -65,17 +62,14 @@ export class StatsService {
    * @param eventId - The event ID to calculate and broadcast stats for
    * @returns The calculated stats payload
    */
-  async calculateAndBroadcastStats(
-    eventId: string
-  ): Promise<StatsUpdatedPayload> {
+  async calculateAndBroadcastStats(eventId: string): Promise<StatsUpdatedPayload> {
     // Query actual DB counts for consistency (Req 9.7)
-    const [totalGuests, totalRsvp, totalCheckedIn, totalGoShow] =
-      await Promise.all([
-        this.repository.countGuestsByEvent(eventId),
-        this.repository.countRsvpByEvent(eventId),
-        this.repository.countCheckInsByEvent(eventId),
-        this.repository.countGoShowByEvent(eventId),
-      ]);
+    const [totalGuests, totalRsvp, totalCheckedIn, totalGoShow] = await Promise.all([
+      this.repository.countGuestsByEvent(eventId),
+      this.repository.countRsvpByEvent(eventId),
+      this.repository.countCheckInsByEvent(eventId),
+      this.repository.countGoShowByEvent(eventId),
+    ]);
 
     const payload: StatsUpdatedPayload = {
       event_id: eventId,
@@ -99,13 +93,12 @@ export class StatsService {
    * @returns The calculated stats payload
    */
   async calculateStats(eventId: string): Promise<StatsUpdatedPayload> {
-    const [totalGuests, totalRsvp, totalCheckedIn, totalGoShow] =
-      await Promise.all([
-        this.repository.countGuestsByEvent(eventId),
-        this.repository.countRsvpByEvent(eventId),
-        this.repository.countCheckInsByEvent(eventId),
-        this.repository.countGoShowByEvent(eventId),
-      ]);
+    const [totalGuests, totalRsvp, totalCheckedIn, totalGoShow] = await Promise.all([
+      this.repository.countGuestsByEvent(eventId),
+      this.repository.countRsvpByEvent(eventId),
+      this.repository.countCheckInsByEvent(eventId),
+      this.repository.countGoShowByEvent(eventId),
+    ]);
 
     return {
       event_id: eventId,

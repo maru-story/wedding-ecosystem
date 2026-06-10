@@ -13,12 +13,7 @@ export {
   getPoolConfig,
 } from '@wedding/db';
 
-export type {
-  DatabaseUrls,
-  SSLConfig,
-  DatabaseConfig,
-  PoolConfig,
-} from '@wedding/db';
+export type { DatabaseUrls, SSLConfig, DatabaseConfig, PoolConfig } from '@wedding/db';
 
 import { getDatabaseConfig } from '@wedding/db';
 export default getDatabaseConfig;

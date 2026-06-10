@@ -18,18 +18,18 @@ export async function rsvpRoutes(app: FastifyInstance, opts: RsvpRouteOptions) {
 
   // Wire up service
   const repository = new PrismaRsvpRepository(prisma);
-  const broadcaster = new RealtimeRsvpBroadcaster(
-    getRealtimeServer || (() => realtime ?? null)
-  );
+  const broadcaster = new RealtimeRsvpBroadcaster(getRealtimeServer || (() => realtime ?? null));
   const rsvpService = new RsvpService({ repository, broadcaster });
 
   // POST /rsvp - Submit or update RSVP (public route, no auth required)
   app.post('/', async (request, reply) => {
     // Combine base RSVP schema with required public fields
-    const fullSchema = z.object({
-      guest_id: z.string().uuid({ message: 'ID tamu tidak valid' }),
-      event_id: z.string().uuid({ message: 'ID event tidak valid' }),
-    }).and(createRsvpSchema);
+    const fullSchema = z
+      .object({
+        guest_id: z.string().uuid({ message: 'ID tamu tidak valid' }),
+        event_id: z.string().uuid({ message: 'ID event tidak valid' }),
+      })
+      .and(createRsvpSchema);
 
     const body = validate(request.body, fullSchema, reply);
     if (!body) return reply;

@@ -33,27 +33,27 @@ export function VideoForm({ content, onChange, event }: VideoFormProps) {
       <div className="space-y-2">
         <Label>Tipe Video</Label>
         <div className="flex gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex cursor-pointer items-center gap-2">
             <input
               type="radio"
               name="video-type"
               value="youtube"
               checked={videoType === 'youtube'}
               onChange={() => onChange({ ...content, type: 'youtube' })}
-              className="h-4 w-4 border-border text-primary focus:ring-ring focus:ring-offset-background"
+              className="border-border text-primary focus:ring-ring focus:ring-offset-background h-4 w-4"
             />
-            <span className="text-sm text-foreground">YouTube</span>
+            <span className="text-foreground text-sm">YouTube</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex cursor-pointer items-center gap-2">
             <input
               type="radio"
               name="video-type"
               value="upload"
               checked={videoType === 'upload'}
               onChange={() => onChange({ ...content, type: 'upload' })}
-              className="h-4 w-4 border-border text-primary focus:ring-ring focus:ring-offset-background"
+              className="border-border text-primary focus:ring-ring focus:ring-offset-background h-4 w-4"
             />
-            <span className="text-sm text-foreground">Upload</span>
+            <span className="text-foreground text-sm">Upload</span>
           </label>
         </div>
       </div>
@@ -68,7 +68,7 @@ export function VideoForm({ content, onChange, event }: VideoFormProps) {
             onChange={(e) => onChange({ ...content, video_url: e.target.value })}
             placeholder="https://www.youtube.com/watch?v=..."
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Paste link YouTube video prewedding atau cinematic Anda.
           </p>
         </div>

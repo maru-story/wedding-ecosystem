@@ -19,7 +19,7 @@ import type {
 } from '../services/checkin/checkin.service';
 
 export class PrismaCheckInRepository implements CheckInRepository {
-  constructor(private readonly prisma: PrismaClient) { }
+  constructor(private readonly prisma: PrismaClient) {}
 
   async findGuestById(guestId: string): Promise<GuestInfo | null> {
     const guest = await this.prisma.guest.findFirst({

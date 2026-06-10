@@ -17,4 +17,3 @@ export {
   replySectionNotFound,
 } from './tenant-scope';
 export type { TenantEvent, TenantEventFull, TenantScopedResult } from './tenant-scope';
-

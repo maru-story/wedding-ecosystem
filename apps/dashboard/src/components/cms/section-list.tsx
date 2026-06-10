@@ -29,18 +29,28 @@ export function SectionList({ sections, onReorder, onToggleActive }: SectionList
       {coverSection && (
         <div
           role="listitem"
-          className={`flex items-center gap-3 rounded-xl border bg-gray-50/80 border-gray-200 p-4 shadow-sm select-none ${
+          className={`flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50/80 p-4 shadow-sm select-none ${
             !coverSection.is_active ? 'opacity-60' : ''
           }`}
         >
           {/* Locked Icon (No drag handle) */}
           <div
-            className="flex items-center text-gray-400 p-1"
+            className="flex items-center p-1 text-gray-400"
             aria-label="Section terkunci di posisi pertama"
             title="Section ini dikunci di posisi pertama"
           >
-            <svg className="h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            <svg
+              className="h-5 w-5 text-gray-300"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
             </svg>
           </div>
 
@@ -50,14 +60,14 @@ export function SectionList({ sections, onReorder, onToggleActive }: SectionList
           </span>
 
           {/* Section info */}
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <Link
               href={`/cms/edit/${coverSection.id}`}
-              className="text-sm font-medium text-gray-900 hover:text-primary transition-colors font-semibold"
+              className="hover:text-primary text-sm font-medium font-semibold text-gray-900 transition-colors"
             >
               {SECTION_TYPE_LABELS[coverSection.section_type]}
             </Link>
-            <p className="text-xs text-gray-500 truncate">
+            <p className="truncate text-xs text-gray-500">
               {coverSection.is_active ? 'Aktif' : 'Nonaktif'} • Diperbarui{' '}
               {new Date(coverSection.updated_at).toLocaleDateString('id-ID', {
                 day: 'numeric',
@@ -68,14 +78,17 @@ export function SectionList({ sections, onReorder, onToggleActive }: SectionList
           </div>
 
           {/* Toggle active */}
-          <label className="relative inline-flex cursor-pointer items-center" aria-label={`${coverSection.is_active ? 'Nonaktifkan' : 'Aktifkan'} section ${SECTION_TYPE_LABELS[coverSection.section_type]}`}>
+          <label
+            className="relative inline-flex cursor-pointer items-center"
+            aria-label={`${coverSection.is_active ? 'Nonaktifkan' : 'Aktifkan'} section ${SECTION_TYPE_LABELS[coverSection.section_type]}`}
+          >
             <input
               type="checkbox"
               checked={coverSection.is_active}
               onChange={(e) => onToggleActive(coverSection.id, e.target.checked)}
               className="peer sr-only"
             />
-            <div className="h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:ring-2 peer-focus:ring-primary/20" />
+            <div className="peer-checked:bg-primary peer-focus:ring-primary/20 h-6 w-11 rounded-full bg-gray-200 peer-focus:ring-2 after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white" />
           </label>
 
           {/* Edit button */}
@@ -84,8 +97,18 @@ export function SectionList({ sections, onReorder, onToggleActive }: SectionList
             className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
             aria-label={`Edit section ${SECTION_TYPE_LABELS[coverSection.section_type]}`}
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
             </svg>
           </Link>
         </div>
@@ -151,9 +174,7 @@ function SectionItem({
         draggedIdRef.current = section.id;
       }}
       onDragEnd={async () => {
-        const hasOrderChanged = localSections.some(
-          (sec, idx) => sec.id !== sections[idx]?.id
-        );
+        const hasOrderChanged = localSections.some((sec, idx) => sec.id !== sections[idx]?.id);
         if (hasOrderChanged && draggedIdRef.current) {
           const draggedId = draggedIdRef.current;
           const newIndex = localSections.findIndex((s) => s.id === draggedId);
@@ -167,17 +188,23 @@ function SectionItem({
         }
         draggedIdRef.current = null;
       }}
-      className={`flex items-center gap-3 rounded-xl border bg-white p-4 shadow-sm transition-colors border-gray-200 select-none ${
+      className={`flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-colors select-none ${
         !section.is_active ? 'opacity-60' : ''
       }`}
     >
       {/* Drag handle */}
       <div
-        className="flex cursor-grab items-center text-gray-400 hover:text-gray-600 active:cursor-grabbing p-1"
+        className="flex cursor-grab items-center p-1 text-gray-400 hover:text-gray-600 active:cursor-grabbing"
         aria-label="Seret untuk mengubah urutan"
         onPointerDown={(e) => dragControls.start(e)}
       >
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
         </svg>
       </div>
@@ -188,14 +215,14 @@ function SectionItem({
       </span>
 
       {/* Section info */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <Link
           href={`/cms/edit/${section.id}`}
-          className="text-sm font-medium text-gray-900 hover:text-primary transition-colors font-semibold"
+          className="hover:text-primary text-sm font-medium font-semibold text-gray-900 transition-colors"
         >
           {SECTION_TYPE_LABELS[section.section_type]}
         </Link>
-        <p className="text-xs text-gray-500 truncate">
+        <p className="truncate text-xs text-gray-500">
           {section.is_active ? 'Aktif' : 'Nonaktif'} • Diperbarui{' '}
           {new Date(section.updated_at).toLocaleDateString('id-ID', {
             day: 'numeric',
@@ -206,14 +233,17 @@ function SectionItem({
       </div>
 
       {/* Toggle active */}
-      <label className="relative inline-flex cursor-pointer items-center" aria-label={`${section.is_active ? 'Nonaktifkan' : 'Aktifkan'} section ${SECTION_TYPE_LABELS[section.section_type]}`}>
+      <label
+        className="relative inline-flex cursor-pointer items-center"
+        aria-label={`${section.is_active ? 'Nonaktifkan' : 'Aktifkan'} section ${SECTION_TYPE_LABELS[section.section_type]}`}
+      >
         <input
           type="checkbox"
           checked={section.is_active}
           onChange={(e) => onToggleActive(section.id, e.target.checked)}
           className="peer sr-only"
         />
-        <div className="h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-primary peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:ring-2 peer-focus:ring-primary/20" />
+        <div className="peer-checked:bg-primary peer-focus:ring-primary/20 h-6 w-11 rounded-full bg-gray-200 peer-focus:ring-2 after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white" />
       </label>
 
       {/* Edit button */}
@@ -222,8 +252,18 @@ function SectionItem({
         className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
         aria-label={`Edit section ${SECTION_TYPE_LABELS[section.section_type]}`}
       >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        <svg
+          className="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          />
         </svg>
       </Link>
     </Reorder.Item>

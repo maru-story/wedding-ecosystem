@@ -341,12 +341,7 @@ describe('Property 8: Section Sort Order Uniqueness', () => {
                 if (currentSections.length > 0) {
                   const idx = op.index % currentSections.length;
                   const pos = ((op.newPosition - 1) % currentSections.length) + 1;
-                  await service.updateSortOrder(
-                    currentSections[idx].id,
-                    eventId,
-                    tenantId,
-                    pos
-                  );
+                  await service.updateSortOrder(currentSections[idx].id, eventId, tenantId, pos);
                 }
                 break;
               }

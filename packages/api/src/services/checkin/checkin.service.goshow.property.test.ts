@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import {
-  CheckInMethod,
-  GuestGroup,
-} from '@wedding/shared';
+import { CheckInMethod, GuestGroup } from '@wedding/shared';
 import {
   CheckInService,
   CheckInRepository,
@@ -15,8 +12,7 @@ import {
 
 // --- Constants ---
 
-const TEST_ENCRYPTION_KEY =
-  'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
+const TEST_ENCRYPTION_KEY = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
 
 // --- Arbitraries ---
 
@@ -24,9 +20,7 @@ const TEST_ENCRYPTION_KEY =
 const arbEventId = fc.uuid();
 
 /** Generates a valid guest name (non-empty, trimmed) */
-const arbGuestName = fc
-  .string({ minLength: 1, maxLength: 100 })
-  .filter((s) => s.trim().length > 0);
+const arbGuestName = fc.string({ minLength: 1, maxLength: 100 }).filter((s) => s.trim().length > 0);
 
 /** Generates an optional scanner device ID */
 const arbScannerDeviceId = fc.option(fc.uuid(), { nil: undefined });
@@ -99,9 +93,7 @@ function createInMemoryRepository(eventId: string): CheckInRepository & {
       return guest;
     },
     findEventById: async (evtId: string) => {
-      return evtId === eventId
-        ? { id: evtId, tenant_id: 'tenant-001' }
-        : null;
+      return evtId === eventId ? { id: evtId, tenant_id: 'tenant-001' } : null;
     },
   };
 }
@@ -132,7 +124,12 @@ describe('Property 13: Go-Show Guest Tracking', () => {
             encryptionKey: TEST_ENCRYPTION_KEY,
           });
 
-          const result = await service.registerGoShow('tenant-001', guestName, eventId, scannerDeviceId);
+          const result = await service.registerGoShow(
+            'tenant-001',
+            guestName,
+            eventId,
+            scannerDeviceId
+          );
 
           // Should not be an error
           expect(isServiceError(result)).toBe(false);

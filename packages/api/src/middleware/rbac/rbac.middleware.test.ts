@@ -8,7 +8,10 @@ import {
   getUserRole,
   PERMISSIONS,
 } from './rbac.middleware';
-import { AuthenticatedRequest, TenantContext } from '../tenant-isolation/tenant-isolation.middleware';
+import {
+  AuthenticatedRequest,
+  TenantContext,
+} from '../tenant-isolation/tenant-isolation.middleware';
 
 // --- Test Helpers ---
 

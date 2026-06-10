@@ -3,10 +3,7 @@ import { z } from 'zod';
 
 // Recreate the schema logic for testing (same as in messages-section.tsx)
 const messageSchema = z.object({
-  sender_name: z
-    .string()
-    .min(1, 'Nama tidak boleh kosong')
-    .max(100, 'Nama maksimal 100 karakter'),
+  sender_name: z.string().min(1, 'Nama tidak boleh kosong').max(100, 'Nama maksimal 100 karakter'),
   message_text: z
     .string()
     .min(1, 'Ucapan tidak boleh kosong')
@@ -109,7 +106,8 @@ describe('Messages Form Validation', () => {
     it('accepts valid complete message', () => {
       const result = messageSchema.safeParse({
         sender_name: 'Keluarga Besar Wijaya',
-        message_text: 'Selamat menempuh hidup baru! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah.',
+        message_text:
+          'Selamat menempuh hidup baru! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah.',
       });
       expect(result.success).toBe(true);
     });

@@ -1,11 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, ApiError } from '@/lib/api';
 import type { InvitationSection } from '@/lib/cms';
-import {
-  GUESTS_PER_PAGE,
-  ADMIN_PER_PAGE,
-  STATS_REFETCH_INTERVAL_MS,
-} from '@/lib/constants';
+import type { GlobalStats } from '@wedding/shared';
+import { GUESTS_PER_PAGE, ADMIN_PER_PAGE, STATS_REFETCH_INTERVAL_MS } from '@/lib/constants';
 
 /**
  * Hook to fetch the primary event associated with the current tenant.
@@ -29,7 +26,7 @@ export function useEvent() {
     retry: (failureCount, error) => {
       if (error instanceof ApiError && error.status === 404) return false;
       return failureCount < 2;
-    }
+    },
   });
 }
 
@@ -155,11 +152,36 @@ export function useDashboardStats() {
 
 /**
  * Hook to fetch global statistics for system admins.
+ * Uses the shared GlobalStats type from @wedding/shared for type safety.
  */
 export function useAdminStats() {
   return useQuery({
     queryKey: ['admin-stats'],
-    queryFn: () => apiFetch<{ success: boolean; data: any }>('/admin/stats'),
+    queryFn: () => apiFetch<{ success: boolean; data: GlobalStats }>('/admin/stats'),
+  });
+}
+
+export interface SystemHealthData {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  timestamp: string;
+  version: string;
+  uptime: number;
+  dependencies: {
+    postgresql: { status: 'up' | 'down'; latency: number };
+    redis_cache: { status: 'up' | 'down'; latency: number };
+    redis_pubsub: { status: 'up' | 'down'; latency: number };
+    websocket: { status: 'up' | 'down'; latency: number };
+  };
+}
+
+/**
+ * Hook to fetch system health status.
+ */
+export function useSystemHealth() {
+  return useQuery({
+    queryKey: ['system-health'],
+    queryFn: () => apiFetch<SystemHealthData>('/health'),
+    refetchInterval: 15000, // Pooling every 15 seconds
   });
 }
 
@@ -226,6 +248,23 @@ export function useToggleTenantStatus() {
 }
 
 /**
+ * Mutation hook to delete a tenant.
+ */
+export function useDeleteTenant() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (tenantId: string) =>
+      apiFetch<{ success: boolean }>(`/admin/tenants/${tenantId}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-tenants'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+    },
+  });
+}
+
+/**
  * Hook to fetch users across the platform.
  */
 export function useAdminUsers({
@@ -265,6 +304,23 @@ export function useResetUserPassword() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
+  });
+}
+
+/**
+ * Mutation hook to delete a user.
+ */
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) =>
+      apiFetch<{ success: boolean }>(`/admin/users/${userId}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
     },
   });
 }
@@ -383,7 +439,10 @@ export function useSendInvitation() {
 export function useInvitationTemplate() {
   return useQuery({
     queryKey: ['invitation-template'],
-    queryFn: () => apiFetch<{ success: boolean; data: { template: string } }>('/invitation-deliveries/message-template'),
+    queryFn: () =>
+      apiFetch<{ success: boolean; data: { template: string } }>(
+        '/invitation-deliveries/message-template'
+      ),
   });
 }
 
@@ -478,7 +537,9 @@ export function useUpdateCmsSectionContent() {
       }),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cms-sections', variables.eventId] });
-      queryClient.invalidateQueries({ queryKey: ['cms-section', variables.eventId, variables.sectionId] });
+      queryClient.invalidateQueries({
+        queryKey: ['cms-section', variables.eventId, variables.sectionId],
+      });
     },
   });
 }

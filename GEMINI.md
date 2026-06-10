@@ -107,12 +107,12 @@
 
 ## User Roles & Permissions
 
-| Role             | Scope           | Can Do                                   | Cannot Do             |
-| ---------------- | --------------- | ---------------------------------------- | --------------------- |
-| Admin            | All tenants     | Full CRUD, tenant management, QR scanner | —                     |
-| Client           | Own tenant      | Manage events, guests, CMS, QR scanner   | Access other tenants  |
-| WO               | Disabled (MVP)  | None (restricted in MVP)                 | All actions           |
-| Scanner Operator | Disabled (MVP)  | None (restricted in MVP)                 | All actions           |
+| Role             | Scope          | Can Do                                   | Cannot Do            |
+| ---------------- | -------------- | ---------------------------------------- | -------------------- |
+| Admin            | All tenants    | Full CRUD, tenant management, QR scanner | —                    |
+| Client           | Own tenant     | Manage events, guests, CMS, QR scanner   | Access other tenants |
+| WO               | Disabled (MVP) | None (restricted in MVP)                 | All actions          |
+| Scanner Operator | Disabled (MVP) | None (restricted in MVP)                 | All actions          |
 
 ---
 
@@ -218,8 +218,10 @@
 - `GET /admin/tenants` — List all tenants (paginated, search, filter)
 - `POST /admin/tenants` — Create a new tenant with master client credentials
 - `PATCH /admin/tenants/:id/status` — Toggle tenant active/inactive status
+- `DELETE /admin/tenants/:id` — Delete a tenant (cascades to delete users, events, configs, guests, check-ins)
 - `GET /admin/users` — List all users across the platform (paginated, search, role filters, is_active status)
 - `PATCH /admin/users/:id/status` — Toggle user active/inactive status (suspend/activate account)
+- `DELETE /admin/users/:id` — Delete a user (blocks self-deletion and deleting any administrator-role users)
 - `POST /admin/users/admin` — Create a new platform administrator
 - `PUT /admin/users/:id/reset-password` — Generate and reset user password with secure random string
 - `GET /admin/audit-logs` — List platform-wide system audit logs with pagination, search, action filter, and date-range filters (`start_date`/`end_date`)
@@ -433,41 +435,41 @@ CI/CD via GitHub Actions:
 
 ## Demo Credentials (Local Development)
 
-| Role    | Email              | Password      |
-| ------- | ------------------ | ------------- |
-| Client  | `admin@demo.com`   | `password123` |
-| Scanner | `scanner@demo.com` | `password123` |
+| Role    | Email              | Password      | Tenant / Scope |
+| ------- | ------------------ | ------------- | -------------- |
+| Admin   | `admin@demo.com`   | `password123` | System Admin   |
+| Client  | `client@demo.com`  | `password123` | Wedding Demo   |
 
-**Tenant**: Wedding Demo (`1a0db76b-1e72-4f7e-8015-6b05d2f3fc7c`)
-**Event**: Romeo & Juliet (`c3268c2d-fae0-4284-ad70-249ef6a62682`, slug: `romeo-juliet`)
+**Tenant (Wedding Demo)**: Wedding Demo
+**Event (Romeo & Juliet)**: Romeo & Juliet (slug: `romeo-juliet`)
 
 ---
 
 ## File Reference Quick Links
 
-| What                     | Where                                            |
-| ------------------------ | ------------------------------------------------ |
-| Database schema          | `packages/db/prisma/schema.prisma`               |
-| API entry point          | `packages/api/src/index.ts`                      |
-| API routes               | `packages/api/src/routes/*.ts`                   |
-| Shared types             | `packages/shared/src/types/`                     |
-| Zod schemas              | `packages/shared/src/types/validation.ts`        |
-| Error codes              | `packages/shared/src/types/errors.ts`            |
-| WebSocket server         | `packages/realtime/src/index.ts`                 |
-| WS auth middleware       | `packages/realtime/src/middleware/auth.ts`       |
-| Playwright E2E Config    | `packages/api/playwright.config.ts`              |
-| Playwright E2E Tests     | `packages/api/tests/e2e/`                        |
-| Playwright UI Config     | `apps/invitation/playwright.config.ts`           |
-| Playwright UI Tests      | `apps/invitation/tests/`                         |
-| Scanner auth             | `apps/scanner/src/lib/auth.ts`                   |
-| Scanner offline queue    | `apps/scanner/src/lib/offline-queue.ts`          |
-| Dashboard socket hook    | `apps/dashboard/src/hooks/use-socket.ts`         |
-| Dashboard table state hook | `apps/dashboard/src/hooks/use-table-state.ts`   |
+| What                          | Where                                             |
+| ----------------------------- | ------------------------------------------------- |
+| Database schema               | `packages/db/prisma/schema.prisma`                |
+| API entry point               | `packages/api/src/index.ts`                       |
+| API routes                    | `packages/api/src/routes/*.ts`                    |
+| Shared types                  | `packages/shared/src/types/`                      |
+| Zod schemas                   | `packages/shared/src/types/validation.ts`         |
+| Error codes                   | `packages/shared/src/types/errors.ts`             |
+| WebSocket server              | `packages/realtime/src/index.ts`                  |
+| WS auth middleware            | `packages/realtime/src/middleware/auth.ts`        |
+| Playwright E2E Config         | `packages/api/playwright.config.ts`               |
+| Playwright E2E Tests          | `packages/api/tests/e2e/`                         |
+| Playwright UI Config          | `apps/invitation/playwright.config.ts`            |
+| Playwright UI Tests           | `apps/invitation/tests/`                          |
+| Scanner auth                  | `apps/scanner/src/lib/auth.ts`                    |
+| Scanner offline queue         | `apps/scanner/src/lib/offline-queue.ts`           |
+| Dashboard socket hook         | `apps/dashboard/src/hooks/use-socket.ts`          |
+| Dashboard table state hook    | `apps/dashboard/src/hooks/use-table-state.ts`     |
 | Dashboard DataTable component | `apps/dashboard/src/components/ui/data-table.tsx` |
-| Production config        | `packages/api/src/config/production.ts`          |
-| Redis config             | `packages/api/src/config/redis.ts`               |
-| CORS middleware          | `packages/api/src/middleware/cors.middleware.ts` |
-| CI/CD workflows          | `.github/workflows/`                             |
-| Deploy config (API)      | `packages/api/railway.toml`                      |
-| Deploy config (Frontend) | `apps/*/vercel.json`                             |
-| Design system            | `.agents/summary/design-system.md`               |
+| Production config             | `packages/api/src/config/production.ts`           |
+| Redis config                  | `packages/api/src/config/redis.ts`                |
+| CORS middleware               | `packages/api/src/middleware/cors.middleware.ts`  |
+| CI/CD workflows               | `.github/workflows/`                              |
+| Deploy config (API)           | `packages/api/railway.toml`                       |
+| Deploy config (Frontend)      | `apps/*/vercel.json`                              |
+| Design system                 | `.agents/summary/design-system.md`                |

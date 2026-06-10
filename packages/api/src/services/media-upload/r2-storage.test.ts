@@ -7,10 +7,12 @@ import { getStorageConfig } from '../storage/storage';
 vi.mock('@aws-sdk/client-s3', () => {
   const mockSend = vi.fn().mockResolvedValue({});
   return {
-    S3Client: vi.fn().mockImplementation(() => ({
-      send: mockSend,
-    })),
-    PutObjectCommand: vi.fn().mockImplementation((input) => ({ input })),
+    S3Client: vi.fn().mockImplementation(function() {
+      return { send: mockSend };
+    }),
+    PutObjectCommand: vi.fn().mockImplementation(function(input) {
+      return { input };
+    }),
   };
 });
 
@@ -74,7 +76,11 @@ describe('R2CloudStorage', () => {
 describe('MockCloudStorage', () => {
   it('should return simulated mock URL', async () => {
     const storage = new MockCloudStorage();
-    const result = await storage.upload(Buffer.from(''), 'tenant-1/event-2/media/photo.jpg', 'image/jpeg');
+    const result = await storage.upload(
+      Buffer.from(''),
+      'tenant-1/event-2/media/photo.jpg',
+      'image/jpeg'
+    );
     expect(result).toBe('/uploads/mock-tenant-1/event-2/media/photo.jpg');
   });
 });

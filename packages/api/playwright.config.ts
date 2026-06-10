@@ -15,7 +15,7 @@ export default defineConfig({
   workers: 1,
   reporter: [
     ['json', { outputFile: 'test-results/results.json' }],
-    ['html', { open: 'never' }]
+    ['html', { open: 'never' }],
   ],
   use: {
     baseURL: 'http://localhost:4005',

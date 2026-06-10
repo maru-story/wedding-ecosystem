@@ -19,10 +19,7 @@ import { scannerRoutes } from './routes/scanner';
 import { messageRoutes } from './routes/messages';
 import { healthRoutes } from './routes/health/health';
 import { adminRoutes } from './routes/admin';
-import {
-  createCORSMiddleware,
-  createDefaultCORSConfig,
-} from './middleware';
+import { createCORSMiddleware, createDefaultCORSConfig } from './middleware';
 import {
   auditLogger,
   responseCache,
@@ -170,10 +167,12 @@ async function start() {
       },
     });
 
-    realtime.io.use(createWsAuthMiddleware({
-      jwtSecret: JWT_SECRET,
-      eventAuthRepository,
-    }));
+    realtime.io.use(
+      createWsAuthMiddleware({
+        jwtSecret: JWT_SECRET,
+        eventAuthRepository,
+      })
+    );
 
     realtime.io.on('connection', (socket) => {
       registerRoomAuthorization(socket, eventAuthRepository);

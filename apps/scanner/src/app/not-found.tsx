@@ -5,14 +5,16 @@ import Link from 'next/link';
  */
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4">
+    <div className="bg-cream flex min-h-screen flex-col items-center justify-center px-4">
       <div className="text-center">
-        <h1 className="text-5xl font-bold text-gray-300">404</h1>
-        <h2 className="mt-4 text-lg font-semibold text-gray-900">Halaman Tidak Ditemukan</h2>
-        <p className="mt-2 text-sm text-gray-500">Halaman yang Anda cari tidak tersedia.</p>
+        <h1 className="font-heading text-charcoal/30 text-5xl font-bold">404</h1>
+        <h2 className="font-heading text-charcoal mt-4 text-lg font-bold">
+          Halaman Tidak Ditemukan
+        </h2>
+        <p className="text-charcoal/60 mt-2 text-sm">Halaman yang Anda cari tidak tersedia.</p>
         <Link
           href="/"
-          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
+          className="bg-sage hover:bg-sage/90 mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-white transition-colors"
         >
           <svg
             className="h-4 w-4"

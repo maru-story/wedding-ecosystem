@@ -7,3 +7,4 @@ export * from './validation';
 export * from './errors';
 export * from './responses';
 export * from './auth';
+export * from './admin';

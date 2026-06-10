@@ -16,12 +16,12 @@
 
 ### ⚠️ Minor Inconsistencies Found
 
-| Location | Issue | Resolution |
-|----------|-------|------------|
+| Location                                    | Issue                                                                 | Resolution                                             |
+| ------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------ |
 | `codebase_info.md` vs actual `package.json` | codebase_info lists Motion 12.17.0 (from steering), actual is 12.38.0 | Actual version in dependencies.md is correct (12.38.0) |
-| `codebase_info.md` vs actual | Lists react-query 5.89.0 (from steering), actual is 5.100.10 | dependencies.md has correct version |
-| `codebase_info.md` vs actual | Lists Fastify 5.3.2 (from steering), actual is 5.8.5 | dependencies.md has correct version |
-| `codebase_info.md` vs actual | Lists Next.js 16.2.0 (from steering), actual is 16.2.6 | dependencies.md has correct version |
+| `codebase_info.md` vs actual                | Lists react-query 5.89.0 (from steering), actual is 5.100.10          | dependencies.md has correct version                    |
+| `codebase_info.md` vs actual                | Lists Fastify 5.3.2 (from steering), actual is 5.8.5                  | dependencies.md has correct version                    |
+| `codebase_info.md` vs actual                | Lists Next.js 16.2.0 (from steering), actual is 16.2.6                | dependencies.md has correct version                    |
 
 **Note**: The `codebase_info.md` tech stack table uses versions from the steering docs (`.kiro/steering/tech.md`), while `dependencies.md` uses actual `package.json` values. The steering docs appear slightly outdated. **Recommendation**: Use `dependencies.md` as the source of truth for exact versions.
 
@@ -39,16 +39,16 @@
 
 ### ⚠️ Areas Lacking Detail
 
-| Area | Gap | Status | Recommendation |
-|------|-----|--------|----------------|
-| ~~**Testing patterns**~~ | ~~No dedicated testing documentation~~ | ✅ Resolved | `testing.md` added with full mock strategies, property-based patterns, 2-level mocking guide |
-| ~~**Repository migration**~~ | ~~Only Guest and CheckIn domains have *.repository.ts files~~ | ✅ Resolved | All domains migrated to full Route → Service → Repository stack (July 2026) |
-| ~~**Theme system**~~ | ~~Theme presets and customization logic not detailed~~ | ✅ Deleted | Theme customization has been clean deleted from dashboard (May 2026) |
-| **Media upload pipeline** | Virus scanning and R2 upload flow not in workflows | Low | Add workflow diagram for media upload |
-| **Secret rotation** | `config/secret-rotation/` exists but not documented in workflows | Low | Document rotation schedule and grace period logic |
-| **Monitoring/Alerting** | `docs/monitoring/alert-rules.md` exists but not referenced | Low | Cross-reference monitoring docs |
-| **Cloudflare Workers** | CDN cache worker, security headers worker exist in `docs/` | Low | Document as part of infrastructure |
-| **Environment-specific behavior** | Redis graceful degradation not detailed | Low | Document fallback behavior |
+| Area                              | Gap                                                              | Status      | Recommendation                                                                               |
+| --------------------------------- | ---------------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------- |
+| ~~**Testing patterns**~~          | ~~No dedicated testing documentation~~                           | ✅ Resolved | `testing.md` added with full mock strategies, property-based patterns, 2-level mocking guide |
+| ~~**Repository migration**~~      | ~~Only Guest and CheckIn domains have \*.repository.ts files~~   | ✅ Resolved | All domains migrated to full Route → Service → Repository stack (July 2026)                  |
+| ~~**Theme system**~~              | ~~Theme presets and customization logic not detailed~~           | ✅ Deleted  | Theme customization has been clean deleted from dashboard (May 2026)                         |
+| **Media upload pipeline**         | Virus scanning and R2 upload flow not in workflows               | Low         | Add workflow diagram for media upload                                                        |
+| **Secret rotation**               | `config/secret-rotation/` exists but not documented in workflows | Low         | Document rotation schedule and grace period logic                                            |
+| **Monitoring/Alerting**           | `docs/monitoring/alert-rules.md` exists but not referenced       | Low         | Cross-reference monitoring docs                                                              |
+| **Cloudflare Workers**            | CDN cache worker, security headers worker exist in `docs/`       | Low         | Document as part of infrastructure                                                           |
+| **Environment-specific behavior** | Redis graceful degradation not detailed                          | Low         | Document fallback behavior                                                                   |
 
 ### 🔍 Language Support Gaps
 

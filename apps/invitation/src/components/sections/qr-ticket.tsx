@@ -19,24 +19,24 @@ export function QrTicket({ guest }: QrTicketProps) {
     if (!svg) return;
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement('canvas');
-    
+
     // Use high resolution for clear prints/scans
     canvas.width = 512;
     canvas.height = 512;
-    
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
+
     // Fill background with white to guarantee scannability
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     const img = new Image();
     img.onload = () => {
       // Draw QR code centered with margin
       const margin = 32;
       ctx.drawImage(img, margin, margin, canvas.width - margin * 2, canvas.height - margin * 2);
-      
+
       const pngFile = canvas.toDataURL('image/png');
       const downloadLink = document.createElement('a');
       downloadLink.download = `QR_Tiket_${guest.name.replace(/\s+/g, '_')}.png`;
@@ -51,7 +51,7 @@ export function QrTicket({ guest }: QrTicketProps) {
       {/* Floating QR Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-6 md:left-[calc(50%-13rem)] z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary)] text-white shadow-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+        className="fixed bottom-6 left-6 z-40 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-[var(--color-primary)] text-white shadow-lg transition-transform hover:scale-105 active:scale-95 md:left-[calc(50%-13rem)]"
         aria-label="Buka Tiket QR"
         title="Tiket QR"
       >
@@ -96,26 +96,24 @@ export function QrTicket({ guest }: QrTicketProps) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl text-center border border-gray-100 flex flex-col items-center"
+              className="relative z-10 flex w-full max-w-sm flex-col items-center rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-2xl"
             >
-              <h3 className="font-heading text-lg font-bold text-gray-800">
-                Tiket Masuk Anda
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1 mb-5">
+              <h3 className="font-heading text-lg font-bold text-gray-800">Tiket Masuk Anda</h3>
+              <p className="text-muted-foreground mt-1 mb-5 text-xs">
                 Tunjukkan QR Code ini kepada petugas check-in di venue
               </p>
 
               {/* Guest Card Info */}
-              <div className="w-full bg-gray-50 rounded-xl p-3 border border-gray-100 flex flex-col items-center mb-6">
+              <div className="mb-6 flex w-full flex-col items-center rounded-xl border border-gray-100 bg-gray-50 p-3">
                 <p className="text-[10px] font-semibold tracking-wider text-gray-400 uppercase">
                   Nama Tamu
                 </p>
-                <p className="font-heading font-bold text-gray-800 text-lg mt-0.5 mb-4 truncate w-full px-2">
+                <p className="font-heading mt-0.5 mb-4 w-full truncate px-2 text-lg font-bold text-gray-800">
                   {guest.name}
                 </p>
 
                 {/* QR Code Wrapper */}
-                <div className="bg-white p-3 rounded-md shadow-sm border border-gray-100 flex items-center justify-center">
+                <div className="flex items-center justify-center rounded-md border border-gray-100 bg-white p-3 shadow-sm">
                   <QRCode
                     id="qr-ticket-svg"
                     value={guest.qr_payload}
@@ -129,7 +127,7 @@ export function QrTicket({ guest }: QrTicketProps) {
               <div className="w-full space-y-2">
                 <button
                   onClick={downloadQRCode}
-                  className="w-full rounded-full bg-[var(--color-primary)] px-6 py-3 text-xs font-semibold uppercase tracking-wider text-white shadow-md transition-[opacity,transform] hover:opacity-95 active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-6 py-3 text-xs font-semibold tracking-wider text-white uppercase shadow-md transition-[opacity,transform] hover:opacity-95 active:scale-98"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -150,7 +148,7 @@ export function QrTicket({ guest }: QrTicketProps) {
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="w-full rounded-full bg-gray-100 hover:bg-gray-200 px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-gray-600 transition-colors cursor-pointer"
+                  className="w-full cursor-pointer rounded-full bg-gray-100 px-6 py-2.5 text-xs font-semibold tracking-wider text-gray-600 uppercase transition-colors hover:bg-gray-200"
                 >
                   Tutup
                 </button>

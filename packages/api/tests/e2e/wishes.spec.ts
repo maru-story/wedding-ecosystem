@@ -1,7 +1,10 @@
 import { test, expect } from './fixtures/test-fixtures';
 
 test.describe('Wishes API E2E', () => {
-  test('should support full Wish visibility toggle and delete lifecycle with admin access', async ({ tenantA, tenantB }) => {
+  test('should support full Wish visibility toggle and delete lifecycle with admin access', async ({
+    tenantA,
+    tenantB,
+  }) => {
     // 1. Create a new event for Tenant A to ensure sections and data are clean
     const eventSlug = `wishes-e2e-${Date.now()}`;
     const createEventResp = await tenantA.request.post('/events', {

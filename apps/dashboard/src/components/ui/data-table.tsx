@@ -1,12 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {
-  Table,
-  TableBody,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -64,8 +59,8 @@ export function DataTable({
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-muted-foreground">{loadingText}</p>
+          <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
+          <p className="text-muted-foreground mt-3 text-sm">{loadingText}</p>
         </div>
       </div>
     );
@@ -75,12 +70,12 @@ export function DataTable({
     if (emptyState) return <>{emptyState}</>;
 
     return (
-      <div className="rounded-xl border border-border/40 bg-card p-12 text-center shadow-sm">
+      <div className="border-border/40 bg-card rounded-xl border p-12 text-center shadow-sm">
         {emptyIcon ? (
           emptyIcon
         ) : (
           <svg
-            className="mx-auto h-12 w-12 text-muted-foreground/60"
+            className="text-muted-foreground/60 mx-auto h-12 w-12"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -93,8 +88,8 @@ export function DataTable({
             />
           </svg>
         )}
-        <p className="mt-4 text-foreground font-medium">{emptyTitle}</p>
-        <p className="mt-1 text-sm text-muted-foreground">{emptyDescription}</p>
+        <p className="text-foreground mt-4 font-medium">{emptyTitle}</p>
+        <p className="text-muted-foreground mt-1 text-sm">{emptyDescription}</p>
       </div>
     );
   }
@@ -104,9 +99,9 @@ export function DataTable({
     const to = Math.min(p.page * p.per_page, p.total);
     return (
       <>
-        Menampilkan <span className="font-medium text-foreground">{from}</span>–
-        <span className="font-medium text-foreground">{to}</span> dari{' '}
-        <span className="font-medium text-foreground">{p.total}</span> data
+        Menampilkan <span className="text-foreground font-medium">{from}</span>–
+        <span className="text-foreground font-medium">{to}</span> dari{' '}
+        <span className="text-foreground font-medium">{p.total}</span> data
       </>
     );
   };
@@ -114,9 +109,9 @@ export function DataTable({
   return (
     <div className="space-y-4">
       {selectedCount > 0 && bulkActions && (
-        <div className="flex items-center justify-between rounded-lg border border-border/40 bg-muted/40 px-4 py-3 shadow-xs animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="border-border/40 bg-muted/40 animate-in fade-in slide-in-from-top-2 flex items-center justify-between rounded-lg border px-4 py-3 shadow-xs duration-200">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-foreground">
+            <span className="text-foreground text-sm font-medium">
               {bulkActionsLabel ? bulkActionsLabel : `${selectedCount} terpilih`}
             </span>
           </div>
@@ -124,7 +119,7 @@ export function DataTable({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-border/40 bg-card shadow-sm">
+      <div className="border-border/40 bg-card overflow-hidden rounded-xl border shadow-sm">
         <Table>
           <TableHeader className="bg-muted/40">
             <TableRow>{header}</TableRow>
@@ -134,16 +129,16 @@ export function DataTable({
       </div>
 
       {pagination && (pagination.total_pages > 1 || onPerPageChange) && (
-        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-1">
+        <div className="mt-4 flex flex-col gap-4 px-1 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             {onPerPageChange && (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">Tampilkan:</span>
+                <span className="text-muted-foreground text-sm whitespace-nowrap">Tampilkan:</span>
                 <Select
                   value={pagination.per_page.toString()}
                   onValueChange={(val) => onPerPageChange(parseInt(val, 10))}
                 >
-                  <SelectTrigger className="h-8 w-[135px] bg-card border-border/60">
+                  <SelectTrigger className="bg-card border-border/60 h-8 w-[135px]">
                     <SelectValue placeholder={pagination.per_page.toString()} />
                   </SelectTrigger>
                   <SelectContent>
@@ -156,7 +151,7 @@ export function DataTable({
               </div>
             )}
             {pagination.total > 0 && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 {paginationText ? paginationText(pagination) : defaultPaginationText(pagination)}
               </p>
             )}
@@ -169,7 +164,7 @@ export function DataTable({
                 onClick={() => onPageChange(pagination.page - 1)}
                 disabled={pagination.page <= 1}
                 aria-label="Halaman sebelumnya"
-                className="h-8 hover:bg-accent border-border/60 hover:text-foreground"
+                className="hover:bg-accent border-border/60 hover:text-foreground h-8"
               >
                 ← Sebelumnya
               </Button>
@@ -179,7 +174,7 @@ export function DataTable({
                 onClick={() => onPageChange(pagination.page + 1)}
                 disabled={pagination.page >= pagination.total_pages}
                 aria-label="Halaman berikutnya"
-                className="h-8 hover:bg-accent border-border/60 hover:text-foreground"
+                className="hover:bg-accent border-border/60 hover:text-foreground h-8"
               >
                 Selanjutnya →
               </Button>

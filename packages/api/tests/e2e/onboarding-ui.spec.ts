@@ -58,46 +58,61 @@ test.describe('Onboarding UI E2E', () => {
 
   test.afterEach(async () => {
     // Cleanup databases
-    await prisma.eventConfig.deleteMany({
-      where: { event: { tenant_id: tenantId } }
-    }).catch(() => {});
+    await prisma.eventConfig
+      .deleteMany({
+        where: { event: { tenant_id: tenantId } },
+      })
+      .catch(() => {});
 
-    await prisma.invitationSection.deleteMany({
-      where: { event: { tenant_id: tenantId } }
-    }).catch(() => {});
+    await prisma.invitationSection
+      .deleteMany({
+        where: { event: { tenant_id: tenantId } },
+      })
+      .catch(() => {});
 
-    await prisma.event.deleteMany({
-      where: { tenant_id: tenantId }
-    }).catch(() => {});
+    await prisma.event
+      .deleteMany({
+        where: { tenant_id: tenantId },
+      })
+      .catch(() => {});
 
     await prisma.user.delete({ where: { id: userId } }).catch(() => {});
     await prisma.tenant.delete({ where: { id: tenantId } }).catch(() => {});
   });
 
-  test('should redirect new tenant to onboarding, complete it, and transition to dashboard', async ({ page }) => {
+  test('should redirect new tenant to onboarding, complete it, and transition to dashboard', async ({
+    page,
+  }) => {
     // Add logging
-    page.on('console', msg => console.log(`[BROWSER CONSOLE] ${msg.type()}: ${msg.text()}`));
-    page.on('requestfailed', req => console.log(`[BROWSER REQ FAILED] ${req.method()} ${req.url()}: ${req.failure()?.errorText}`));
-    page.on('requestfinished', req => console.log(`[BROWSER REQ SUCCESS] ${req.method()} ${req.url()}`));
+    page.on('console', (msg) => console.log(`[BROWSER CONSOLE] ${msg.type()}: ${msg.text()}`));
+    page.on('requestfailed', (req) =>
+      console.log(`[BROWSER REQ FAILED] ${req.method()} ${req.url()}: ${req.failure()?.errorText}`)
+    );
+    page.on('requestfinished', (req) =>
+      console.log(`[BROWSER REQ SUCCESS] ${req.method()} ${req.url()}`)
+    );
 
     // Navigate to local dashboard login page context first to allow setting localStorage
     await page.goto('http://localhost:3000/login');
 
     // Inject the generated tenant JWT token into localStorage
-    await page.evaluate(({ token, userId, tenantId, email }) => {
-      localStorage.setItem('wedding_access_token', token);
-      localStorage.setItem('wedding_refresh_token', 'dummy-refresh-token');
-      localStorage.setItem('wedding_token_expiry', (Date.now() + 3600000).toString());
+    await page.evaluate(
+      ({ token, userId, tenantId, email }) => {
+        localStorage.setItem('wedding_access_token', token);
+        localStorage.setItem('wedding_refresh_token', 'dummy-refresh-token');
+        localStorage.setItem('wedding_token_expiry', (Date.now() + 3600000).toString());
 
-      const user = {
-        id: userId,
-        tenant_id: tenantId,
-        email: email,
-        name: 'New Client Owner',
-        role: 'client'
-      };
-      localStorage.setItem('wedding_user', JSON.stringify(user));
-    }, { token, userId, tenantId, email: userEmail });
+        const user = {
+          id: userId,
+          tenant_id: tenantId,
+          email: email,
+          name: 'New Client Owner',
+          role: 'client',
+        };
+        localStorage.setItem('wedding_user', JSON.stringify(user));
+      },
+      { token, userId, tenantId, email: userEmail }
+    );
 
     // Navigate to homepage "/" -> should redirect to "/onboarding" because useEvent returns null (404)
     await page.goto('http://localhost:3000/');
@@ -114,7 +129,10 @@ test.describe('Onboarding UI E2E', () => {
     await page.fill('input[name="slug"]', eventSlug);
     await page.fill('input[name="event_date"]', '2026-10-12');
     await page.fill('input[name="venue_name"]', 'Gedung Kesenian Jakarta');
-    await page.fill('textarea[name="venue_address"]', 'Jl. Gedung Kesenian No. 1, Sawah Besar, Jakarta Pusat');
+    await page.fill(
+      'textarea[name="venue_address"]',
+      'Jl. Gedung Kesenian No. 1, Sawah Besar, Jakarta Pusat'
+    );
 
     // Submit form
     await page.click('button[type="submit"]:has-text("Selesaikan Pendaftaran")');

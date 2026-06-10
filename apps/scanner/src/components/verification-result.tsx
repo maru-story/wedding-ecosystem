@@ -43,10 +43,7 @@ function formatTimestamp(isoString?: string): string {
   }
 }
 
-export function VerificationResultDisplay({
-  result,
-  onDismiss,
-}: VerificationResultDisplayProps) {
+export function VerificationResultDisplay({ result, onDismiss }: VerificationResultDisplayProps) {
   // Auto-dismiss after 5 seconds
   useEffect(() => {
     const timer = setTimeout(onDismiss, 5000);
@@ -89,9 +86,7 @@ export function VerificationResultDisplay({
         />
       )}
 
-      {result.status === 'invalid' && (
-        <InvalidContent errorMessage={result.errorMessage} />
-      )}
+      {result.status === 'invalid' && <InvalidContent errorMessage={result.errorMessage} />}
 
       {result.status === 'duplicate' && (
         <DuplicateContent
@@ -101,9 +96,7 @@ export function VerificationResultDisplay({
       )}
 
       {/* Dismiss hint */}
-      <p className="mt-8 text-sm text-white/70">
-        Ketuk layar atau tunggu 5 detik untuk kembali
-      </p>
+      <p className="mt-8 text-sm text-white/70">Ketuk layar atau tunggu 5 detik untuk kembali</p>
     </div>
   );
 }
@@ -119,12 +112,10 @@ function ValidContent({
 }) {
   return (
     <div className="text-center text-white">
-      <h2 className="text-lg font-medium uppercase tracking-wide">
-        Check-in Berhasil
-      </h2>
-      <p className="mt-4 text-4xl font-bold">{guestName || 'Tamu'}</p>
+      <h2 className="text-lg font-medium tracking-wide uppercase">Check-in Berhasil</h2>
+      <p className="font-heading mt-4 text-4xl font-bold">{guestName || 'Tamu'}</p>
       {scanCount && scanCount > 1 && (
-        <p className="mt-3 text-xl font-semibold bg-emerald-700/60 px-4 py-1 rounded-full inline-block border border-white/20 shadow-sm animate-pulse">
+        <p className="mt-3 inline-block animate-pulse rounded-full border border-white/20 bg-white/20 px-4 py-1 text-xl font-semibold shadow-sm">
           Scan ke-{scanCount}
         </p>
       )}
@@ -140,12 +131,8 @@ function ValidContent({
 function InvalidContent({ errorMessage }: { errorMessage?: string }) {
   return (
     <div className="text-center text-white">
-      <h2 className="text-lg font-medium uppercase tracking-wide">
-        QR Tidak Valid
-      </h2>
-      <p className="mt-4 text-xl">
-        {errorMessage || 'QR code tidak dapat diverifikasi'}
-      </p>
+      <h2 className="text-lg font-medium tracking-wide uppercase">QR Tidak Valid</h2>
+      <p className="mt-4 text-xl">{errorMessage || 'QR code tidak dapat diverifikasi'}</p>
     </div>
   );
 }
@@ -159,10 +146,8 @@ function DuplicateContent({
 }) {
   return (
     <div className="text-center text-white">
-      <h2 className="text-lg font-medium uppercase tracking-wide">
-        Sudah Check-in
-      </h2>
-      <p className="mt-4 text-3xl font-bold">{guestName || 'Tamu'}</p>
+      <h2 className="text-lg font-medium tracking-wide uppercase">Sudah Check-in</h2>
+      <p className="font-heading mt-4 text-3xl font-bold">{guestName || 'Tamu'}</p>
       <p className="mt-3 text-base opacity-90">
         Check-in sebelumnya: {formatTimestamp(previousCheckInTime)}
       </p>
@@ -173,13 +158,13 @@ function DuplicateContent({
 function getBackgroundClass(status: string): string {
   switch (status) {
     case 'valid':
-      return 'bg-emerald-600';
+      return 'bg-success';
     case 'invalid':
-      return 'bg-red-600';
+      return 'bg-danger';
     case 'duplicate':
-      return 'bg-amber-500';
+      return 'bg-warning';
     default:
-      return 'bg-gray-800';
+      return 'bg-charcoal';
   }
 }
 

@@ -386,9 +386,7 @@ describe('PrismaGuestRepository', () => {
 
       await repo.searchGuestsByName('budi', 'event-001', 'tenant-001', 5);
 
-      expect(prisma.guest.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ take: 5 })
-      );
+      expect(prisma.guest.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 5 }));
     });
 
     it('should return empty array when no match found', async () => {

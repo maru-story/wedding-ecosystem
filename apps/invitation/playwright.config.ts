@@ -9,10 +9,7 @@ export default defineConfig({
   timeout: 30_000,
   retries: 1,
   fullyParallel: false, // Run sequentially to preserve screenshot order
-  reporter: [
-    ['html', { outputFolder: 'playwright-report', open: 'never' }],
-    ['line'],
-  ],
+  reporter: [['html', { outputFolder: 'playwright-report', open: 'never' }], ['line']],
   outputDir: 'test-results',
 
   use: {

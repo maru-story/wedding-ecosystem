@@ -29,9 +29,11 @@ test.describe('Invitation App — Smoke Tests', () => {
     await page.waitForLoadState('networkidle');
 
     // Loading bar should appear and disappear
-    await expect(page.locator('text=Memuat Undangan')).toBeVisible({ timeout: 5000 }).catch(() => {
-      // Loading might have already finished
-    });
+    await expect(page.locator('text=Memuat Undangan'))
+      .toBeVisible({ timeout: 5000 })
+      .catch(() => {
+        // Loading might have already finished
+      });
 
     // Cover should show couple names or "Undangan Pernikahan"
     await expect(page.locator('h1, [class*="heading"]').first()).toBeVisible({ timeout: 10000 });
@@ -216,7 +218,9 @@ test.describe('Invitation App — Smoke Tests', () => {
 
       // Fill the form
       await messages.locator('input[placeholder="Nama Anda"]').fill('Tamu Test Playwright');
-      await messages.locator('textarea').fill('Barakallahu fiikuma, semoga langgeng dan bahagia selalu!');
+      await messages
+        .locator('textarea')
+        .fill('Barakallahu fiikuma, semoga langgeng dan bahagia selalu!');
 
       await messages.getByText('Kirim Ucapan').click();
       await page.waitForTimeout(2000);
@@ -241,7 +245,9 @@ test.describe('Invitation App — Smoke Tests', () => {
         await copyBtn.click();
         await page.waitForTimeout(500);
         // Should show "Tersalin"
-        await expect(gift.getByText('Tersalin')).toBeVisible({ timeout: 2000 }).catch(() => {});
+        await expect(gift.getByText('Tersalin'))
+          .toBeVisible({ timeout: 2000 })
+          .catch(() => {});
       }
 
       await page.screenshot({ path: 'test-results/12-gift.png' });

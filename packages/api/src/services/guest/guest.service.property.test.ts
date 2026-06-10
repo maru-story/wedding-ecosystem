@@ -1,12 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { GuestGroup, GuestType, DeliveryStatus } from '@wedding/shared';
-import {
-  GuestService,
-  GuestRepository,
-  GuestRecord,
-  QRCodeRecord,
-} from './guest.service';
+import { GuestService, GuestRepository, GuestRecord, QRCodeRecord } from './guest.service';
 
 // --- Constants ---
 
@@ -151,7 +146,7 @@ describe('Property 4: QR Code Uniqueness', () => {
               name,
               group,
               type: GuestType.INVITED,
-              plus_one_count: 0
+              plus_one_count: 0,
             });
 
             // Should succeed
@@ -195,7 +190,7 @@ describe('Property 4: QR Code Uniqueness', () => {
               name: guestName,
               group,
               type: GuestType.INVITED,
-              plus_one_count: 0
+              plus_one_count: 0,
             });
 
             if ('qr_code' in result && result.qr_code) {
@@ -243,7 +238,7 @@ describe('Property 4: QR Code Uniqueness', () => {
               name: guest.name,
               group: guest.group,
               type: GuestType.INVITED,
-              plus_one_count: 0
+              plus_one_count: 0,
             });
 
             if ('qr_code' in result && result.qr_code) {

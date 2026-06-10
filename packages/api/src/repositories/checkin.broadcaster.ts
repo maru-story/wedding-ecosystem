@@ -6,7 +6,10 @@
  */
 
 import type { RealtimeServer } from '@wedding/realtime';
-import type { CheckInBroadcaster, CheckInBroadcastPayload } from '../services/checkin/checkin.service';
+import type {
+  CheckInBroadcaster,
+  CheckInBroadcastPayload,
+} from '../services/checkin/checkin.service';
 
 export class RealtimeCheckInBroadcaster implements CheckInBroadcaster {
   constructor(private readonly getRealtimeServer: () => RealtimeServer | null) {}

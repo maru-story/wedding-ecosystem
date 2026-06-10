@@ -147,9 +147,7 @@ describe('Property 3: Role-Based Data Access', () => {
    * but deny EVENT_MANAGEMENT and ADMIN_ONLY.
    */
   it('WO has restricted access in 2-role system — allowed and denied permissions are correct', () => {
-    const allowedPermissions: (keyof typeof PERMISSIONS)[] = [
-      'ALL_ROLES',
-    ];
+    const allowedPermissions: (keyof typeof PERMISSIONS)[] = ['ALL_ROLES'];
     const deniedPermissions: (keyof typeof PERMISSIONS)[] = [
       'DASHBOARD_ACCESS',
       'CMS_ACCESS',
@@ -194,9 +192,7 @@ describe('Property 3: Role-Based Data Access', () => {
    * ADMIN_ONLY but allowed GUEST_READ, SCANNER_ACCESS, CHECKIN_ACCESS, ALL_ROLES.
    */
   it('Scanner Operator has restricted access in 2-role system', () => {
-    const allowedPermissions: (keyof typeof PERMISSIONS)[] = [
-      'ALL_ROLES',
-    ];
+    const allowedPermissions: (keyof typeof PERMISSIONS)[] = ['ALL_ROLES'];
     const deniedPermissions: (keyof typeof PERMISSIONS)[] = [
       'DASHBOARD_ACCESS',
       'CMS_ACCESS',

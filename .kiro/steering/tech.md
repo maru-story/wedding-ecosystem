@@ -56,8 +56,8 @@ inclusion: always
 | typescript                   | 5.9.3    |
 | zod                          | 3.25.3   |
 | vitest                       | 3.2.4    |
-| @playwright/test             | 1.55.1    |
-| playwright                   | 1.55.1    |
+| @playwright/test             | 1.55.1   |
+| playwright                   | 1.55.1   |
 | fast-check                   | 4.8.0    |
 | fastify                      | 5.8.5    |
 | socket.io / socket.io-client | 4.8.3    |

@@ -1,7 +1,14 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
-import { type AuthUser, getStoredUser, isAuthenticated, logout, login as authLogin, updateStoredUser } from '@/lib/auth';
+import {
+  type AuthUser,
+  getStoredUser,
+  isAuthenticated,
+  logout,
+  login as authLogin,
+  updateStoredUser,
+} from '@/lib/auth';
 import { startAutoRefresh, stopAutoRefresh } from '@/lib/api';
 
 interface AuthContextValue {
@@ -71,4 +78,3 @@ export function useAuth(): AuthContextValue {
   }
   return context;
 }
-

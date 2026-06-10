@@ -39,25 +39,42 @@ export class PrismaAdminRepository implements AdminRepository {
         skip,
         take: perPage,
         orderBy: { created_at: 'desc' },
+        include: {
+          users: {
+            where: { role: 'client' },
+            select: {
+              username: true,
+              email: true,
+              name: true,
+            },
+            take: 1,
+          },
+        },
       }),
     ]);
 
     return {
-      data: tenants.map((tenant) => ({
-        id: tenant.id,
-        name: tenant.name,
-        slug: tenant.slug,
-        plan_type: tenant.plan_type as PlanType,
-        is_active: tenant.is_active,
-        created_at: tenant.created_at,
-      })),
+      data: tenants.map((tenant) => {
+        const primaryClient = tenant.users?.[0] || null;
+        return {
+          id: tenant.id,
+          name: tenant.name,
+          slug: tenant.slug,
+          plan_type: tenant.plan_type as PlanType,
+          is_active: tenant.is_active,
+          created_at: tenant.created_at,
+          client_username: primaryClient?.username ?? null,
+          client_email: primaryClient?.email ?? null,
+          client_name: primaryClient?.name ?? null,
+        };
+      }),
       total,
     };
   }
 
   async createTenantWithClient(
     tenantData: { name: string; slug: string; plan_type: PlanType },
-    clientUserData: { email: string; password_hash: string; name: string }
+    clientUserData: { email: string; username: string | null; password_hash: string; name: string }
   ): Promise<TenantRecord> {
     return this.prisma.$transaction(async (tx) => {
       // 1. Create the tenant
@@ -75,6 +92,7 @@ export class PrismaAdminRepository implements AdminRepository {
         data: {
           tenant_id: tenant.id,
           email: clientUserData.email,
+          username: clientUserData.username,
           password_hash: clientUserData.password_hash,
           role: 'client',
           name: clientUserData.name,
@@ -147,6 +165,7 @@ export class PrismaAdminRepository implements AdminRepository {
         tenant_id: user.tenant_id,
         tenant_name: user.tenant?.name ?? null,
         email: user.email,
+        username: user.username,
         role: user.role as UserRole,
         name: user.name,
         is_active: user.is_active,
@@ -187,6 +206,7 @@ export class PrismaAdminRepository implements AdminRepository {
         tenant_id: user.tenant_id,
         tenant_name: user.tenant?.name ?? null,
         email: user.email,
+        username: user.username,
         role: user.role as UserRole,
         name: user.name,
         is_active: user.is_active,
@@ -197,9 +217,12 @@ export class PrismaAdminRepository implements AdminRepository {
     }
   }
 
-  async createAdminUser(
-    userData: { email: string; password_hash: string; name: string; tenant_id: string }
-  ): Promise<UserRecord> {
+  async createAdminUser(userData: {
+    email: string;
+    password_hash: string;
+    name: string;
+    tenant_id: string;
+  }): Promise<UserRecord> {
     const user = await this.prisma.user.create({
       data: {
         email: userData.email,
@@ -223,6 +246,7 @@ export class PrismaAdminRepository implements AdminRepository {
       tenant_id: user.tenant_id,
       tenant_name: user.tenant?.name ?? null,
       email: user.email,
+      username: user.username,
       role: user.role as UserRole,
       name: user.name,
       is_active: user.is_active,
@@ -231,18 +255,86 @@ export class PrismaAdminRepository implements AdminRepository {
   }
 
   async getGlobalStats(): Promise<GlobalStats> {
-    const [totalTenants, totalUsers, activeScannerDevices, totalGuests] = await Promise.all([
+    const [
+      totalTenants,
+      totalUsers,
+      activeScannerDevices,
+      totalGuests,
+      totalEvents,
+      totalCheckins,
+      totalRsvps,
+      totalWishes,
+      plans,
+      statuses,
+      methods,
+      eventStatuses
+    ] = await Promise.all([
       this.prisma.tenant.count(),
       this.prisma.user.count(),
       this.prisma.scannerDevice.count({ where: { is_active: true } }),
       this.prisma.guest.count(),
+      this.prisma.event.count(),
+      this.prisma.checkIn.count(),
+      this.prisma.rSVP.count(),
+      this.prisma.message.count(),
+      this.prisma.tenant.groupBy({ by: ['plan_type'], _count: { id: true } }),
+      this.prisma.tenant.groupBy({ by: ['is_active'], _count: { id: true } }),
+      this.prisma.checkIn.groupBy({ by: ['method'], _count: { id: true } }),
+      this.prisma.event.groupBy({ by: ['status'], _count: { id: true } }),
     ]);
+
+    const tenants_by_plan = { basic: 0, premium: 0, enterprise: 0 };
+    for (const p of plans) {
+      const count = p._count?.id ?? 0;
+      if (p.plan_type === 'basic') tenants_by_plan.basic = count;
+      if (p.plan_type === 'premium') tenants_by_plan.premium = count;
+      if (p.plan_type === 'enterprise') tenants_by_plan.enterprise = count;
+    }
+
+    const tenant_status = { active: 0, inactive: 0 };
+    for (const s of statuses) {
+      const count = s._count?.id ?? 0;
+      if (s.is_active) {
+        tenant_status.active = count;
+      } else {
+        tenant_status.inactive = count;
+      }
+    }
+
+    const checkin_methods = { qr_scan: 0, manual: 0, go_show: 0 };
+    for (const m of methods) {
+      const count = m._count?.id ?? 0;
+      if (m.method === 'qr_scan') checkin_methods.qr_scan = count;
+      if (m.method === 'manual') checkin_methods.manual = count;
+      if (m.method === 'go_show') checkin_methods.go_show = count;
+    }
+
+    const event_status = { draft: 0, published: 0, completed: 0 };
+    for (const es of eventStatuses) {
+      const count = es._count?.id ?? 0;
+      if (es.status === 'draft') event_status.draft = count;
+      if (es.status === 'published') event_status.published = count;
+      if (es.status === 'completed') event_status.completed = count;
+    }
+
+    const avg_guests_per_event = totalEvents > 0 ? Number((totalGuests / totalEvents).toFixed(1)) : 0;
+    const avg_attendance_rate = totalGuests > 0 ? Number(((totalCheckins / totalGuests) * 100).toFixed(1)) : 0;
 
     return {
       total_tenants: totalTenants,
       total_users: totalUsers,
       active_scanner_devices: activeScannerDevices,
       total_guests: totalGuests,
+      total_events: totalEvents,
+      tenants_by_plan,
+      tenant_status,
+      total_checkins: totalCheckins,
+      total_rsvps: totalRsvps,
+      total_wishes: totalWishes,
+      avg_guests_per_event,
+      avg_attendance_rate,
+      checkin_methods,
+      event_status,
     };
   }
 
@@ -254,9 +346,28 @@ export class PrismaAdminRepository implements AdminRepository {
     return tenant !== null;
   }
 
+  async checkTenantHasAdmin(tenantId: string): Promise<boolean> {
+    const adminUser = await this.prisma.user.findFirst({
+      where: {
+        tenant_id: tenantId,
+        role: UserRole.ADMIN,
+      },
+      select: { id: true },
+    });
+    return adminUser !== null;
+  }
+
   async checkUserEmailExists(email: string): Promise<boolean> {
     const user = await this.prisma.user.findFirst({
       where: { email },
+      select: { id: true },
+    });
+    return user !== null;
+  }
+
+  async checkUsernameExists(username: string): Promise<boolean> {
+    const user = await this.prisma.user.findFirst({
+      where: { username },
       select: { id: true },
     });
     return user !== null;
@@ -358,5 +469,56 @@ export class PrismaAdminRepository implements AdminRepository {
     });
 
     return { data, total };
+  }
+
+  async deleteTenant(id: string): Promise<boolean> {
+    try {
+      await this.prisma.tenant.delete({
+        where: { id },
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async getUserById(id: string): Promise<UserRecord | null> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        include: {
+          tenant: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+      if (!user) return null;
+      return {
+        id: user.id,
+        tenant_id: user.tenant_id,
+        tenant_name: user.tenant?.name ?? null,
+        email: user.email,
+        username: user.username,
+        role: user.role as UserRole,
+        name: user.name,
+        is_active: user.is_active,
+        created_at: user.created_at,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    try {
+      await this.prisma.user.delete({
+        where: { id },
+      });
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

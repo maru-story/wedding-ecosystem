@@ -97,9 +97,7 @@ const arbValidVideoSize = fc.integer({ min: 1, max: MAX_FILE_SIZES.VIDEO });
 /** Generates a valid filename with the correct extension for a given MIME type */
 function arbFilenameForMime(mime: string): fc.Arbitrary<string> {
   const ext = MIME_TO_EXTENSION[mime] || '.bin';
-  return fc
-    .stringMatching(/^[a-zA-Z0-9_-]{1,20}$/)
-    .map((name) => `${name}${ext}`);
+  return fc.stringMatching(/^[a-zA-Z0-9_-]{1,20}$/).map((name) => `${name}${ext}`);
 }
 
 /** Generates a valid file input for an image */

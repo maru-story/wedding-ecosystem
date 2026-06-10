@@ -188,7 +188,11 @@ describe('CMSService', () => {
     it('should return all sections for an event', async () => {
       const mockSections = [
         createMockSection({ id: 'section-001', sort_order: 1, section_type: SectionType.COVER }),
-        createMockSection({ id: 'section-002', sort_order: 2, section_type: SectionType.BRIDE_GROOM }),
+        createMockSection({
+          id: 'section-002',
+          sort_order: 2,
+          section_type: SectionType.BRIDE_GROOM,
+        }),
       ];
 
       vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001' });
@@ -245,12 +249,10 @@ describe('CMSService', () => {
       vi.mocked(repository.findSectionById).mockResolvedValue(mockSection);
       vi.mocked(repository.updateSection).mockResolvedValue(updatedSection);
 
-      const result = await service.updateSectionContent(
-        'section-001',
-        'event-001',
-        'tenant-001',
-        { title: 'Updated Title', subtitle: 'New Subtitle' }
-      );
+      const result = await service.updateSectionContent('section-001', 'event-001', 'tenant-001', {
+        title: 'Updated Title',
+        subtitle: 'New Subtitle',
+      });
 
       expect(isCMSError(result)).toBe(false);
       if (!isCMSError(result)) {
@@ -270,12 +272,9 @@ describe('CMSService', () => {
       vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001' });
       vi.mocked(repository.findSectionById).mockResolvedValue(null);
 
-      const result = await service.updateSectionContent(
-        'nonexistent',
-        'event-001',
-        'tenant-001',
-        { title: 'Test' }
-      );
+      const result = await service.updateSectionContent('nonexistent', 'event-001', 'tenant-001', {
+        title: 'Test',
+      });
 
       expect(isCMSError(result)).toBe(true);
       if (isCMSError(result)) {
@@ -284,7 +283,12 @@ describe('CMSService', () => {
     });
 
     it('should store section-specific content per section type', async () => {
-      const coverContent = { title: 'Wedding', subtitle: 'Andi & Sari', background_image: 'url', opening_text: 'Bismillah' };
+      const coverContent = {
+        title: 'Wedding',
+        subtitle: 'Andi & Sari',
+        background_image: 'url',
+        opening_text: 'Bismillah',
+      };
       const mockSection = createMockSection({ section_type: SectionType.COVER });
       const updatedSection = createMockSection({ content: coverContent });
 
@@ -312,7 +316,8 @@ describe('CMSService', () => {
       const updatedSection = createMockSection({ is_active: true });
 
       vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001' });
-      vi.mocked(repository.findSectionById).mockResolvedValue(mockSection)
+      vi.mocked(repository.findSectionById)
+        .mockResolvedValue(mockSection)
         .mockResolvedValueOnce(mockSection) // first call for existence check
         .mockResolvedValueOnce(updatedSection); // second call after resequence
       vi.mocked(repository.updateSection).mockResolvedValue(updatedSection);
@@ -409,7 +414,11 @@ describe('CMSService', () => {
     it('should move section to new position and resequence (Req 5.9, 5.11)', async () => {
       const sections = [
         createMockSection({ id: 'section-001', sort_order: 1, section_type: SectionType.COVER }),
-        createMockSection({ id: 'section-002', sort_order: 2, section_type: SectionType.BRIDE_GROOM }),
+        createMockSection({
+          id: 'section-002',
+          sort_order: 2,
+          section_type: SectionType.BRIDE_GROOM,
+        }),
         createMockSection({ id: 'section-003', sort_order: 3, section_type: SectionType.STORY }),
       ];
 
@@ -421,12 +430,7 @@ describe('CMSService', () => {
       vi.mocked(repository.updateManySortOrders).mockResolvedValue(undefined);
 
       // Move section-003 (position 3) to position 1
-      const result = await service.updateSortOrder(
-        'section-003',
-        'event-001',
-        'tenant-001',
-        1
-      );
+      const result = await service.updateSortOrder('section-003', 'event-001', 'tenant-001', 1);
 
       expect(isCMSError(result)).toBe(false);
 
@@ -489,20 +493,13 @@ describe('CMSService', () => {
     });
 
     it('should return error if new position is less than 1', async () => {
-      const sections = [
-        createMockSection({ id: 'section-001', sort_order: 1 }),
-      ];
+      const sections = [createMockSection({ id: 'section-001', sort_order: 1 })];
 
       vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001' });
       vi.mocked(repository.findSectionById).mockResolvedValue(sections[0]);
       vi.mocked(repository.findSectionsByEvent).mockResolvedValue(sections);
 
-      const result = await service.updateSortOrder(
-        'section-001',
-        'event-001',
-        'tenant-001',
-        0
-      );
+      const result = await service.updateSortOrder('section-001', 'event-001', 'tenant-001', 0);
 
       expect(isCMSError(result)).toBe(true);
       if (isCMSError(result)) {
@@ -514,12 +511,7 @@ describe('CMSService', () => {
       vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001' });
       vi.mocked(repository.findSectionById).mockResolvedValue(null);
 
-      const result = await service.updateSortOrder(
-        'nonexistent',
-        'event-001',
-        'tenant-001',
-        1
-      );
+      const result = await service.updateSortOrder('nonexistent', 'event-001', 'tenant-001', 1);
 
       expect(isCMSError(result)).toBe(true);
       if (isCMSError(result)) {
@@ -540,10 +532,7 @@ describe('CMSService', () => {
       vi.mocked(repository.findSectionById).mockResolvedValue(sections[1]); // deleting section-002
       vi.mocked(repository.deleteSection).mockResolvedValue(true);
       // After deletion, only section-001 and section-003 remain
-      vi.mocked(repository.findSectionsByEvent).mockResolvedValue([
-        sections[0],
-        sections[2],
-      ]);
+      vi.mocked(repository.findSectionsByEvent).mockResolvedValue([sections[0], sections[2]]);
       vi.mocked(repository.updateManySortOrders).mockResolvedValue(undefined);
 
       const result = await service.deleteSection('section-002', 'event-001', 'tenant-001');
@@ -640,9 +629,7 @@ describe('CMSService', () => {
 
   describe('isCMSError type guard', () => {
     it('should return true for error objects', () => {
-      expect(
-        isCMSError({ code: ErrorCode.SECTION_NOT_FOUND, message: 'Not found' })
-      ).toBe(true);
+      expect(isCMSError({ code: ErrorCode.SECTION_NOT_FOUND, message: 'Not found' })).toBe(true);
     });
 
     it('should return false for section records', () => {

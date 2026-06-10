@@ -43,9 +43,7 @@ class MockAuthRepository implements AuthRepository {
   refreshTokens: Map<string, RefreshTokenRecord> = new Map();
 
   async findUserByEmail(tenantId: string, email: string): Promise<UserRecord | null> {
-    return (
-      this.users.find((u) => u.tenant_id === tenantId && u.email === email) ?? null
-    );
+    return this.users.find((u) => u.tenant_id === tenantId && u.email === email) ?? null;
   }
 
   async findUserById(userId: string): Promise<UserRecord | null> {
@@ -483,11 +481,9 @@ describe('AuthService', () => {
 
     it('should reject expired refresh token (Req 2.10)', async () => {
       // Create an expired token
-      const expiredToken = jwt.sign(
-        { sub: 'user-001', jti: 'token-001' },
-        TEST_REFRESH_SECRET,
-        { expiresIn: '0s' }
-      );
+      const expiredToken = jwt.sign({ sub: 'user-001', jti: 'token-001' }, TEST_REFRESH_SECRET, {
+        expiresIn: '0s',
+      });
 
       // Wait a tiny bit for the token to expire
       await new Promise((resolve) => setTimeout(resolve, 10));

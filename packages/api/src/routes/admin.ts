@@ -19,7 +19,7 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
   // Enforce authentication & global admin role
   app.addHook('onRequest', async (request, reply) => {
     await app.authenticate(request, reply);
-    
+
     if (request.user?.role !== UserRole.ADMIN) {
       return reply.status(403).send({
         success: false,
@@ -61,14 +61,46 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
 
   // POST /admin/tenants
   app.post('/tenants', async (request, reply) => {
-    const bodySchema = z.object({
-      name: z.string().min(1, 'Nama tenant tidak boleh kosong'),
-      slug: z.string().min(1, 'Slug tenant tidak boleh kosong').regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung'),
-      plan_type: z.nativeEnum(PlanType),
-      client_email: z.string().email('Format email tidak valid'),
-      client_name: z.string().min(1, 'Nama client tidak boleh kosong'),
-      client_password: z.string().min(8, 'Password minimal 8 karakter'),
-    });
+    const bodySchema = z
+      .object({
+        name: z.string().min(1, 'Nama tenant tidak boleh kosong'),
+        slug: z
+          .string()
+          .min(1, 'Slug tenant tidak boleh kosong')
+          .regex(
+            /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+            'Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung'
+          ),
+        plan_type: z.nativeEnum(PlanType),
+        client_email: z
+          .string()
+          .email('Format email tidak valid')
+          .optional()
+          .nullable()
+          .or(z.literal('')),
+        client_username: z
+          .string()
+          .max(100, 'Username maksimal 100 karakter')
+          .refine((val) => !val || (/^[a-zA-Z0-9_.-]+$/.test(val) && val.length >= 3), {
+            message:
+              'Username minimal 3 karakter dan hanya boleh berisi huruf, angka, titik, underscore, atau dash',
+          })
+          .optional()
+          .nullable(),
+        client_name: z.string().min(1, 'Nama client tidak boleh kosong'),
+        client_password: z.string().min(8, 'Password minimal 8 karakter'),
+      })
+      .refine(
+        (data) => {
+          const email = data.client_email?.trim();
+          const username = data.client_username?.trim();
+          return !!email || !!username;
+        },
+        {
+          message: 'Salah satu dari Email atau Username harus diisi',
+          path: ['client_username'],
+        }
+      );
 
     const body = validate(request.body, bodySchema, reply);
     if (!body) return reply;
@@ -80,7 +112,8 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
         plan_type: body.plan_type,
       },
       {
-        email: body.client_email,
+        email: body.client_email || null,
+        username: body.client_username || null,
         name: body.client_name,
         passwordPlain: body.client_password,
       }
@@ -132,6 +165,44 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
     return reply.send({
       success: true,
       data: result,
+    });
+  });
+
+  // DELETE /admin/tenants/:id
+  app.delete('/tenants/:id', async (request, reply) => {
+    const paramsSchema = z.object({
+      id: z.string().uuid({ message: 'ID tenant tidak valid' }),
+    });
+
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return reply;
+
+    // Prevent deleting the tenant they currently belong to
+    if (params.id === request.user?.tenant_id) {
+      return reply.status(400).send({
+        success: false,
+        error: {
+          code: ErrorCode.VALIDATION_FAILED,
+          message: 'Anda tidak dapat menghapus tenant tempat akun Anda terdaftar',
+        },
+      });
+    }
+
+    const result = await adminService.deleteTenant(params.id);
+    if ('code' in result) {
+      const statusCode = result.code === ErrorCode.NOT_FOUND ? 404 : 400;
+      return reply.status(statusCode).send({
+        success: false,
+        error: {
+          code: result.code,
+          message: result.message,
+        },
+      });
+    }
+
+    return reply.send({
+      success: true,
+      message: 'Tenant berhasil dihapus',
     });
   });
 
@@ -268,6 +339,44 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
     return reply.send({
       success: true,
       data: result,
+    });
+  });
+
+  // DELETE /admin/users/:id
+  app.delete('/users/:id', async (request, reply) => {
+    const paramsSchema = z.object({
+      id: z.string().uuid({ message: 'ID user tidak valid' }),
+    });
+
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return reply;
+
+    // Prevent admin from deleting themselves
+    if (params.id === request.user?.id) {
+      return reply.status(400).send({
+        success: false,
+        error: {
+          code: ErrorCode.VALIDATION_FAILED,
+          message: 'Anda tidak dapat menghapus akun Anda sendiri',
+        },
+      });
+    }
+
+    const result = await adminService.deleteUser(params.id);
+    if ('code' in result) {
+      const statusCode = result.code === ErrorCode.NOT_FOUND ? 404 : 400;
+      return reply.status(statusCode).send({
+        success: false,
+        error: {
+          code: result.code,
+          message: result.message,
+        },
+      });
+    }
+
+    return reply.send({
+      success: true,
+      message: 'Pengguna berhasil dihapus',
     });
   });
 

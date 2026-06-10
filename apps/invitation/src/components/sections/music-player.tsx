@@ -23,12 +23,15 @@ export function MusicPlayer({ audioUrl, autoplay, title }: MusicPlayerProps) {
 
     if (autoplay) {
       // Attempt autoplay - browsers may block this without user interaction
-      audio.play().then(() => {
-        setIsPlaying(true);
-      }).catch(() => {
-        // Autoplay blocked by browser, user needs to interact
-        setIsPlaying(false);
-      });
+      audio
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch(() => {
+          // Autoplay blocked by browser, user needs to interact
+          setIsPlaying(false);
+        });
     }
   }, [autoplay]);
 
@@ -40,11 +43,14 @@ export function MusicPlayer({ audioUrl, autoplay, title }: MusicPlayerProps) {
       audio.pause();
       setIsPlaying(false);
     } else {
-      audio.play().then(() => {
-        setIsPlaying(true);
-      }).catch(() => {
-        setIsPlaying(false);
-      });
+      audio
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch(() => {
+          setIsPlaying(false);
+        });
     }
   }, [isPlaying]);
 
@@ -56,7 +62,7 @@ export function MusicPlayer({ audioUrl, autoplay, title }: MusicPlayerProps) {
 
       <button
         onClick={togglePlay}
-        className="fixed bottom-6 right-6 md:right-[calc(50%-13rem)] z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary)] text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+        className="fixed right-6 bottom-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary)] text-white shadow-lg transition-transform hover:scale-105 active:scale-95 md:right-[calc(50%-13rem)]"
         aria-label={isPlaying ? 'Pause musik' : 'Play musik'}
         title={title || 'Musik'}
       >

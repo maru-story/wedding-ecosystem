@@ -106,10 +106,7 @@ async function verifyOnline(
  * Offline verification: check against local IndexedDB cache.
  * Also queues the check-in for later sync.
  */
-async function verifyOffline(
-  qrPayload: string,
-  eventId: string
-): Promise<VerificationResult> {
+async function verifyOffline(qrPayload: string, eventId: string): Promise<VerificationResult> {
   try {
     const cachedGuest = await getCachedGuestByQR(qrPayload);
 

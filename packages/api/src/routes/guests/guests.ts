@@ -12,7 +12,11 @@ import { PrismaClient } from '@wedding/db';
 import { z } from 'zod';
 import { GuestService, isGuestError } from '../../services/guest/guest.service';
 import { bulkImportGuests } from '../../services/guest-import/guest-import.service';
-import { PrismaGuestRepository, getCurrentTenantEvent, replyEventNotFound } from '../../repositories';
+import {
+  PrismaGuestRepository,
+  getCurrentTenantEvent,
+  replyEventNotFound,
+} from '../../repositories';
 import {
   createGuestSchema,
   updateGuestSchema,
@@ -33,7 +37,7 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
 
   // --- Wire up GuestService with its Prisma adapter ---
   const repository = new PrismaGuestRepository(prisma);
-  const encryptionKey = process.env.AES_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
+  const encryptionKey = process.env.ENCRYPTION_KEY_AES256 || process.env.AES_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
   const guestService = new GuestService({ repository, encryptionKey });
 
   // Auth hook for all guest routes
@@ -42,20 +46,27 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
   // GET /guests
   app.get('/', async (request, reply) => {
     const user = request.user!;
-    const query = validate(request.query, paginationSchema.extend({
-      group: z.nativeEnum(GuestGroup).optional(),
-      status: z.enum(['belum_rsvp', 'confirmed', 'declined', 'checked_in']).optional(),
-      q: z.string().optional(),
-      include: z.string().optional(),
-    }), reply);
-    
+    const query = validate(
+      request.query,
+      paginationSchema.extend({
+        group: z.nativeEnum(GuestGroup).optional(),
+        status: z.enum(['belum_rsvp', 'confirmed', 'declined', 'checked_in']).optional(),
+        q: z.string().optional(),
+        include: z.string().optional(),
+      }),
+      reply
+    );
+
     // Fallback if validation failed (reply already sent)
     if (!query) return reply;
 
     // Resolve the current event for this tenant
     const event = await getCurrentTenantEvent(prisma, user.tenant_id);
     if (!event) {
-      return reply.send({ data: [], pagination: { page: 1, per_page: 50, total: 0, total_pages: 0 } });
+      return reply.send({
+        data: [],
+        pagination: { page: 1, per_page: 50, total: 0, total_pages: 0 },
+      });
     }
 
     const result = await guestService.listGuests(
@@ -100,9 +111,13 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
   // POST /guests
   app.post('/', async (request, reply) => {
     const user = request.user!;
-    const body = validate(request.body, createGuestSchema.extend({
-      event_id: z.string().uuid().optional()
-    }), reply);
+    const body = validate(
+      request.body,
+      createGuestSchema.extend({
+        event_id: z.string().uuid().optional(),
+      }),
+      reply
+    );
 
     if (!body) return reply;
 
@@ -210,9 +225,13 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
   // GET /guests/search
   app.get('/search', async (request, reply) => {
     const user = request.user!;
-    const query = validate(request.query, guestSearchSchema.omit({ event_id: true }).extend({
-      event_id: z.string().uuid().optional()
-    }), reply);
+    const query = validate(
+      request.query,
+      guestSearchSchema.omit({ event_id: true }).extend({
+        event_id: z.string().uuid().optional(),
+      }),
+      reply
+    );
     if (!query) return reply;
 
     // Resolve event context

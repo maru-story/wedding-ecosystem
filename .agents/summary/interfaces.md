@@ -6,46 +6,46 @@ Base URL: `http://localhost:4000` (dev) / `https://api.domain.railway.app` (prod
 
 ### Authentication (prefix: `/auth`)
 
-| Method | Endpoint        | Auth          | Description               |
-| ------ | --------------- | ------------- | ------------------------- |
-| POST   | `/auth/login`   | None          | Login, returns JWT tokens (payload includes `sub`, `tenant_id`, `role`, `email`, `name`) |
-| POST   | `/auth/refresh` | Refresh token | Refresh access token      |
-| PUT    | `/auth/profile` | JWT           | Update client name and email |
-| PUT    | `/auth/change-password` | JWT   | Change password (requires current password) |
+| Method | Endpoint                | Auth          | Description                                                                              |
+| ------ | ----------------------- | ------------- | ---------------------------------------------------------------------------------------- |
+| POST   | `/auth/login`           | None          | Login, returns JWT tokens (payload includes `sub`, `tenant_id`, `role`, `email`, `name`) |
+| POST   | `/auth/refresh`         | Refresh token | Refresh access token                                                                     |
+| PUT    | `/auth/profile`         | JWT           | Update client name and email                                                             |
+| PUT    | `/auth/change-password` | JWT           | Change password (requires current password)                                              |
 
 ### Events (prefix: `/events`)
 
-| Method | Endpoint                   | Auth | Description                                     |
-| ------ | -------------------------- | ---- | ----------------------------------------------- |
-| GET    | `/events/current`          | JWT  | Get current tenant's latest event               |
-| POST   | `/events`                  | JWT  | Create a new wedding event                      |
-| GET    | `/events/current/stats`    | JWT  | Get current event statistics                    |
-| GET    | `/events/:id/stats`        | JWT  | Get event statistics (guests, RSVPs, check-ins) |
-| GET    | `/events/:id/rsvp`         | JWT  | Get RSVP summary for event                      |
+| Method | Endpoint                   | Auth | Description                                                                                        |
+| ------ | -------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
+| GET    | `/events/current`          | JWT  | Get current tenant's latest event                                                                  |
+| POST   | `/events`                  | JWT  | Create a new wedding event                                                                         |
+| GET    | `/events/current/stats`    | JWT  | Get current event statistics                                                                       |
+| GET    | `/events/:id/stats`        | JWT  | Get event statistics (guests, RSVPs, check-ins)                                                    |
+| GET    | `/events/:id/rsvp`         | JWT  | Get RSVP summary for event                                                                         |
 | POST   | `/events/:id/media/upload` | JWT  | Upload media for event (optional `?section=` param organizes R2 path: cover, gallery, story, etc.) |
-| PUT    | `/events/:id`              | JWT  | Update wedding event details                    |
+| PUT    | `/events/:id`              | JWT  | Update wedding event details                                                                       |
 
 ### Guests (prefix: `/guests`)
 
-| Method | Endpoint         | Auth | Description                                    |
-| ------ | ---------------- | ---- | ---------------------------------------------- |
-| GET    | `/guests`        | JWT  | List guests (paginated, filterable)            |
-| POST   | `/guests`        | JWT  | Create guest (auto-generates QR)               |
-| PUT    | `/guests/:id`    | JWT  | Update guest                                   |
-| DELETE | `/guests/:id`    | JWT  | Delete guest and associated QR code            |
-| GET    | `/guests/:id/qr` | JWT  | Get guest QR code (payload: `iv:ciphertext`)   |
-| GET    | `/guests/search` | JWT  | Search guests by name (query: `q` min 2 chars, `event_id`) |
-| POST   | `/guests/import` | JWT  | CSV bulk import (max 2000, headers: `nama`,`grup`,`telepon`,`jumlah_tamu`) |
-| POST   | `/guests/bulk-delete` | JWT  | Bulk delete guests and deactivate their QR codes |
+| Method | Endpoint              | Auth | Description                                                                |
+| ------ | --------------------- | ---- | -------------------------------------------------------------------------- |
+| GET    | `/guests`             | JWT  | List guests (paginated, filterable)                                        |
+| POST   | `/guests`             | JWT  | Create guest (auto-generates QR)                                           |
+| PUT    | `/guests/:id`         | JWT  | Update guest                                                               |
+| DELETE | `/guests/:id`         | JWT  | Delete guest and associated QR code                                        |
+| GET    | `/guests/:id/qr`      | JWT  | Get guest QR code (payload: `iv:ciphertext`)                               |
+| GET    | `/guests/search`      | JWT  | Search guests by name (query: `q` min 2 chars, `event_id`)                 |
+| POST   | `/guests/import`      | JWT  | CSV bulk import (max 2000, headers: `nama`,`grup`,`telepon`,`jumlah_tamu`) |
+| POST   | `/guests/bulk-delete` | JWT  | Bulk delete guests and deactivate their QR codes                           |
 
 ### Check-in (prefix: `/checkin`)
 
-| Method | Endpoint           | Auth | Description                               |
-| ------ | ------------------ | ---- | ----------------------------------------- |
+| Method | Endpoint           | Auth | Description                        |
+| ------ | ------------------ | ---- | ---------------------------------- |
 | POST   | `/checkin/scan`    | JWT  | Verify QR scan (returns GREEN/RED) |
-| POST   | `/checkin/manual`  | JWT  | Manual check-in by guest_id               |
-| POST   | `/checkin/go-show` | JWT  | Register walk-in guest + check-in         |
-| POST   | `/checkin/sync`    | JWT  | Sync offline check-in records             |
+| POST   | `/checkin/manual`  | JWT  | Manual check-in by guest_id        |
+| POST   | `/checkin/go-show` | JWT  | Register walk-in guest + check-in  |
+| POST   | `/checkin/sync`    | JWT  | Sync offline check-in records      |
 
 ### Scanner Devices (prefix: `/scanner`)
 
@@ -76,11 +76,11 @@ Base URL: `http://localhost:4000` (dev) / `https://api.domain.railway.app` (prod
 
 ### Invitation Deliveries (prefix: `/invitation-deliveries`)
 
-| Method | Endpoint                                 | Auth | Description                                         |
-| ------ | ---------------------------------------- | ---- | --------------------------------------------------- |
-| GET    | `/invitation-deliveries/message-template` | JWT  | Get message template for event                      |
-| PUT    | `/invitation-deliveries/message-template` | JWT  | Update message template for event                   |
-| POST   | `/invitation-deliveries/send`             | JWT  | Send single invitation via WhatsApp Web redirect    |
+| Method | Endpoint                                  | Auth | Description                                      |
+| ------ | ----------------------------------------- | ---- | ------------------------------------------------ |
+| GET    | `/invitation-deliveries/message-template` | JWT  | Get message template for event                   |
+| PUT    | `/invitation-deliveries/message-template` | JWT  | Update message template for event                |
+| POST   | `/invitation-deliveries/send`             | JWT  | Send single invitation via WhatsApp Web redirect |
 
 ### Messages (prefix: `/messages`)
 
@@ -107,19 +107,21 @@ Base URL: `http://localhost:4000` (dev) / `https://api.domain.railway.app` (prod
 
 ### Platform Admin (prefix: `/admin`)
 
-| Method | Endpoint                          | Auth             | Description                                                   |
-| ------ | --------------------------------- | ---------------- | ------------------------------------------------------------- |
-| GET    | `/admin/stats`                    | JWT (Admin role) | Get global platform KPIs (tenants, users, devices, guests)    |
-| GET    | `/admin/tenants`                  | JWT (Admin role) | List all tenants (paginated, search, subscription filter)     |
-| POST   | `/admin/tenants`                  | JWT (Admin role) | Create a new tenant with master client credentials            |
-| PATCH  | `/admin/tenants/:id/status`       | JWT (Admin role) | Toggle tenant active/inactive status                          |
+| Method | Endpoint                          | Auth             | Description                                                             |
+| ------ | --------------------------------- | ---------------- | ----------------------------------------------------------------------- |
+| GET    | `/admin/stats`                    | JWT (Admin role) | Get global platform KPIs (tenants, users, devices, guests)              |
+| GET    | `/admin/tenants`                  | JWT (Admin role) | List all tenants (paginated, search, subscription filter)               |
+| POST   | `/admin/tenants`                  | JWT (Admin role) | Create a new tenant with master client credentials                      |
+| PATCH  | `/admin/tenants/:id/status`       | JWT (Admin role) | Toggle tenant active/inactive status                                    |
+| DELETE | `/admin/tenants/:id`              | JWT (Admin role) | Delete a tenant (cascades to delete users, events, and data)            |
 | GET    | `/admin/users`                    | JWT (Admin role) | List all users across the platform (paginated, role and status filters) |
-| PATCH  | `/admin/users/:id/status`         | JWT (Admin role) | Toggle user active/inactive status (suspend/activate account) |
-| POST   | `/admin/users/admin`              | JWT (Admin role) | Create a new platform administrator                           |
-| PUT    | `/admin/users/:id/reset-password` | JWT (Admin role) | Reset user password with secure random string                 |
-| GET    | `/admin/audit-logs`               | JWT (Admin role) | List system audit logs (paginated, action, and date-range filters) |
-| GET    | `/admin/tenants/:id/events`       | JWT (Admin role) | List all events of a tenant with their limit configurations   |
-| PATCH  | `/admin/events/:eventId/config`   | JWT (Admin role) | Update event capacity limits (max_guests, max_scanner_devices) |
+| PATCH  | `/admin/users/:id/status`         | JWT (Admin role) | Toggle user active/inactive status (suspend/activate account)           |
+| DELETE | `/admin/users/:id`                | JWT (Admin role) | Delete a user (prevent self-deletion and admin-role deletion)           |
+| POST   | `/admin/users/admin`              | JWT (Admin role) | Create a new platform administrator                                     |
+| PUT    | `/admin/users/:id/reset-password` | JWT (Admin role) | Reset user password with secure random string                           |
+| GET    | `/admin/audit-logs`               | JWT (Admin role) | List system audit logs (paginated, action, and date-range filters)      |
+| GET    | `/admin/tenants/:id/events`       | JWT (Admin role) | List all events of a tenant with their limit configurations             |
+| PATCH  | `/admin/events/:eventId/config`   | JWT (Admin role) | Update event capacity limits (max_guests, max_scanner_devices)          |
 
 ### Detailed Event Statistics Payload
 
@@ -289,14 +291,14 @@ The platform uses a centralized `ErrorCode` enum in `@wedding/shared` for standa
 
 ### Common Error Codes
 
-| Category | Prefix | Examples |
-| --------- | ------ | --------------------------------------------------------------- |
-| **Authentication** | `AUTH_` | `INVALID_CREDENTIALS`, `ACCOUNT_LOCKED`, `SESSION_EXPIRED`, `TOKEN_EXPIRED` |
-| **Validation** | `VAL_` | `VALIDATION_FAILED` (Standard Zod error response) |
-| **Authorization** | `ROLE_` | `ROLE_INSUFFICIENT` (RBAC failure) |
-| **Tenant Isolation** | `TENANT_` | `TENANT_ACCESS_DENIED`, `TENANT_NOT_FOUND` |
-| **Domain: Guest** | `GUEST_` | `GUEST_NOT_FOUND`, `GUEST_ALREADY_EXISTS`, `IMPORT_FAILED` |
-| **Domain: Event** | `EVENT_` | `EVENT_NOT_FOUND`, `EVENT_NOT_PUBLISHED` |
-| **Domain: Check-in** | `SCAN_` | `ALREADY_CHECKED_IN`, `INVALID_QR_PAYLOAD`, `DEVICE_NOT_FOUND` |
-| **System** | `SYS_` | `INTERNAL_ERROR`, `DATABASE_ERROR`, `RATE_LIMIT_EXCEEDED` |
-| **Storage** | `STOR_` | `STORAGE_QUOTA_EXCEEDED`, `UPLOAD_FAILED` |
+| Category             | Prefix    | Examples                                                                    |
+| -------------------- | --------- | --------------------------------------------------------------------------- |
+| **Authentication**   | `AUTH_`   | `INVALID_CREDENTIALS`, `ACCOUNT_LOCKED`, `SESSION_EXPIRED`, `TOKEN_EXPIRED` |
+| **Validation**       | `VAL_`    | `VALIDATION_FAILED` (Standard Zod error response)                           |
+| **Authorization**    | `ROLE_`   | `ROLE_INSUFFICIENT` (RBAC failure)                                          |
+| **Tenant Isolation** | `TENANT_` | `TENANT_ACCESS_DENIED`, `TENANT_NOT_FOUND`                                  |
+| **Domain: Guest**    | `GUEST_`  | `GUEST_NOT_FOUND`, `GUEST_ALREADY_EXISTS`, `IMPORT_FAILED`                  |
+| **Domain: Event**    | `EVENT_`  | `EVENT_NOT_FOUND`, `EVENT_NOT_PUBLISHED`                                    |
+| **Domain: Check-in** | `SCAN_`   | `ALREADY_CHECKED_IN`, `INVALID_QR_PAYLOAD`, `DEVICE_NOT_FOUND`              |
+| **System**           | `SYS_`    | `INTERNAL_ERROR`, `DATABASE_ERROR`, `RATE_LIMIT_EXCEEDED`                   |
+| **Storage**          | `STOR_`   | `STORAGE_QUOTA_EXCEEDED`, `UPLOAD_FAILED`                                   |

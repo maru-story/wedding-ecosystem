@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     globals: false,
     environment: 'node',
+    exclude: ['**/dist/**', 'node_modules/**'],
     coverage: {
       include: ['src/**/*.ts'],
       exclude: [

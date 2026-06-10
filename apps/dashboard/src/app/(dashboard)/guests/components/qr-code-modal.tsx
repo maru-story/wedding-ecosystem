@@ -32,30 +32,33 @@ export function QrCodeModal({ guest, onClose }: QrCodeModalProps) {
   }
 
   return (
-    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-md bg-card border-border/40 p-6 shadow-xl">
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent className="bg-card border-border/40 p-6 shadow-xl sm:max-w-md">
         <DialogHeader className="mb-4">
           <DialogTitle id="qr-modal-title" className="font-heading text-xl font-bold">
             QR Code Tamu
           </DialogTitle>
-          <DialogDescription className="sr-only">
-            QR Code untuk tamu {guest.name}
-          </DialogDescription>
+          <DialogDescription className="sr-only">QR Code untuk tamu {guest.name}</DialogDescription>
         </DialogHeader>
 
         <div className="mb-4 text-center">
-          <p className="text-lg font-medium text-foreground">{guest.name}</p>
-          <p className="text-sm text-muted-foreground capitalize">{guest.group}</p>
+          <p className="text-foreground text-lg font-medium">{guest.name}</p>
+          <p className="text-muted-foreground text-sm capitalize">{guest.group}</p>
         </div>
 
         {isLoading && (
           <div className="flex items-center justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
           </div>
         )}
 
         {errorMessage && (
-          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive font-semibold">
+          <div className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-center text-sm font-semibold">
             {errorMessage}
           </div>
         )}
@@ -63,7 +66,7 @@ export function QrCodeModal({ guest, onClose }: QrCodeModalProps) {
         {!isLoading && !errorMessage && qrData && (
           <div className="text-center">
             {qrData.qr_payload ? (
-              <div className="mx-auto inline-block rounded-lg border border-border p-4 bg-white">
+              <div className="border-border mx-auto inline-block rounded-lg border bg-white p-4">
                 <QRCode
                   value={qrData.qr_payload}
                   size={192}
@@ -72,15 +75,15 @@ export function QrCodeModal({ guest, onClose }: QrCodeModalProps) {
                 />
               </div>
             ) : (
-              <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-lg border border-dashed border-border bg-muted/20">
-                <p className="text-xs text-muted-foreground">QR Code belum tersedia</p>
+              <div className="border-border bg-muted/20 mx-auto flex h-48 w-48 items-center justify-center rounded-lg border border-dashed">
+                <p className="text-muted-foreground text-xs">QR Code belum tersedia</p>
               </div>
             )}
             <div className="mt-4">
               <span
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${
-                  qrData.is_active 
-                    ? 'bg-success/15 text-success' 
+                  qrData.is_active
+                    ? 'bg-success/15 text-success'
                     : 'bg-destructive/10 text-destructive'
                 }`}
               >

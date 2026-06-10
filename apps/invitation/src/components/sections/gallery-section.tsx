@@ -28,11 +28,14 @@ export function GallerySection({ content, sortOrder }: GallerySectionProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // If there are no photos, show filler placeholder photos
-  const activePhotos = photos.length > 0 ? photos : [
-    { url: '', caption: 'Momen Bahagia 1' },
-    { url: '', caption: 'Momen Bahagia 2' },
-    { url: '', caption: 'Momen Bahagia 3' },
-  ];
+  const activePhotos =
+    photos.length > 0
+      ? photos
+      : [
+          { url: '', caption: 'Momen Bahagia 1' },
+          { url: '', caption: 'Momen Bahagia 2' },
+          { url: '', caption: 'Momen Bahagia 3' },
+        ];
 
   const nextPhoto = () => {
     setCurrentIndex((prev) => (prev + 1) % activePhotos.length);
@@ -47,16 +50,16 @@ export function GallerySection({ content, sortOrder }: GallerySectionProps) {
   return (
     <SectionWrapper sectionType="gallery" sortOrder={sortOrder} className="relative select-none">
       {/* Title */}
-      <div className="absolute top-8 left-1/2 -translate-x-1/2 w-full text-center">
-        <h2 className="font-heading text-3xl font-bold text-[var(--color-primary)] tracking-wide">
+      <div className="absolute top-8 left-1/2 w-full -translate-x-1/2 text-center">
+        <h2 className="font-heading text-3xl font-bold tracking-wide text-[var(--color-primary)]">
           Galeri Foto
         </h2>
         <div className="mx-auto mt-2 h-[2px] w-12 bg-[var(--color-accent)]" />
       </div>
 
       {/* Main Image Container */}
-      <div className="relative w-full max-w-[310px] h-[340px] mt-12 bg-white/40 backdrop-blur-xs rounded-2xl border border-[var(--color-accent)]/20 p-3 shadow-xs flex flex-col justify-between">
-        <div className="relative w-full h-[280px] overflow-hidden rounded-xl bg-muted/20 border border-gray-100 flex items-center justify-center">
+      <div className="relative mt-12 flex h-[340px] w-full max-w-[310px] flex-col justify-between rounded-2xl border border-[var(--color-accent)]/20 bg-white/40 p-3 shadow-xs backdrop-blur-xs">
+        <div className="bg-muted/20 relative flex h-[280px] w-full items-center justify-center overflow-hidden rounded-xl border border-gray-100">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
@@ -66,7 +69,8 @@ export function GallerySection({ content, sortOrder }: GallerySectionProps) {
               transition={{ duration: 0.3 }}
               className="absolute inset-0"
             >
-              {currentPhoto.url && (currentPhoto.url.startsWith('http') || currentPhoto.url.startsWith('/')) ? (
+              {currentPhoto.url &&
+              (currentPhoto.url.startsWith('http') || currentPhoto.url.startsWith('/')) ? (
                 <Image
                   src={currentPhoto.url}
                   alt={currentPhoto.caption || `Foto ${currentIndex + 1}`}
@@ -76,9 +80,11 @@ export function GallerySection({ content, sortOrder }: GallerySectionProps) {
                   sizes="310px"
                 />
               ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center bg-muted/10">
-                  <span className="text-5xl mb-2">📸</span>
-                  <span className="text-xs text-muted-foreground uppercase tracking-widest">Galeri Foto</span>
+                <div className="bg-muted/10 flex h-full w-full flex-col items-center justify-center">
+                  <span className="mb-2 text-5xl">📸</span>
+                  <span className="text-muted-foreground text-xs tracking-widest uppercase">
+                    Galeri Foto
+                  </span>
                 </div>
               )}
             </motion.div>
@@ -86,9 +92,9 @@ export function GallerySection({ content, sortOrder }: GallerySectionProps) {
         </div>
 
         {/* Caption */}
-        <div className="h-6 flex items-center justify-center text-center mt-2">
+        <div className="mt-2 flex h-6 items-center justify-center text-center">
           {currentPhoto.caption && (
-            <p className="text-xs italic text-[var(--color-text)]/80 line-clamp-1">
+            <p className="line-clamp-1 text-xs text-[var(--color-text)]/80 italic">
               {currentPhoto.caption}
             </p>
           )}
@@ -96,26 +102,26 @@ export function GallerySection({ content, sortOrder }: GallerySectionProps) {
       </div>
 
       {/* Navigation Buttons and Indicators */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 w-full">
+      <div className="absolute bottom-8 left-1/2 flex w-full -translate-x-1/2 flex-col items-center gap-3">
         {/* Navigation buttons */}
         <div className="flex items-center gap-6">
           <button
             onClick={prevPhoto}
-            className="h-8 w-8 rounded-full border border-[var(--color-accent)]/30 bg-white/70 hover:bg-white flex items-center justify-center text-[var(--color-primary)] active:scale-90 transition-transform cursor-pointer"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--color-accent)]/30 bg-white/70 text-[var(--color-primary)] transition-transform hover:bg-white active:scale-90"
             aria-label="Foto sebelumnya"
           >
             ←
           </button>
-          
+
           {/* Slide dots */}
           <div className="flex gap-2">
             {activePhotos.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`h-2.5 w-2.5 rounded-full transition-all cursor-pointer ${
+                className={`h-2.5 w-2.5 cursor-pointer rounded-full transition-all ${
                   currentIndex === index
-                    ? 'bg-[var(--color-primary)] scale-110'
+                    ? 'scale-110 bg-[var(--color-primary)]'
                     : 'bg-[var(--color-accent)]/40 hover:bg-[var(--color-accent)]/60'
                 }`}
                 aria-label={`Ke slide ${index + 1}`}
@@ -125,7 +131,7 @@ export function GallerySection({ content, sortOrder }: GallerySectionProps) {
 
           <button
             onClick={nextPhoto}
-            className="h-8 w-8 rounded-full border border-[var(--color-accent)]/30 bg-white/70 hover:bg-white flex items-center justify-center text-[var(--color-primary)] active:scale-90 transition-transform cursor-pointer"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--color-accent)]/30 bg-white/70 text-[var(--color-primary)] transition-transform hover:bg-white active:scale-90"
             aria-label="Foto selanjutnya"
           >
             →
@@ -135,4 +141,3 @@ export function GallerySection({ content, sortOrder }: GallerySectionProps) {
     </SectionWrapper>
   );
 }
-

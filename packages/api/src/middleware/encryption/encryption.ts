@@ -28,9 +28,7 @@ export class PIIEncryption {
   constructor(config: EncryptionConfig) {
     this.key = Buffer.from(config.encryptionKey, 'hex');
     if (this.key.length !== 32) {
-      throw new Error(
-        'Encryption key must be 32 bytes (64 hex characters) for AES-256'
-      );
+      throw new Error('Encryption key must be 32 bytes (64 hex characters) for AES-256');
     }
   }
 
@@ -63,11 +61,11 @@ export class PIIEncryption {
       return null;
     }
 
-    const parts = ciphertext.split(':');
-    if (parts.length !== 2) {
-      throw new Error('Invalid ciphertext format. Expected iv:encrypted');
+    if (!this.isEncrypted(ciphertext)) {
+      return ciphertext;
     }
 
+    const parts = ciphertext.split(':');
     const [ivHex, encryptedHex] = parts;
     const iv = Buffer.from(ivHex, ENCODING);
     const decipher = createDecipheriv(AES_ALGORITHM, this.key, iv);
@@ -93,9 +91,7 @@ export class PIIEncryption {
    * Encrypt PII fields on a guest record (phone, email).
    * Returns a new object with encrypted fields.
    */
-  encryptGuestPII<T extends { phone?: string | null; email?: string | null }>(
-    record: T
-  ): T {
+  encryptGuestPII<T extends { phone?: string | null; email?: string | null }>(record: T): T {
     return {
       ...record,
       phone: this.encrypt(record.phone ?? null),
@@ -107,9 +103,7 @@ export class PIIEncryption {
    * Decrypt PII fields on a guest record (phone, email).
    * Returns a new object with decrypted fields.
    */
-  decryptGuestPII<T extends { phone?: string | null; email?: string | null }>(
-    record: T
-  ): T {
+  decryptGuestPII<T extends { phone?: string | null; email?: string | null }>(record: T): T {
     return {
       ...record,
       phone: this.decrypt(record.phone ?? null),

@@ -6,18 +6,18 @@ import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { useAuth } from '@/contexts/auth-context';
 import { useEvent } from '@/hooks/queries';
-import { 
-  Home, 
-  Users, 
-  Mail, 
-  FileText, 
-  BarChart3, 
-  ShieldCheck, 
+import {
+  Home,
+  Users,
+  Mail,
+  FileText,
+  BarChart3,
+  ShieldCheck,
   QrCode,
   Send,
   Settings,
   MessageSquare,
-  History
+  History,
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -51,7 +51,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         if (!eventLoading && !event && pathname !== '/onboarding') {
           router.push('/onboarding');
         }
-        
+
         // Reverse Guard: If event exists, don't allow access to onboarding
         if (event && pathname === '/onboarding') {
           router.push('/');
@@ -66,7 +66,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
           <p className="mt-3 text-sm text-gray-500">Memuat...</p>
         </div>
       </div>
@@ -84,7 +84,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50">
           <div className="text-center">
-            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
             <p className="mt-3 text-sm text-gray-500">Mengalihkan ke dashboard...</p>
           </div>
         </div>
@@ -94,9 +94,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header onMenuToggle={() => {}} showMenuButton={false} />
-        <main className="p-4 lg:p-8">
-          {children}
-        </main>
+        <main className="p-4 lg:p-8">{children}</main>
       </div>
     );
   }
@@ -129,9 +127,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
       </div>
     </div>
   );

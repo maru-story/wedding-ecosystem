@@ -18,9 +18,7 @@ interface VideoSectionProps {
  * Extracts YouTube video ID from various URL formats.
  */
 function getYouTubeId(url: string): string | null {
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/,
-  ];
+  const patterns = [/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/];
   for (const pattern of patterns) {
     const match = url.match(pattern);
     if (match) return match[1];
@@ -36,7 +34,7 @@ export function VideoSection({ content, sortOrder }: VideoSectionProps) {
 
   return (
     <SectionWrapper sectionType="video" sortOrder={sortOrder}>
-      <h2 className="mb-8 text-center font-heading text-2xl font-bold text-[var(--color-primary)]">
+      <h2 className="font-heading mb-8 text-center text-2xl font-bold text-[var(--color-primary)]">
         Video
       </h2>
 

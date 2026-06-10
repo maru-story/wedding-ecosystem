@@ -63,7 +63,12 @@ export async function cmsRoutes(app: FastifyInstance, opts: CMSRouteOptions) {
       });
     }
 
-    const updated = await cmsService.updateSectionContent(sectionId, eventId, user.tenant_id, content);
+    const updated = await cmsService.updateSectionContent(
+      sectionId,
+      eventId,
+      user.tenant_id,
+      content
+    );
 
     if (isCMSError(updated)) {
       return reply.status(updated.code === ErrorCode.NOT_FOUND ? 404 : 400).send({
@@ -88,7 +93,12 @@ export async function cmsRoutes(app: FastifyInstance, opts: CMSRouteOptions) {
       });
     }
 
-    const updated = await cmsService.toggleSectionActive(sectionId, eventId, user.tenant_id, is_active);
+    const updated = await cmsService.toggleSectionActive(
+      sectionId,
+      eventId,
+      user.tenant_id,
+      is_active
+    );
 
     if (isCMSError(updated)) {
       return reply.status(updated.code === ErrorCode.NOT_FOUND ? 404 : 400).send({

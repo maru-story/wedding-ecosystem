@@ -1,10 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { createCipheriv, randomBytes } from 'crypto';
-import {
-  GuestGroup,
-  VerificationStatus,
-} from '@wedding/shared';
+import { GuestGroup, VerificationStatus } from '@wedding/shared';
 import {
   CheckInService,
   CheckInRepository,
@@ -15,8 +12,7 @@ import {
 
 // --- Constants ---
 
-const TEST_ENCRYPTION_KEY =
-  'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
+const TEST_ENCRYPTION_KEY = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
 
 // --- Arbitraries ---
 
@@ -35,24 +31,20 @@ const arbGuestGroup = fc.constantFrom(
 );
 
 /** Generates a guest name (non-empty string) */
-const arbGuestName = fc
-  .string({ minLength: 1, maxLength: 50 })
-  .filter((s) => s.trim().length > 0);
+const arbGuestName = fc.string({ minLength: 1, maxLength: 50 }).filter((s) => s.trim().length > 0);
 
 /** Generates a random invalid QR payload (not a valid encrypted payload) */
-const arbInvalidQRPayload = fc
-  .string({ minLength: 1, maxLength: 200 })
-  .filter((s) => {
-    // Filter out strings that could accidentally be valid iv:encrypted format
-    const parts = s.split(':');
-    if (parts.length !== 2) return true;
-    const [ivHex, encHex] = parts;
-    // Must NOT look like valid hex with correct IV length
-    if (/^[0-9a-f]{32}$/.test(ivHex) && /^[0-9a-f]+$/.test(encHex) && encHex.length > 0) {
-      return false;
-    }
-    return true;
-  });
+const arbInvalidQRPayload = fc.string({ minLength: 1, maxLength: 200 }).filter((s) => {
+  // Filter out strings that could accidentally be valid iv:encrypted format
+  const parts = s.split(':');
+  if (parts.length !== 2) return true;
+  const [ivHex, encHex] = parts;
+  // Must NOT look like valid hex with correct IV length
+  if (/^[0-9a-f]{32}$/.test(ivHex) && /^[0-9a-f]+$/.test(encHex) && encHex.length > 0) {
+    return false;
+  }
+  return true;
+});
 
 // --- Test Helpers ---
 
@@ -149,9 +141,7 @@ function createInMemoryRepository(
       group: GuestGroup.FRIEND,
     }),
     findEventById: async (eventId: string) => {
-      return eventId === guest.event_id
-        ? { id: eventId, tenant_id: 'tenant-001' }
-        : null;
+      return eventId === guest.event_id ? { id: eventId, tenant_id: 'tenant-001' } : null;
     },
   };
 }
@@ -211,36 +201,32 @@ describe('Property 10: Scanner Verification Status Mapping', () => {
    */
   it('invalid/malformed QR → RED with null guest info', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        arbInvalidQRPayload,
-        arbEventId,
-        async (invalidPayload, eventId) => {
-          // Create a dummy guest so the repository/event lookup works
-          const guest: GuestInfo = {
-            id: 'dummy-guest-id',
-            event_id: eventId,
-            name: 'Dummy',
-            group: GuestGroup.FRIEND,
-          };
+      fc.asyncProperty(arbInvalidQRPayload, arbEventId, async (invalidPayload, eventId) => {
+        // Create a dummy guest so the repository/event lookup works
+        const guest: GuestInfo = {
+          id: 'dummy-guest-id',
+          event_id: eventId,
+          name: 'Dummy',
+          group: GuestGroup.FRIEND,
+        };
 
-          const redis = createInMemoryRedis();
-          const repository = createInMemoryRepository(guest);
-          const service = new CheckInService({
-            repository,
-            redis,
-            encryptionKey: TEST_ENCRYPTION_KEY,
-          });
+        const redis = createInMemoryRedis();
+        const repository = createInMemoryRepository(guest);
+        const service = new CheckInService({
+          repository,
+          redis,
+          encryptionKey: TEST_ENCRYPTION_KEY,
+        });
 
-          const result = await service.verifyQRScan('tenant-001', invalidPayload, eventId);
+        const result = await service.verifyQRScan('tenant-001', invalidPayload, eventId);
 
-          // Property: status is RED
-          expect(result.status).toBe(VerificationStatus.RED);
-          // Property: guest_name is null
-          expect(result.guest_name).toBeNull();
-          // Property: guest_group is null
-          expect(result.guest_group).toBeNull();
-        }
-      ),
+        // Property: status is RED
+        expect(result.status).toBe(VerificationStatus.RED);
+        // Property: guest_name is null
+        expect(result.guest_name).toBeNull();
+        // Property: guest_group is null
+        expect(result.guest_group).toBeNull();
+      }),
       { numRuns: 50 }
     );
   });
@@ -458,36 +444,32 @@ describe('Property 10: Scanner Verification Status Mapping', () => {
    */
   it('RED always has null guest info for invalid/not-found QR', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        arbInvalidQRPayload,
-        arbEventId,
-        async (invalidPayload, eventId) => {
-          const guest: GuestInfo = {
-            id: 'dummy-guest-id',
-            event_id: eventId,
-            name: 'Dummy',
-            group: GuestGroup.FRIEND,
-          };
+      fc.asyncProperty(arbInvalidQRPayload, arbEventId, async (invalidPayload, eventId) => {
+        const guest: GuestInfo = {
+          id: 'dummy-guest-id',
+          event_id: eventId,
+          name: 'Dummy',
+          group: GuestGroup.FRIEND,
+        };
 
-          const redis = createInMemoryRedis();
-          const repository = createInMemoryRepository(guest);
-          const service = new CheckInService({
-            repository,
-            redis,
-            encryptionKey: TEST_ENCRYPTION_KEY,
-          });
+        const redis = createInMemoryRedis();
+        const repository = createInMemoryRepository(guest);
+        const service = new CheckInService({
+          repository,
+          redis,
+          encryptionKey: TEST_ENCRYPTION_KEY,
+        });
 
-          const result = await service.verifyQRScan('tenant-001', invalidPayload, eventId);
+        const result = await service.verifyQRScan('tenant-001', invalidPayload, eventId);
 
-          // Only check if result is RED
-          if (result.status === VerificationStatus.RED) {
-            // Property: guest_name is null
-            expect(result.guest_name).toBeNull();
-            // Property: guest_group is null
-            expect(result.guest_group).toBeNull();
-          }
+        // Only check if result is RED
+        if (result.status === VerificationStatus.RED) {
+          // Property: guest_name is null
+          expect(result.guest_name).toBeNull();
+          // Property: guest_group is null
+          expect(result.guest_group).toBeNull();
         }
-      ),
+      }),
       { numRuns: 50 }
     );
   });

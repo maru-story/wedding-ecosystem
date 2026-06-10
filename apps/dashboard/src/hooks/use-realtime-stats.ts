@@ -56,23 +56,29 @@ export function useRealtimeStats({
   const { data: rsvpResponse } = useRsvpList(eventId);
   const rsvpList = rsvpResponse?.data || [];
 
-  const handleStatsUpdated = useCallback((payload: EventStats) => {
-    queryClient.setQueryData(['rsvp-stats', eventId], payload);
-  }, [queryClient, eventId]);
+  const handleStatsUpdated = useCallback(
+    (payload: EventStats) => {
+      queryClient.setQueryData(['rsvp-stats', eventId], payload);
+    },
+    [queryClient, eventId]
+  );
 
-  const handleRsvpUpdated = useCallback((payload: RsvpTrackingItem) => {
-    queryClient.setQueryData<{ data: RsvpTrackingItem[] }>(['rsvp-list', eventId], (prev) => {
-      const prevData = prev?.data || [];
-      const existingIndex = prevData.findIndex((item) => item.guest_id === payload.guest_id);
-      let updatedData = [...prevData];
-      if (existingIndex >= 0) {
-        updatedData[existingIndex] = payload;
-      } else {
-        updatedData = [payload, ...updatedData];
-      }
-      return { data: updatedData };
-    });
-  }, [queryClient, eventId]);
+  const handleRsvpUpdated = useCallback(
+    (payload: RsvpTrackingItem) => {
+      queryClient.setQueryData<{ data: RsvpTrackingItem[] }>(['rsvp-list', eventId], (prev) => {
+        const prevData = prev?.data || [];
+        const existingIndex = prevData.findIndex((item) => item.guest_id === payload.guest_id);
+        let updatedData = [...prevData];
+        if (existingIndex >= 0) {
+          updatedData[existingIndex] = payload;
+        } else {
+          updatedData = [payload, ...updatedData];
+        }
+        return { data: updatedData };
+      });
+    },
+    [queryClient, eventId]
+  );
 
   const handleGoShowAdded = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['rsvp-stats', eventId] });
@@ -97,7 +103,14 @@ export function useRealtimeStats({
       socket.off('go_show_added', handleGoShowAdded);
       socket.off('guest_checked_in', handleGuestCheckedIn);
     };
-  }, [socket, eventId, handleStatsUpdated, handleRsvpUpdated, handleGoShowAdded, handleGuestCheckedIn]);
+  }, [
+    socket,
+    eventId,
+    handleStatsUpdated,
+    handleRsvpUpdated,
+    handleGoShowAdded,
+    handleGuestCheckedIn,
+  ]);
 
   return { stats, rsvpList };
 }

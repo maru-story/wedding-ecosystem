@@ -12,13 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { 
-  Heart, 
-  Calendar, 
-  MapPin, 
-  ArrowRight,
-  Loader2
-} from 'lucide-react';
+import { Heart, Calendar, MapPin, ArrowRight, Loader2 } from 'lucide-react';
 import { useEvent } from '@/hooks/queries';
 
 export default function OnboardingPage() {
@@ -47,14 +41,15 @@ export default function OnboardingPage() {
       resepsi_start: '12:00',
       resepsi_end: '15:00',
       venue_maps_url: '',
-    }
+    },
   });
 
   const createEventMutation = useMutation({
-    mutationFn: (data: CreateEventInput) => apiFetch('/events', {
-      method: 'POST',
-      body: data
-    }),
+    mutationFn: (data: CreateEventInput) =>
+      apiFetch('/events', {
+        method: 'POST',
+        body: data,
+      }),
     onSuccess: () => {
       toast.success('Pernikahan Anda berhasil didaftarkan!');
       // Invalidate event query to trigger layout refresh
@@ -63,7 +58,7 @@ export default function OnboardingPage() {
     },
     onError: (error: any) => {
       toast.error(error.data?.error?.message || 'Gagal mendaftarkan pernikahan.');
-    }
+    },
   });
 
   const onSubmit = (data: CreateEventInput) => {
@@ -73,9 +68,9 @@ export default function OnboardingPage() {
   if (eventLoading || event) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="text-center animate-fade-in">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-muted-foreground font-medium">Mengalihkan...</p>
+        <div className="animate-fade-in text-center">
+          <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
+          <p className="text-muted-foreground mt-3 text-sm font-medium">Mengalihkan...</p>
         </div>
       </div>
     );
@@ -83,17 +78,17 @@ export default function OnboardingPage() {
 
   return (
     <div className="mx-auto max-w-2xl py-8">
-      <div className="mb-8 text-center animate-fade-in">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary ring-8 ring-primary/5">
-          <Heart className="h-8 w-8 fill-current text-primary" />
+      <div className="animate-fade-in mb-8 text-center">
+        <div className="bg-primary/10 text-primary ring-primary/5 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ring-8">
+          <Heart className="text-primary h-8 w-8 fill-current" />
         </div>
-        <h1 className="font-heading text-3xl font-bold text-foreground">Selamat Datang!</h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="font-heading text-foreground text-3xl font-bold">Selamat Datang!</h1>
+        <p className="text-muted-foreground mt-2">
           Mari siapkan informasi dasar pernikahan Anda untuk memulai undangan digital.
         </p>
       </div>
 
-      <div className="rounded-2xl bg-card p-8 shadow-sm border border-border">
+      <div className="bg-card border-border rounded-2xl border p-8 shadow-sm">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Step 1: Pasangan */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -103,9 +98,11 @@ export default function OnboardingPage() {
                 id="groom_name"
                 {...register('groom_name')}
                 placeholder="Contoh: Romeo"
-                className="bg-card px-4 py-2.5 h-11 text-foreground placeholder:text-muted-foreground/60 transition-all duration-200"
+                className="bg-card text-foreground placeholder:text-muted-foreground/60 h-11 px-4 py-2.5 transition-all duration-200"
               />
-              {errors.groom_name && <p className="text-xs text-destructive">{errors.groom_name.message}</p>}
+              {errors.groom_name && (
+                <p className="text-destructive text-xs">{errors.groom_name.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="bride_name">Nama Mempelai Wanita</Label>
@@ -113,9 +110,11 @@ export default function OnboardingPage() {
                 id="bride_name"
                 {...register('bride_name')}
                 placeholder="Contoh: Juliet"
-                className="bg-card px-4 py-2.5 h-11 text-foreground placeholder:text-muted-foreground/60 transition-all duration-200"
+                className="bg-card text-foreground placeholder:text-muted-foreground/60 h-11 px-4 py-2.5 transition-all duration-200"
               />
-              {errors.bride_name && <p className="text-xs text-destructive">{errors.bride_name.message}</p>}
+              {errors.bride_name && (
+                <p className="text-destructive text-xs">{errors.bride_name.message}</p>
+              )}
             </div>
           </div>
 
@@ -127,39 +126,45 @@ export default function OnboardingPage() {
                 id="slug"
                 {...register('slug')}
                 placeholder="romeo-juliet"
-                className="flex-1 bg-card px-4 py-2.5 h-11 text-foreground placeholder:text-muted-foreground/60 transition-all duration-200"
+                className="bg-card text-foreground placeholder:text-muted-foreground/60 h-11 flex-1 px-4 py-2.5 transition-all duration-200"
               />
             </div>
-            <p className="text-[10px] text-muted-foreground/75">Hanya huruf kecil, angka, dan tanda hubung.</p>
-            {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
+            <p className="text-muted-foreground/75 text-[10px]">
+              Hanya huruf kecil, angka, dan tanda hubung.
+            </p>
+            {errors.slug && <p className="text-destructive text-xs">{errors.slug.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="event_date">Tanggal Acara</Label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-3 h-5 w-5 text-muted-foreground/70" />
+              <Calendar className="text-muted-foreground/70 absolute top-3 left-3 h-5 w-5" />
               <Input
                 id="event_date"
                 {...register('event_date')}
                 type="date"
-                className="bg-card pl-10 pr-4 py-2.5 h-11 text-foreground transition-all duration-200"
+                className="bg-card text-foreground h-11 py-2.5 pr-4 pl-10 transition-all duration-200"
               />
             </div>
-            {errors.event_date && <p className="text-xs text-destructive">{errors.event_date.message}</p>}
+            {errors.event_date && (
+              <p className="text-destructive text-xs">{errors.event_date.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="venue_name">Nama Tempat (Venue)</Label>
             <div className="relative">
-              <MapPin className="absolute left-3 top-3 h-5 w-5 text-muted-foreground/70" />
+              <MapPin className="text-muted-foreground/70 absolute top-3 left-3 h-5 w-5" />
               <Input
                 id="venue_name"
                 {...register('venue_name')}
                 placeholder="Contoh: Gedung Serbaguna ABC"
-                className="bg-card pl-10 pr-4 py-2.5 h-11 text-foreground placeholder:text-muted-foreground/60 transition-all duration-200"
+                className="bg-card text-foreground placeholder:text-muted-foreground/60 h-11 py-2.5 pr-4 pl-10 transition-all duration-200"
               />
             </div>
-            {errors.venue_name && <p className="text-xs text-destructive">{errors.venue_name.message}</p>}
+            {errors.venue_name && (
+              <p className="text-destructive text-xs">{errors.venue_name.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -169,15 +174,17 @@ export default function OnboardingPage() {
               {...register('venue_address')}
               rows={3}
               placeholder="Jl. Raya No. 123, Kota..."
-              className="bg-card px-4 py-2.5 text-foreground placeholder:text-muted-foreground/60 transition-all duration-200"
+              className="bg-card text-foreground placeholder:text-muted-foreground/60 px-4 py-2.5 transition-all duration-200"
             />
-            {errors.venue_address && <p className="text-xs text-destructive">{errors.venue_address.message}</p>}
+            {errors.venue_address && (
+              <p className="text-destructive text-xs">{errors.venue_address.message}</p>
+            )}
           </div>
 
           <Button
             type="submit"
             disabled={createEventMutation.isPending}
-            className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 transition-all duration-200 cursor-pointer"
+            className="shadow-primary/20 h-12 w-full cursor-pointer text-base font-semibold shadow-lg transition-all duration-200"
           >
             {createEventMutation.isPending ? (
               <Loader2 className="h-5 w-5 animate-spin" />

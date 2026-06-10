@@ -28,10 +28,10 @@ export function CountdownForm({ content, onChange, event }: CountdownFormProps) 
     <div className="space-y-4">
       {/* Sync from event settings */}
       {event?.event_date && (
-        <div className="flex items-start justify-between rounded-lg border border-primary/20 bg-primary/5 p-3">
-          <div className="text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Sinkronkan dari Pengaturan Acara</p>
-            <p className="text-xs mt-0.5">
+        <div className="border-primary/20 bg-primary/5 flex items-start justify-between rounded-lg border p-3">
+          <div className="text-muted-foreground text-sm">
+            <p className="text-foreground font-medium">Sinkronkan dari Pengaturan Acara</p>
+            <p className="mt-0.5 text-xs">
               Isi otomatis tanggal countdown dari tanggal acara yang sudah diatur.
             </p>
           </div>
@@ -57,7 +57,7 @@ export function CountdownForm({ content, onChange, event }: CountdownFormProps) 
           type="datetime-local"
           value={targetDate}
           onChange={(e) => onChange({ ...content, target_date: e.target.value })}
-          className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
         />
         <p className="mt-1 text-xs text-gray-500">
           Countdown akan menghitung mundur ke tanggal dan waktu ini.
@@ -74,7 +74,7 @@ export function CountdownForm({ content, onChange, event }: CountdownFormProps) 
           value={calendarLink}
           onChange={(e) => onChange({ ...content, calendar_link: e.target.value })}
           placeholder="https://calendar.google.com/..."
-          className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
         />
         <p className="mt-1 text-xs text-gray-500">
           Link Google Calendar atau file .ics untuk tombol &quot;Tambah ke Kalender&quot;.

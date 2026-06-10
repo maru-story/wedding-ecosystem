@@ -79,7 +79,7 @@ export function AkadResepsiForm({ content, onChange, event }: AkadResepsiFormPro
             type="date"
             value={evt.date}
             onChange={(e) => updateEvent(type, 'date', e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
           />
         </div>
 
@@ -93,7 +93,7 @@ export function AkadResepsiForm({ content, onChange, event }: AkadResepsiFormPro
               type="time"
               value={evt.time_start}
               onChange={(e) => updateEvent(type, 'time_start', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
             />
           </div>
           <div>
@@ -105,7 +105,7 @@ export function AkadResepsiForm({ content, onChange, event }: AkadResepsiFormPro
               type="time"
               value={evt.time_end}
               onChange={(e) => updateEvent(type, 'time_end', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
             />
           </div>
         </div>
@@ -117,10 +117,10 @@ export function AkadResepsiForm({ content, onChange, event }: AkadResepsiFormPro
     <div className="space-y-4">
       {/* Sync from event settings */}
       {event && (
-        <div className="flex items-start justify-between rounded-lg border border-primary/20 bg-primary/5 p-3">
-          <div className="text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Sinkronkan dari Pengaturan Acara</p>
-            <p className="text-xs mt-0.5">
+        <div className="border-primary/20 bg-primary/5 flex items-start justify-between rounded-lg border p-3">
+          <div className="text-muted-foreground text-sm">
+            <p className="text-foreground font-medium">Sinkronkan dari Pengaturan Acara</p>
+            <p className="mt-0.5 text-xs">
               Isi otomatis tanggal, waktu, dan lokasi dari data pengaturan acara Anda.
             </p>
           </div>
@@ -150,7 +150,7 @@ export function AkadResepsiForm({ content, onChange, event }: AkadResepsiFormPro
           value={venue}
           onChange={(e) => onChange({ ...content, venue: e.target.value })}
           placeholder="Contoh: Hotel Grand Ballroom"
-          className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
         />
       </div>
 
@@ -164,7 +164,7 @@ export function AkadResepsiForm({ content, onChange, event }: AkadResepsiFormPro
           value={mapsUrl}
           onChange={(e) => onChange({ ...content, maps_url: e.target.value })}
           placeholder="https://maps.google.com/..."
-          className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
         />
         <p className="mt-1 text-xs text-gray-500">
           Link ini akan ditampilkan sebagai tombol navigasi di undangan.

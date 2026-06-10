@@ -1,4 +1,10 @@
-import { GuestGroup, GuestType, MAX_CSV_ROWS, normalizePhoneNumber, isValidPhoneNumber } from '@wedding/shared';
+import {
+  GuestGroup,
+  GuestType,
+  MAX_CSV_ROWS,
+  normalizePhoneNumber,
+  isValidPhoneNumber,
+} from '@wedding/shared';
 import { GuestService, isGuestError } from '../guest/guest.service';
 
 // --- Constants ---

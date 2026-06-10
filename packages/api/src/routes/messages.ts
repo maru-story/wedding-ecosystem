@@ -211,41 +211,37 @@ export async function messageRoutes(app: FastifyInstance, opts: MessageRouteOpti
   );
 
   // DELETE /messages/:id - Delete a wish (auth required)
-  app.delete(
-    '/:id',
-    { onRequest: [app.authenticate] },
-    async (request: FastifyRequest, reply) => {
-      const user = request.user!;
-      const paramsSchema = z.object({
-        id: z.string().uuid({ message: 'ID ucapan tidak valid' }),
-      });
+  app.delete('/:id', { onRequest: [app.authenticate] }, async (request: FastifyRequest, reply) => {
+    const user = request.user!;
+    const paramsSchema = z.object({
+      id: z.string().uuid({ message: 'ID ucapan tidak valid' }),
+    });
 
-      const params = validate(request.params, paramsSchema, reply);
-      if (!params) return reply;
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return reply;
 
-      // Find message and check tenant ownership via event relation
-      const message = await prisma.message.findFirst({
-        where: {
-          id: params.id,
-          event: {
-            tenant_id: user.tenant_id,
-          },
+    // Find message and check tenant ownership via event relation
+    const message = await prisma.message.findFirst({
+      where: {
+        id: params.id,
+        event: {
+          tenant_id: user.tenant_id,
         },
-        select: { id: true },
+      },
+      select: { id: true },
+    });
+
+    if (!message) {
+      return reply.status(404).send({
+        success: false,
+        error: { code: ErrorCode.NOT_FOUND, message: 'Ucapan tidak ditemukan' },
       });
-
-      if (!message) {
-        return reply.status(404).send({
-          success: false,
-          error: { code: ErrorCode.NOT_FOUND, message: 'Ucapan tidak ditemukan' },
-        });
-      }
-
-      await prisma.message.delete({
-        where: { id: params.id },
-      });
-
-      return reply.send({ success: true });
     }
-  );
+
+    await prisma.message.delete({
+      where: { id: params.id },
+    });
+
+    return reply.send({ success: true });
+  });
 }

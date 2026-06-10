@@ -25,8 +25,18 @@ interface PersonData {
 }
 
 export function BrideGroomForm({ content, onChange, event }: BrideGroomFormProps) {
-  const bride = (content.bride as PersonData) || { name: '', parent_info: '', photo: '', instagram: '' };
-  const groom = (content.groom as PersonData) || { name: '', parent_info: '', photo: '', instagram: '' };
+  const bride = (content.bride as PersonData) || {
+    name: '',
+    parent_info: '',
+    photo: '',
+    instagram: '',
+  };
+  const groom = (content.groom as PersonData) || {
+    name: '',
+    parent_info: '',
+    photo: '',
+    instagram: '',
+  };
 
   const updatePerson = (role: 'bride' | 'groom', field: keyof PersonData, value: string) => {
     const person = role === 'bride' ? bride : groom;
@@ -72,7 +82,7 @@ export function BrideGroomForm({ content, onChange, event }: BrideGroomFormProps
             value={person.name}
             onChange={(e) => updatePerson(role, 'name', e.target.value)}
             placeholder="Nama lengkap"
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
           />
         </div>
 
@@ -86,7 +96,7 @@ export function BrideGroomForm({ content, onChange, event }: BrideGroomFormProps
             value={person.parent_info}
             onChange={(e) => updatePerson(role, 'parent_info', e.target.value)}
             placeholder="Contoh: Putra dari Bapak ... & Ibu ..."
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
           />
         </div>
 
@@ -100,7 +110,7 @@ export function BrideGroomForm({ content, onChange, event }: BrideGroomFormProps
             value={person.instagram}
             onChange={(e) => updatePerson(role, 'instagram', e.target.value)}
             placeholder="@username"
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
           />
         </div>
 
@@ -123,13 +133,15 @@ export function BrideGroomForm({ content, onChange, event }: BrideGroomFormProps
     <div className="space-y-4">
       {/* Sync names from event settings */}
       {hasEventNames && (
-        <div className="flex items-start justify-between rounded-lg border border-primary/20 bg-primary/5 p-3">
-          <div className="text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Sinkronkan dari Pengaturan Acara</p>
-            <p className="text-xs mt-0.5">
+        <div className="border-primary/20 bg-primary/5 flex items-start justify-between rounded-lg border p-3">
+          <div className="text-muted-foreground text-sm">
+            <p className="text-foreground font-medium">Sinkronkan dari Pengaturan Acara</p>
+            <p className="mt-0.5 text-xs">
               Isi otomatis nama mempelai dari pengaturan acara:{' '}
-              <span className="font-medium text-foreground">
-                {event?.groom_name}{event?.groom_name && event?.bride_name ? ' & ' : ''}{event?.bride_name}
+              <span className="text-foreground font-medium">
+                {event?.groom_name}
+                {event?.groom_name && event?.bride_name ? ' & ' : ''}
+                {event?.bride_name}
               </span>
             </p>
           </div>

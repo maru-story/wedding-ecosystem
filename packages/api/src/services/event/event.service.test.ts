@@ -33,6 +33,7 @@ function createMockRepository(overrides: Partial<EventRepository> = {}): EventRe
     findEventBySlug: vi.fn(async () => null),
     findEventById: vi.fn(async () => null),
     countEventsByTenant: vi.fn(async () => 0),
+    findTenantPlan: vi.fn(async () => 'enterprise'),
     updateEvent: vi.fn(async (eventId, tenantId, data) => ({
       id: eventId,
       tenant_id: tenantId,
@@ -316,8 +317,10 @@ describe('EventService', () => {
       expect(result.config!.active_sections).toHaveLength(14);
     });
 
-    it('should set max_scanner_devices to 2 and max_guests to 2000', async () => {
-      const repo = createMockRepository();
+    it('should set max_scanner_devices to 2 and max_guests to 2000 for enterprise plan', async () => {
+      const repo = createMockRepository({
+        findTenantPlan: vi.fn(async () => 'enterprise'),
+      });
       const service = new EventService({ repository: repo });
 
       const result = await service.createEvent(TENANT_ID, VALID_EVENT_INPUT);
@@ -327,6 +330,34 @@ describe('EventService', () => {
 
       expect(result.config!.max_scanner_devices).toBe(2);
       expect(result.config!.max_guests).toBe(2000);
+    });
+
+    it('should set max_guests to 100 for basic plan', async () => {
+      const repo = createMockRepository({
+        findTenantPlan: vi.fn(async () => 'basic'),
+      });
+      const service = new EventService({ repository: repo });
+
+      const result = await service.createEvent(TENANT_ID, VALID_EVENT_INPUT);
+
+      expect(isEventError(result)).toBe(false);
+      if (isEventError(result)) return;
+
+      expect(result.config!.max_guests).toBe(100);
+    });
+
+    it('should set max_guests to 500 for premium plan', async () => {
+      const repo = createMockRepository({
+        findTenantPlan: vi.fn(async () => 'premium'),
+      });
+      const service = new EventService({ repository: repo });
+
+      const result = await service.createEvent(TENANT_ID, VALID_EVENT_INPUT);
+
+      expect(isEventError(result)).toBe(false);
+      if (isEventError(result)) return;
+
+      expect(result.config!.max_guests).toBe(500);
     });
   });
 
@@ -395,7 +426,13 @@ describe('EventService', () => {
 
   describe('updateEvent', () => {
     it('should update event details successfully', async () => {
-      const existing = { id: 'evt-1', tenant_id: TENANT_ID, slug: 'old-slug', bride_name: 'Juliet', groom_name: 'Romeo' };
+      const existing = {
+        id: 'evt-1',
+        tenant_id: TENANT_ID,
+        slug: 'old-slug',
+        bride_name: 'Juliet',
+        groom_name: 'Romeo',
+      };
       const repo = createMockRepository({
         findEventById: vi.fn(async () => existing as any),
         findEventBySlug: vi.fn(async () => null),
@@ -409,7 +446,11 @@ describe('EventService', () => {
 
       expect(isEventError(result)).toBe(false);
       expect((result as EventRecord).bride_name).toBe('Juliana');
-      expect(repo.updateEvent).toHaveBeenCalledWith('evt-1', TENANT_ID, expect.objectContaining({ bride_name: 'Juliana' }));
+      expect(repo.updateEvent).toHaveBeenCalledWith(
+        'evt-1',
+        TENANT_ID,
+        expect.objectContaining({ bride_name: 'Juliana' })
+      );
     });
 
     it('should return NOT_FOUND if the event does not exist for the tenant', async () => {
@@ -428,7 +469,12 @@ describe('EventService', () => {
 
     it('should return ALREADY_EXISTS if the updated slug conflicts with another event', async () => {
       const existing = { id: 'evt-1', tenant_id: TENANT_ID, slug: 'my-slug', bride_name: 'Juliet' };
-      const another = { id: 'evt-2', tenant_id: 'different-tenant', slug: 'conflicting-slug', bride_name: 'Siti' };
+      const another = {
+        id: 'evt-2',
+        tenant_id: 'different-tenant',
+        slug: 'conflicting-slug',
+        bride_name: 'Siti',
+      };
       const repo = createMockRepository({
         findEventById: vi.fn(async () => existing as any),
         findEventBySlug: vi.fn(async (slug) => {
@@ -464,4 +510,3 @@ describe('EventService', () => {
     });
   });
 });
-

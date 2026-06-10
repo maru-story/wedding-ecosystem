@@ -10,7 +10,9 @@ export interface TenantContext {
   tenantId: string;
   eventId: string;
   userId: string;
+  userEmail: string;
   token: string;
+  username?: string;
   request: import('@playwright/test').APIRequestContext;
 }
 
@@ -24,7 +26,7 @@ export const test = base.extend<MyFixtures>({
     const tenantId = randomUUID();
     const eventId = randomUUID();
     const userId = randomUUID();
-    
+
     // Seed Tenant A
     const slug = `tenant-a-${randomUUID().slice(0, 8)}`;
     await prisma.tenant.create({
@@ -39,11 +41,13 @@ export const test = base.extend<MyFixtures>({
 
     const userEmail = `user-a-${randomUUID().slice(0, 8)}@test.com`;
     const userName = 'User A';
+    const username = `usera_${randomUUID().slice(0, 8)}`;
     await prisma.user.create({
       data: {
         id: userId,
         tenant_id: tenantId,
         email: userEmail,
+        username,
         password_hash: bcrypt.hashSync('password123', 10),
         role: 'client',
         name: userName,
@@ -104,7 +108,9 @@ export const test = base.extend<MyFixtures>({
       tenantId,
       eventId,
       userId,
+      userEmail,
       token,
+      username,
       request: context,
     });
 
@@ -132,11 +138,13 @@ export const test = base.extend<MyFixtures>({
 
     const userEmail = `user-b-${randomUUID().slice(0, 8)}@test.com`;
     const userName = 'User B';
+    const username = `userb_${randomUUID().slice(0, 8)}`;
     await prisma.user.create({
       data: {
         id: userId,
         tenant_id: tenantId,
         email: userEmail,
+        username,
         password_hash: bcrypt.hashSync('password123', 10),
         role: 'client',
         name: userName,
@@ -196,9 +204,10 @@ export const test = base.extend<MyFixtures>({
       tenantId,
       eventId,
       userId,
+      userEmail,
       token,
+      username,
       request: context,
-      
     });
 
     // Teardown Tenant B

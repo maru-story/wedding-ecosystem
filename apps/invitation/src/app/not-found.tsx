@@ -7,7 +7,7 @@ export default function NotFound() {
     <div className="flex min-h-screen items-center justify-center bg-[#FDFCF9] px-4">
       <div className="text-center">
         <h1 className="font-heading text-5xl font-bold text-[#5F7161]">404</h1>
-        <h2 className="mt-4 font-heading text-xl font-semibold text-gray-900">
+        <h2 className="font-heading mt-4 text-xl font-semibold text-gray-900">
           Undangan Tidak Ditemukan
         </h2>
         <p className="mt-2 text-sm text-gray-600">

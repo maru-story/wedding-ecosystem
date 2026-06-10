@@ -96,7 +96,8 @@ test.describe('Guests API E2E', () => {
   });
 
   test('should import guests from CSV correctly', async ({ tenantA }) => {
-    const csvContent = 'nama,grup,telepon,email\nAgus Budi,family,628111222333,agus@budi.com\nCici Cantika,vip,628222333444,cici@cantika.com';
+    const csvContent =
+      'nama,grup,telepon,email\nAgus Budi,family,628111222333,agus@budi.com\nCici Cantika,vip,628222333444,cici@cantika.com';
     const importResponse = await tenantA.request.post('/guests/import', {
       data: { csv_text: csvContent },
     });

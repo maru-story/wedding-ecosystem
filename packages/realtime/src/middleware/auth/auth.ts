@@ -146,7 +146,10 @@ export async function authorizeRoomJoin(
  *
  * Requirements: 13.7
  */
-export function registerRoomAuthorization(socket: Socket<any, any, any, SocketData>, repository: EventAuthRepository): void {
+export function registerRoomAuthorization(
+  socket: Socket<any, any, any, SocketData>,
+  repository: EventAuthRepository
+): void {
   // Override the default join_event handler with authorization
   socket.on('join_event', async (eventId: string) => {
     if (!eventId || typeof eventId !== 'string') {

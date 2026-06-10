@@ -15,9 +15,7 @@ import {
 const arbEventId = fc.uuid();
 
 /** Generates a device name (non-empty string) */
-const arbDeviceName = fc
-  .string({ minLength: 1, maxLength: 30 })
-  .filter((s) => s.trim().length > 0);
+const arbDeviceName = fc.string({ minLength: 1, maxLength: 30 }).filter((s) => s.trim().length > 0);
 
 /** Generates a number of device registration attempts beyond the limit (3 to 8) */
 const arbExtraAttempts = fc.integer({ min: 3, max: 8 });
@@ -111,9 +109,7 @@ describe('Property 12: Scanner Device Limit', () => {
           const activeDevices = repository.devices.filter(
             (d) => d.event_id === eventId && d.is_active
           );
-          expect(activeDevices.length).toBeLessThanOrEqual(
-            MAX_SCANNER_DEVICES_PER_EVENT
-          );
+          expect(activeDevices.length).toBeLessThanOrEqual(MAX_SCANNER_DEVICES_PER_EVENT);
         }
       ),
       { numRuns: 100 }
@@ -194,9 +190,7 @@ describe('Property 12: Scanner Device Limit', () => {
           const activeDevices = repository.devices.filter(
             (d) => d.event_id === eventId && d.is_active
           );
-          expect(activeDevices.length).toBeLessThanOrEqual(
-            MAX_SCANNER_DEVICES_PER_EVENT
-          );
+          expect(activeDevices.length).toBeLessThanOrEqual(MAX_SCANNER_DEVICES_PER_EVENT);
         }
       ),
       { numRuns: 50 }
@@ -239,12 +233,8 @@ describe('Property 12: Scanner Device Limit', () => {
           const activeEvent2 = repository.devices.filter(
             (d) => d.event_id === eventId2 && d.is_active
           );
-          expect(activeEvent1.length).toBeLessThanOrEqual(
-            MAX_SCANNER_DEVICES_PER_EVENT
-          );
-          expect(activeEvent2.length).toBeLessThanOrEqual(
-            MAX_SCANNER_DEVICES_PER_EVENT
-          );
+          expect(activeEvent1.length).toBeLessThanOrEqual(MAX_SCANNER_DEVICES_PER_EVENT);
+          expect(activeEvent2.length).toBeLessThanOrEqual(MAX_SCANNER_DEVICES_PER_EVENT);
         }
       ),
       { numRuns: 50 }

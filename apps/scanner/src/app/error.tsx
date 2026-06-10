@@ -13,11 +13,11 @@ export default function ScannerError({
   reset: () => void;
 }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4">
+    <div className="bg-cream flex min-h-screen flex-col items-center justify-center px-4">
       <div className="text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
+        <div className="bg-danger/10 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full">
           <svg
-            className="h-7 w-7 text-red-500"
+            className="text-danger h-7 w-7"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -30,11 +30,13 @@ export default function ScannerError({
             />
           </svg>
         </div>
-        <h2 className="text-lg font-bold text-gray-900">Terjadi Kesalahan</h2>
-        <p className="mt-2 text-sm text-gray-600">Scanner mengalami masalah. Silakan coba lagi.</p>
+        <h2 className="font-heading text-charcoal text-lg font-bold">Terjadi Kesalahan</h2>
+        <p className="text-charcoal/60 mt-2 text-sm">
+          Scanner mengalami masalah. Silakan coba lagi.
+        </p>
         <button
           onClick={reset}
-          className="mt-6 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
+          className="bg-sage hover:bg-sage/90 mt-6 rounded-xl px-5 py-2.5 text-sm font-medium text-white transition-colors"
         >
           Coba Lagi
         </button>

@@ -80,45 +80,58 @@ test.describe('Settings UI E2E', () => {
 
   test.afterEach(async () => {
     // Cleanup databases
-    await prisma.eventConfig.deleteMany({
-      where: { event: { tenant_id: tenantId } }
-    }).catch(() => {});
+    await prisma.eventConfig
+      .deleteMany({
+        where: { event: { tenant_id: tenantId } },
+      })
+      .catch(() => {});
 
-    await prisma.invitationSection.deleteMany({
-      where: { event: { tenant_id: tenantId } }
-    }).catch(() => {});
+    await prisma.invitationSection
+      .deleteMany({
+        where: { event: { tenant_id: tenantId } },
+      })
+      .catch(() => {});
 
-    await prisma.event.deleteMany({
-      where: { tenant_id: tenantId }
-    }).catch(() => {});
+    await prisma.event
+      .deleteMany({
+        where: { tenant_id: tenantId },
+      })
+      .catch(() => {});
 
     await prisma.user.delete({ where: { id: userId } }).catch(() => {});
     await prisma.tenant.delete({ where: { id: tenantId } }).catch(() => {});
   });
 
   test('should allow user to update event settings successfully', async ({ page }) => {
-    page.on('console', msg => console.log(`[BROWSER CONSOLE] ${msg.type()}: ${msg.text()}`));
-    page.on('requestfailed', req => console.log(`[BROWSER REQ FAILED] ${req.method()} ${req.url()}: ${req.failure()?.errorText}`));
-    page.on('requestfinished', req => console.log(`[BROWSER REQ SUCCESS] ${req.method()} ${req.url()}`));
+    page.on('console', (msg) => console.log(`[BROWSER CONSOLE] ${msg.type()}: ${msg.text()}`));
+    page.on('requestfailed', (req) =>
+      console.log(`[BROWSER REQ FAILED] ${req.method()} ${req.url()}: ${req.failure()?.errorText}`)
+    );
+    page.on('requestfinished', (req) =>
+      console.log(`[BROWSER REQ SUCCESS] ${req.method()} ${req.url()}`)
+    );
 
     // Navigate to local dashboard login page context first to allow setting localStorage
     await page.goto('http://localhost:3000/login');
 
     // Inject the generated tenant JWT token into localStorage
-    await page.evaluate(({ token, userId, tenantId, email }) => {
-      localStorage.setItem('wedding_access_token', token);
-      localStorage.setItem('wedding_refresh_token', 'dummy-refresh-token');
-      localStorage.setItem('wedding_token_expiry', (Date.now() + 3600000).toString());
+    await page.evaluate(
+      ({ token, userId, tenantId, email }) => {
+        localStorage.setItem('wedding_access_token', token);
+        localStorage.setItem('wedding_refresh_token', 'dummy-refresh-token');
+        localStorage.setItem('wedding_token_expiry', (Date.now() + 3600000).toString());
 
-      const user = {
-        id: userId,
-        tenant_id: tenantId,
-        email: email,
-        name: 'Client Owner Settings',
-        role: 'client'
-      };
-      localStorage.setItem('wedding_user', JSON.stringify(user));
-    }, { token, userId, tenantId, email: userEmail });
+        const user = {
+          id: userId,
+          tenant_id: tenantId,
+          email: email,
+          name: 'Client Owner Settings',
+          role: 'client',
+        };
+        localStorage.setItem('wedding_user', JSON.stringify(user));
+      },
+      { token, userId, tenantId, email: userEmail }
+    );
 
     // Navigate to /settings
     await page.goto('http://localhost:3000/settings');
@@ -143,7 +156,7 @@ test.describe('Settings UI E2E', () => {
 
     // Verify backend data was updated
     const updatedEvent = await prisma.event.findFirst({
-      where: { tenant_id: tenantId }
+      where: { tenant_id: tenantId },
     });
     expect(updatedEvent?.groom_name).toBe('Romano');
     expect(updatedEvent?.bride_name).toBe('Julieta');
@@ -155,20 +168,23 @@ test.describe('Settings UI E2E', () => {
     await page.goto('http://localhost:3000/login');
 
     // Inject the generated tenant JWT token into localStorage
-    await page.evaluate(({ token, userId, tenantId, email }) => {
-      localStorage.setItem('wedding_access_token', token);
-      localStorage.setItem('wedding_refresh_token', 'dummy-refresh-token');
-      localStorage.setItem('wedding_token_expiry', (Date.now() + 3600000).toString());
+    await page.evaluate(
+      ({ token, userId, tenantId, email }) => {
+        localStorage.setItem('wedding_access_token', token);
+        localStorage.setItem('wedding_refresh_token', 'dummy-refresh-token');
+        localStorage.setItem('wedding_token_expiry', (Date.now() + 3600000).toString());
 
-      const user = {
-        id: userId,
-        tenant_id: tenantId,
-        email: email,
-        name: 'Client Owner Settings',
-        role: 'client'
-      };
-      localStorage.setItem('wedding_user', JSON.stringify(user));
-    }, { token, userId, tenantId, email: userEmail });
+        const user = {
+          id: userId,
+          tenant_id: tenantId,
+          email: email,
+          name: 'Client Owner Settings',
+          role: 'client',
+        };
+        localStorage.setItem('wedding_user', JSON.stringify(user));
+      },
+      { token, userId, tenantId, email: userEmail }
+    );
 
     // Navigate to /settings
     await page.goto('http://localhost:3000/settings');
@@ -192,7 +208,7 @@ test.describe('Settings UI E2E', () => {
 
     // Verify backend data was updated
     const updatedUser = await prisma.user.findFirst({
-      where: { id: userId }
+      where: { id: userId },
     });
     expect(updatedUser?.name).toBe('New Client Name');
     expect(updatedUser?.email).toBe(`new-${userEmail}`);
@@ -203,20 +219,23 @@ test.describe('Settings UI E2E', () => {
     await page.goto('http://localhost:3000/login');
 
     // Inject the generated tenant JWT token into localStorage
-    await page.evaluate(({ token, userId, tenantId, email }) => {
-      localStorage.setItem('wedding_access_token', token);
-      localStorage.setItem('wedding_refresh_token', 'dummy-refresh-token');
-      localStorage.setItem('wedding_token_expiry', (Date.now() + 3600000).toString());
+    await page.evaluate(
+      ({ token, userId, tenantId, email }) => {
+        localStorage.setItem('wedding_access_token', token);
+        localStorage.setItem('wedding_refresh_token', 'dummy-refresh-token');
+        localStorage.setItem('wedding_token_expiry', (Date.now() + 3600000).toString());
 
-      const user = {
-        id: userId,
-        tenant_id: tenantId,
-        email: email,
-        name: 'Client Owner Settings',
-        role: 'client'
-      };
-      localStorage.setItem('wedding_user', JSON.stringify(user));
-    }, { token, userId, tenantId, email: userEmail });
+        const user = {
+          id: userId,
+          tenant_id: tenantId,
+          email: email,
+          name: 'Client Owner Settings',
+          role: 'client',
+        };
+        localStorage.setItem('wedding_user', JSON.stringify(user));
+      },
+      { token, userId, tenantId, email: userEmail }
+    );
 
     // Navigate to /settings
     await page.goto('http://localhost:3000/settings');
@@ -237,7 +256,7 @@ test.describe('Settings UI E2E', () => {
 
     // Verify backend password hash was updated
     const updatedUser = await prisma.user.findFirst({
-      where: { id: userId }
+      where: { id: userId },
     });
     expect(updatedUser).not.toBeNull();
     const isNewPasswordValid = await bcrypt.compare('newpassword123', updatedUser!.password_hash);

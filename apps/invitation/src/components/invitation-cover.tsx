@@ -80,7 +80,7 @@ export function InvitationCover({
   }
 
   return (
-    <div className="fixed inset-0 max-w-md mx-auto z-50 min-h-screen bg-[var(--color-background)] select-none">
+    <div className="fixed inset-0 z-50 mx-auto min-h-screen max-w-md bg-[var(--color-background)] select-none">
       {/* 1. Loading Overlay with Dynamic Theme Styling */}
       {isLoading && (
         <div
@@ -91,18 +91,16 @@ export function InvitationCover({
           }}
         >
           <div className="w-full max-w-xs space-y-4 text-center">
-            <h2 className="font-heading text-lg font-semibold text-[var(--color-primary)] animate-pulse">
+            <h2 className="font-heading animate-pulse text-lg font-semibold text-[var(--color-primary)]">
               {progress < 100 ? 'Memuat Undangan...' : 'Selamat Datang'}
             </h2>
-            <div className="h-4 w-full rounded-full border border-[var(--color-accent)]/30 bg-muted/40 p-[2px] overflow-hidden">
+            <div className="bg-muted/40 h-4 w-full overflow-hidden rounded-full border border-[var(--color-accent)]/30 p-[2px]">
               <div
-                className="h-full rounded-full bg-[var(--color-primary)] transition-all duration-200 ease-out flex items-center justify-end pr-2"
+                className="flex h-full items-center justify-end rounded-full bg-[var(--color-primary)] pr-2 transition-all duration-200 ease-out"
                 style={{ width: `${progress}%` }}
               >
                 {progress > 15 && (
-                  <span className="text-[10px] font-bold text-white leading-none">
-                    {progress}%
-                  </span>
+                  <span className="text-[10px] leading-none font-bold text-white">{progress}%</span>
                 )}
               </div>
             </div>
@@ -126,47 +124,49 @@ export function InvitationCover({
 
         <div className="relative z-10 flex flex-col items-center gap-5">
           {/* Opening text */}
-          <p className="text-xs tracking-widest uppercase text-[var(--color-text)]/70">
+          <p className="text-xs tracking-widest text-[var(--color-text)]/70 uppercase">
             {coverContent?.opening_text || 'Undangan Pernikahan'}
           </p>
 
           {/* Couple names */}
-          <h1 className="font-heading text-3xl font-bold leading-tight text-[var(--color-primary)] sm:text-4xl">
+          <h1 className="font-heading text-3xl leading-tight font-bold text-[var(--color-primary)] sm:text-4xl">
             {coverContent?.title || `${brideName} & ${groomName}`}
           </h1>
 
           {/* Date */}
-          <p className="text-sm text-[var(--color-text)]/80">
-            {formattedDate}
-          </p>
+          <p className="text-sm text-[var(--color-text)]/80">{formattedDate}</p>
 
           {/* Divider */}
           <div className="my-2 h-px w-16 bg-[var(--color-accent)]" />
 
           {/* Personal Greeting Card & QR Code */}
-          <div className="flex flex-col items-center gap-4 rounded-xl border border-[var(--color-accent)]/30 bg-white/50 backdrop-blur-sm p-5 shadow-sm min-w-[240px]">
+          <div className="flex min-w-[240px] flex-col items-center gap-4 rounded-xl border border-[var(--color-accent)]/30 bg-white/50 p-5 shadow-sm backdrop-blur-sm">
             <div className="text-center">
-              <p className="text-[10px] uppercase tracking-wider text-[var(--color-text)]/60">Kepada Yth.</p>
-              <p className="mt-1 font-heading text-lg font-semibold text-[var(--color-text)]">
+              <p className="text-[10px] tracking-wider text-[var(--color-text)]/60 uppercase">
+                Kepada Yth.
+              </p>
+              <p className="font-heading mt-1 text-lg font-semibold text-[var(--color-text)]">
                 {guestName}
               </p>
             </div>
 
             {/* Guest Entry QR Ticket */}
             {qrPayload ? (
-              <div className="bg-white p-2.5 rounded-lg shadow-inner border border-gray-100">
+              <div className="rounded-lg border border-gray-100 bg-white p-2.5 shadow-inner">
                 <QRCode
                   value={qrPayload}
                   size={120}
                   style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
                 />
-                <p className="text-[8px] text-muted-foreground mt-1.5 uppercase tracking-widest text-center select-all">
+                <p className="text-muted-foreground mt-1.5 text-center text-[8px] tracking-widest uppercase select-all">
                   KODE MASUK QR
                 </p>
               </div>
             ) : (
-              <div className="h-[120px] w-[120px] bg-muted/40 rounded-lg flex items-center justify-center border border-dashed border-gray-300">
-                <p className="text-[9px] text-muted-foreground px-2 text-center">QR Code Belum Tersedia</p>
+              <div className="bg-muted/40 flex h-[120px] w-[120px] items-center justify-center rounded-lg border border-dashed border-gray-300">
+                <p className="text-muted-foreground px-2 text-center text-[9px]">
+                  QR Code Belum Tersedia
+                </p>
               </div>
             )}
           </div>
@@ -174,7 +174,7 @@ export function InvitationCover({
           {/* Open invitation button */}
           <button
             onClick={handleOpen}
-            className="mt-4 rounded-full bg-[var(--color-primary)] px-8 py-3 text-xs font-semibold uppercase tracking-wider text-white shadow-lg transition-all hover:opacity-95 active:scale-95 cursor-pointer"
+            className="mt-4 cursor-pointer rounded-full bg-[var(--color-primary)] px-8 py-3 text-xs font-semibold tracking-wider text-white uppercase shadow-lg transition-all hover:opacity-95 active:scale-95"
           >
             Buka Undangan
           </button>

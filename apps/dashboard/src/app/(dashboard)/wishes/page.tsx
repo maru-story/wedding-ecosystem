@@ -97,7 +97,9 @@ export default function WishesPage() {
 
       // Loop page by page with max allowed per_page (100) to bypass max constraint
       do {
-        const res = await apiFetch<PaginatedWishes>(`/messages/${eventData.id}/admin?page=${currentPage}&per_page=100`);
+        const res = await apiFetch<PaginatedWishes>(
+          `/messages/${eventData.id}/admin?page=${currentPage}&per_page=100`
+        );
         const wishesList = res.data || [];
         allWishes = [...allWishes, ...wishesList];
         totalPages = res.pagination?.total_pages || 1;
@@ -111,13 +113,19 @@ export default function WishesPage() {
       }
 
       // Build CSV content
-      const headers = ['Nama Pengirim', 'Tamu Terdaftar', 'Ucapan & Doa', 'Tanggal Kirim', 'Status Tampil'];
+      const headers = [
+        'Nama Pengirim',
+        'Tamu Terdaftar',
+        'Ucapan & Doa',
+        'Tanggal Kirim',
+        'Status Tampil',
+      ];
       const rows = allWishes.map((w) => [
         `"${w.sender_name.replace(/"/g, '""')}"`,
         `"${(w.guest?.name || '').replace(/"/g, '""')}"`,
         `"${w.message_text.replace(/"/g, '""')}"`,
         new Date(w.created_at).toLocaleString('id-ID'),
-        w.is_visible ? 'Tampil' : 'Disembunyikan'
+        w.is_visible ? 'Tampil' : 'Disembunyikan',
       ]);
 
       const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
@@ -144,8 +152,8 @@ export default function WishesPage() {
     return (
       <div className="flex h-[50vh] items-center justify-center">
         <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="mt-3 text-sm text-muted-foreground font-medium">Memuat ucapan...</p>
+          <Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground mt-3 text-sm font-medium">Memuat ucapan...</p>
         </div>
       </div>
     );
@@ -153,17 +161,24 @@ export default function WishesPage() {
 
   if (!eventData) {
     return (
-      <div className="flex h-[50vh] items-center justify-center text-center p-4">
+      <div className="flex h-[50vh] items-center justify-center p-4 text-center">
         <div>
           <p className="text-destructive font-semibold">Gagal memuat detail acara</p>
-          <p className="text-sm text-muted-foreground mt-1">Event tidak ditemukan untuk akun ini.</p>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Event tidak ditemukan untuk akun ini.
+          </p>
         </div>
       </div>
     );
   }
 
   const wishes = wishesData?.data || [];
-  const pagination = wishesData?.pagination || { page: 1, per_page: tableState.perPage, total: 0, total_pages: 1 };
+  const pagination = wishesData?.pagination || {
+    page: 1,
+    per_page: tableState.perPage,
+    total: 0,
+    total_pages: 1,
+  };
 
   return (
     <FadeIn>
@@ -172,7 +187,7 @@ export default function WishesPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="font-heading text-2xl font-bold">Ucapan Tamu</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-sm">
               Kelola pesan ucapan dan doa yang dikirim oleh tamu undangan pernikahan Anda
             </p>
           </div>
@@ -198,7 +213,7 @@ export default function WishesPage() {
           isEmpty={wishes.length === 0}
           emptyTitle="Belum ada ucapan"
           emptyDescription="Belum ada ucapan dari tamu untuk acara ini."
-          emptyIcon={<MessageSquare className="mx-auto h-12 w-12 text-muted-foreground/60" />}
+          emptyIcon={<MessageSquare className="text-muted-foreground/60 mx-auto h-12 w-12" />}
           header={
             <>
               <TableHead className="w-[150px]">Pengirim</TableHead>
@@ -214,20 +229,26 @@ export default function WishesPage() {
           onPerPageChange={tableState.setPerPage}
           paginationText={(p) => (
             <>
-              Menampilkan <span className="font-medium text-foreground">{(p.page - 1) * p.per_page + 1}</span>–
-              <span className="font-medium text-foreground">{Math.min(p.page * p.per_page, p.total)}</span> dari{' '}
-              <span className="font-medium text-foreground">{p.total}</span> ucapan
+              Menampilkan{' '}
+              <span className="text-foreground font-medium">{(p.page - 1) * p.per_page + 1}</span>–
+              <span className="text-foreground font-medium">
+                {Math.min(p.page * p.per_page, p.total)}
+              </span>{' '}
+              dari <span className="text-foreground font-medium">{p.total}</span> ucapan
             </>
           )}
         >
           {wishes.map((w: WishItem) => (
             <TableRow key={w.id} className="hover:bg-muted/30 transition-colors">
-              <TableCell className="font-semibold text-foreground truncate max-w-[150px]" title={w.sender_name}>
+              <TableCell
+                className="text-foreground max-w-[150px] truncate font-semibold"
+                title={w.sender_name}
+              >
                 {w.sender_name}
               </TableCell>
               <TableCell className="max-w-[150px] truncate" title={w.guest?.name || '-'}>
                 {w.guest ? (
-                  <span className="font-medium text-foreground">{w.guest.name}</span>
+                  <span className="text-foreground font-medium">{w.guest.name}</span>
                 ) : (
                   <span className="text-muted-foreground text-xs italic">Bukan tamu terdaftar</span>
                 )}
@@ -235,7 +256,7 @@ export default function WishesPage() {
               <TableCell className="text-muted-foreground max-w-md break-words">
                 {w.message_text}
               </TableCell>
-              <TableCell className="text-xs text-muted-foreground">
+              <TableCell className="text-muted-foreground text-xs">
                 {new Date(w.created_at).toLocaleString('id-ID', {
                   day: 'numeric',
                   month: 'short',
@@ -259,7 +280,7 @@ export default function WishesPage() {
                   size="icon"
                   onClick={() => setPendingDeleteWish(w)}
                   disabled={deleteMutation.isPending}
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 transition-colors"
                   title="Hapus Ucapan"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -273,22 +294,26 @@ export default function WishesPage() {
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={!!pendingDeleteWish}
-        onOpenChange={(open) => { if (!open) setPendingDeleteWish(null); }}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteWish(null);
+        }}
       >
-        <DialogContent className="sm:max-w-sm bg-card border-border/40">
+        <DialogContent className="bg-card border-border/40 sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="font-heading text-xl text-foreground">
-              Hapus Ucapan
-            </DialogTitle>
+            <DialogTitle className="font-heading text-foreground text-xl">Hapus Ucapan</DialogTitle>
             <DialogDescription className="text-muted-foreground">
               Apakah Anda yakin ingin menghapus ucapan dari{' '}
-              <span className="font-semibold text-foreground">"{pendingDeleteWish?.sender_name}"</span>?{' '}
+              <span className="text-foreground font-semibold">
+                "{pendingDeleteWish?.sender_name}"
+              </span>
+              ?{' '}
               {pendingDeleteWish?.message_text && (
-                <span className="block mt-1 italic text-xs truncate">
-                  "{pendingDeleteWish.message_text.slice(0, 80)}{pendingDeleteWish.message_text.length > 80 ? '...' : ''}"
+                <span className="mt-1 block truncate text-xs italic">
+                  "{pendingDeleteWish.message_text.slice(0, 80)}
+                  {pendingDeleteWish.message_text.length > 80 ? '...' : ''}"
                 </span>
               )}
-              <span className="block mt-2">Tindakan ini tidak dapat dibatalkan.</span>
+              <span className="mt-2 block">Tindakan ini tidak dapat dibatalkan.</span>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">

@@ -4,12 +4,12 @@ export {
   tenantFilter,
   validateTenantOwnership,
 } from './tenant-isolation/tenant-isolation.middleware';
-export type { TenantContext, AuthenticatedRequest } from './tenant-isolation/tenant-isolation.middleware';
+export type {
+  TenantContext,
+  AuthenticatedRequest,
+} from './tenant-isolation/tenant-isolation.middleware';
 
-export {
-  createRBACMiddleware,
-  PERMISSIONS,
-} from './rbac/rbac.middleware';
+export { createRBACMiddleware, PERMISSIONS } from './rbac/rbac.middleware';
 export type { Permission, RBACConfig } from './rbac/rbac.middleware';
 
 export { PIIEncryption, ENCRYPTION_CONSTANTS } from './encryption/encryption';
@@ -21,7 +21,11 @@ export {
   InMemoryRateLimiterStore,
   RATE_LIMITER_CONSTANTS,
 } from './rate-limiter/rate-limiter.middleware';
-export type { RateLimiterConfig, RateLimiterStore, RedisClient } from './rate-limiter/rate-limiter.middleware';
+export type {
+  RateLimiterConfig,
+  RateLimiterStore,
+  RedisClient,
+} from './rate-limiter/rate-limiter.middleware';
 
 export {
   createCORSMiddleware,

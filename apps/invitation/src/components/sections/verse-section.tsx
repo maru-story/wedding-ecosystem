@@ -16,11 +16,7 @@ interface VerseSectionProps {
 
 export function VerseSection({ content, sortOrder }: VerseSectionProps) {
   return (
-    <SectionWrapper
-      sectionType="verse"
-      sortOrder={sortOrder}
-      className="relative overflow-hidden"
-    >
+    <SectionWrapper sectionType="verse" sortOrder={sortOrder} className="relative overflow-hidden">
       {content.background_image && (
         <div className="absolute inset-0 -z-10">
           <Image
@@ -36,14 +32,12 @@ export function VerseSection({ content, sortOrder }: VerseSectionProps) {
       <div className="text-center">
         <div className="mb-4 inline-block h-px w-12 bg-[var(--color-accent)]" />
         {content.text && (
-          <blockquote className="font-heading text-lg italic leading-relaxed text-[var(--color-text)]">
+          <blockquote className="font-heading text-lg leading-relaxed text-[var(--color-text)] italic">
             &ldquo;{content.text}&rdquo;
           </blockquote>
         )}
         {content.source && (
-          <p className="mt-4 text-sm font-medium text-[var(--color-accent)]">
-            — {content.source}
-          </p>
+          <p className="mt-4 text-sm font-medium text-[var(--color-accent)]">— {content.source}</p>
         )}
         <div className="mt-4 inline-block h-px w-12 bg-[var(--color-accent)]" />
       </div>

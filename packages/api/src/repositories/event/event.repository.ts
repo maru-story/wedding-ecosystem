@@ -1,10 +1,10 @@
 import { PrismaClient } from '@wedding/db';
 import { EventStatus, SectionType } from '@wedding/shared';
-import type { 
-  EventRepository, 
-  EventRecord, 
-  EventConfigRecord, 
-  SectionRecord 
+import type {
+  EventRepository,
+  EventRecord,
+  EventConfigRecord,
+  SectionRecord,
 } from '../../services/event/event.service';
 
 export class PrismaEventRepository implements EventRepository {
@@ -134,6 +134,14 @@ export class PrismaEventRepository implements EventRepository {
     });
   }
 
+  async findTenantPlan(tenantId: string): Promise<string | null> {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { plan_type: true },
+    });
+    return tenant ? tenant.plan_type : null;
+  }
+
   async updateEvent(
     eventId: string,
     tenantId: string,
@@ -163,9 +171,11 @@ export class PrismaEventRepository implements EventRepository {
       where: { id: eventId, tenant_id: tenantId },
     });
 
-    return updated ? {
-      ...updated,
-      status: updated.status as EventStatus,
-    } : null;
+    return updated
+      ? {
+          ...updated,
+          status: updated.status as EventStatus,
+        }
+      : null;
   }
 }

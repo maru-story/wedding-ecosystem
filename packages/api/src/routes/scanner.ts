@@ -36,6 +36,54 @@ export async function scannerRoutes(app: FastifyInstance, opts: ScannerRouteOpti
       data: { is_active: false },
     });
 
+    // If device_id is provided, try to reuse/reactivate it
+    if (body.device_id) {
+      const existingDevice = await prisma.scannerDevice.findFirst({
+        where: { id: body.device_id, event_id: body.event_id },
+      });
+      if (existingDevice) {
+        if (existingDevice.is_active) {
+          const lane = body.lane || existingDevice.lane;
+          const updated = await prisma.scannerDevice.update({
+            where: { id: existingDevice.id },
+            data: {
+              last_active_at: new Date(),
+              device_name: body.device_name,
+              lane: lane as any,
+            },
+          });
+          return reply.status(200).send(updated);
+        }
+
+        // If it was inactive, check active count
+        const activeCount = await prisma.scannerDevice.count({
+          where: { event_id: body.event_id, is_active: true },
+        });
+
+        if (activeCount >= 2) {
+          return reply.status(403).send({
+            success: false,
+            error: {
+              code: 'SCANNER_7001',
+              message: 'Batas maksimal 2 scanner device per event telah tercapai',
+            },
+          });
+        }
+
+        const lane = body.lane || existingDevice.lane;
+        const updated = await prisma.scannerDevice.update({
+          where: { id: existingDevice.id },
+          data: {
+            is_active: true,
+            last_active_at: new Date(),
+            device_name: body.device_name,
+            lane: lane as any,
+          },
+        });
+        return reply.status(200).send(updated);
+      }
+    }
+
     // Check active device count (max 2 per event)
     const activeDevices = await prisma.scannerDevice.findMany({
       where: { event_id: body.event_id, is_active: true },

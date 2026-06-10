@@ -11,12 +11,7 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { PrismaClient } from '@wedding/db';
 import type { RealtimeServer } from '@wedding/realtime';
-import {
-  ErrorCode,
-  qrCheckInSchema,
-  manualCheckInSchema,
-  goShowSchema,
-} from '@wedding/shared';
+import { ErrorCode, qrCheckInSchema, manualCheckInSchema, goShowSchema } from '@wedding/shared';
 import { CheckInService, isServiceError } from '../services/checkin/checkin.service';
 import {
   PrismaCheckInRepository,
@@ -38,16 +33,14 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
 
   // --- Wire up CheckInService with its adapters ---
   const repository = new PrismaCheckInRepository(prisma);
-  const broadcaster = new RealtimeCheckInBroadcaster(
-    getRealtimeServer || (() => realtime ?? null)
-  );
+  const broadcaster = new RealtimeCheckInBroadcaster(getRealtimeServer || (() => realtime ?? null));
 
   const redisClient = getCacheClient();
   const redisAdapter = redisClient
     ? new IoRedisCheckInClient(redisClient)
     : new NoOpRedisCheckInClient();
 
-  const encryptionKey = process.env.AES_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
+  const encryptionKey = process.env.ENCRYPTION_KEY_AES256 || process.env.AES_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
 
   const checkInService = new CheckInService({
     repository,
@@ -166,10 +159,7 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
       });
     }
 
-    const syncResult = await checkInService.syncOfflineRecords(
-      user.tenant_id,
-      body.records
-    );
+    const syncResult = await checkInService.syncOfflineRecords(user.tenant_id, body.records);
 
     return reply.send({
       success: true,

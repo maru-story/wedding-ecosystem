@@ -6,8 +6,8 @@ export default function ScannerLoading() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <div className="text-center">
-        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
-        <p className="mt-4 text-sm text-gray-500">Memuat scanner...</p>
+        <div className="border-sage mx-auto h-10 w-10 animate-spin rounded-full border-4 border-t-transparent" />
+        <p className="text-charcoal/60 mt-4 text-sm">Memuat scanner...</p>
       </div>
     </div>
   );

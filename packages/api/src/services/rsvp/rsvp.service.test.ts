@@ -515,9 +515,7 @@ describe('RsvpService', () => {
 
   describe('isRsvpError type guard', () => {
     it('should return true for error objects', () => {
-      expect(
-        isRsvpError({ code: ErrorCode.GUEST_NOT_FOUND, message: 'Not found' })
-      ).toBe(true);
+      expect(isRsvpError({ code: ErrorCode.GUEST_NOT_FOUND, message: 'Not found' })).toBe(true);
     });
 
     it('should return false for RSVP records', () => {

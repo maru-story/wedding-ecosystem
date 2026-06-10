@@ -1,6 +1,12 @@
 import { randomUUID } from 'crypto';
-import { ErrorCode, EventStatus, SectionType } from '@wedding/shared';
-import type { CreateEventInput, ThemeConfig, DashboardTheme, InvitationTheme, UpdateEventInput } from '@wedding/shared';
+import { ErrorCode, EventStatus, SectionType, PlanType } from '@wedding/shared';
+import type {
+  CreateEventInput,
+  ThemeConfig,
+  DashboardTheme,
+  InvitationTheme,
+  UpdateEventInput,
+} from '@wedding/shared';
 
 // --- Constants ---
 
@@ -152,6 +158,8 @@ export interface EventRepository {
 
   countEventsByTenant(tenantId: string): Promise<number>;
 
+  findTenantPlan(tenantId: string): Promise<string | null>;
+
   updateEvent(
     eventId: string,
     tenantId: string,
@@ -228,7 +236,7 @@ export class EventService {
     let themeApplied = false;
 
     try {
-      config = await this.applyDefaultTheme(eventId);
+      config = await this.applyDefaultTheme(eventId, tenantId);
       themeApplied = true;
     } catch {
       // Theme application failed - event is created without styling.
@@ -263,8 +271,18 @@ export class EventService {
   /**
    * Apply default theme configuration to an event (Req 11.7).
    * Creates an EventConfig record with the default dashboard and invitation themes.
+   * Scopes guest capacity limit (max_guests) according to tenant's PlanType.
    */
-  async applyDefaultTheme(eventId: string): Promise<EventConfigRecord> {
+  async applyDefaultTheme(eventId: string, tenantId: string): Promise<EventConfigRecord> {
+    const plan = await this.repository.findTenantPlan(tenantId);
+    
+    let maxGuests = 2000; // Fallback / Enterprise default
+    if (plan === PlanType.BASIC) {
+      maxGuests = 100;
+    } else if (plan === PlanType.PREMIUM) {
+      maxGuests = 500;
+    }
+
     return this.repository.createEventConfig({
       id: randomUUID(),
       event_id: eventId,
@@ -273,7 +291,7 @@ export class EventService {
       invitation_music_url: null,
       calendar_link: null,
       max_scanner_devices: 2,
-      max_guests: 2000,
+      max_guests: maxGuests,
     });
   }
 
@@ -350,8 +368,6 @@ export class EventService {
 /**
  * Type guard to check if a result is an EventServiceError
  */
-export function isEventError(
-  result: any
-): result is EventServiceError {
+export function isEventError(result: any): result is EventServiceError {
   return result && typeof result === 'object' && 'code' in result && 'message' in result;
 }

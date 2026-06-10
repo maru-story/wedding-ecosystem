@@ -432,9 +432,9 @@ describe('MediaUploadService', () => {
 
   describe('isMediaUploadError type guard', () => {
     it('should return true for error objects', () => {
-      expect(
-        isMediaUploadError({ code: ErrorCode.FILE_TOO_LARGE, message: 'Too large' })
-      ).toBe(true);
+      expect(isMediaUploadError({ code: ErrorCode.FILE_TOO_LARGE, message: 'Too large' })).toBe(
+        true
+      );
     });
 
     it('should return false for upload results', () => {

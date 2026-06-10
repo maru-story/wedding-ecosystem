@@ -16,11 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DataTable } from '@/components/ui/data-table';
-import {
-  TableCell,
-  TableHead,
-  TableRow,
-} from '@/components/ui/table';
+import { TableCell, TableHead, TableRow } from '@/components/ui/table';
 import { Users, CalendarCheck, CheckSquare, UserPlus, Search } from 'lucide-react';
 import { FadeIn } from '@/components/ui/motion-wrapper';
 
@@ -75,7 +71,9 @@ function ConnectionStatusBadge({ status }: { status: ConnectionStatus }) {
       aria-live="polite"
       aria-label={`Status koneksi: ${status}`}
     >
-      <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-destructive'}`} />
+      <span
+        className={`mr-1.5 h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-destructive'}`}
+      />
       {status === 'terhubung' ? 'Terhubung (Real-time)' : 'Terputus'}
     </Badge>
   );
@@ -117,7 +115,7 @@ function DeliveryStatusBadge({ status }: { status: string }) {
   return (
     <Badge
       variant="outline"
-      className={`${styles[status] || styles.not_sent} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider`}
+      className={`${styles[status] || styles.not_sent} rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase`}
     >
       {labels[status] || 'Belum Kirim'}
     </Badge>
@@ -190,8 +188,8 @@ export default function RsvpTrackingPage() {
         {/* Page header with connection status */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="font-heading text-2xl font-bold text-foreground">Tracking RSVP</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <h1 className="font-heading text-foreground text-2xl font-bold">Tracking RSVP</h1>
+            <p className="text-muted-foreground mt-1 text-sm">
               Pantau konfirmasi kehadiran tamu secara real-time
             </p>
           </div>
@@ -200,70 +198,72 @@ export default function RsvpTrackingPage() {
 
         {/* Real-time statistics panel */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-card border-border/40 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <Card className="bg-card border-border/40 shadow-sm transition-shadow duration-200 hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Tamu</CardTitle>
-              <Users className="h-4 w-4 text-primary" />
+              <CardTitle className="text-muted-foreground text-sm font-medium">
+                Total Tamu
+              </CardTitle>
+              <Users className="text-primary h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{stats.total_guests}</div>
+              <div className="text-foreground text-2xl font-bold">{stats.total_guests}</div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border/40 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <Card className="bg-card border-border/40 shadow-sm transition-shadow duration-200 hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">RSVP Masuk</CardTitle>
-              <CalendarCheck className="h-4 w-4 text-copper" />
+              <CardTitle className="text-muted-foreground text-sm font-medium">
+                RSVP Masuk
+              </CardTitle>
+              <CalendarCheck className="text-copper h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-copper">{stats.total_rsvp}</div>
+              <div className="text-copper text-2xl font-bold">{stats.total_rsvp}</div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border/40 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <Card className="bg-card border-border/40 shadow-sm transition-shadow duration-200 hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Check-in</CardTitle>
-              <CheckSquare className="h-4 w-4 text-success" />
+              <CardTitle className="text-muted-foreground text-sm font-medium">Check-in</CardTitle>
+              <CheckSquare className="text-success h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">{stats.total_checked_in}</div>
+              <div className="text-success text-2xl font-bold">{stats.total_checked_in}</div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border/40 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <Card className="bg-card border-border/40 shadow-sm transition-shadow duration-200 hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Go-Show</CardTitle>
-              <UserPlus className="h-4 w-4 text-warning" />
+              <CardTitle className="text-muted-foreground text-sm font-medium">Go-Show</CardTitle>
+              <UserPlus className="text-warning h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-warning">{stats.total_go_show}</div>
+              <div className="text-warning text-2xl font-bold">{stats.total_go_show}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters Bar (Aligned with other dashboard menus) */}
-        <div className='flex flex-col sm:flex-row sm:items-center justify-between'>
+        <div className="flex flex-col justify-between sm:flex-row sm:items-center">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             {/* Search Input */}
             <div className="relative w-full max-w-sm sm:w-[240px]">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
               <Input
                 type="text"
                 placeholder="Cari nama / telepon..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 bg-card border-border/60 focus-visible:ring-ring focus-visible:ring-offset-0"
+                className="bg-card border-border/60 focus-visible:ring-ring pl-9 focus-visible:ring-offset-0"
                 aria-label="Cari RSVP"
               />
             </div>
 
             {/* Group Filter */}
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">
-                Grup:
-              </span>
+              <span className="text-muted-foreground text-sm font-medium">Grup:</span>
               <Select value={groupFilter} onValueChange={setGroupFilter}>
-                <SelectTrigger className="w-[160px] bg-card border-border/60 hover:bg-muted/30">
+                <SelectTrigger className="bg-card border-border/60 hover:bg-muted/30 w-[160px]">
                   <SelectValue placeholder="Semua Grup" />
                 </SelectTrigger>
                 <SelectContent>
@@ -278,11 +278,9 @@ export default function RsvpTrackingPage() {
 
             {/* Status/Attendance Filter */}
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">
-                Status:
-              </span>
+              <span className="text-muted-foreground text-sm font-medium">Status:</span>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[160px] bg-card border-border/60 hover:bg-muted/30">
+                <SelectTrigger className="bg-card border-border/60 hover:bg-muted/30 w-[160px]">
                   <SelectValue placeholder="Semua Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -304,18 +302,20 @@ export default function RsvpTrackingPage() {
                   setGroupFilter('all');
                   setStatusFilter('all');
                 }}
-                className="h-9 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent"
+                className="text-muted-foreground hover:text-foreground hover:bg-accent h-9 px-3 text-sm"
               >
                 Reset Filter
               </Button>
             )}
           </div>
           {filteredRsvpList.length > 0 && (
-            <Badge variant="outline" className="font-semibold text-xs border-border hidden sm:block">
+            <Badge
+              variant="outline"
+              className="border-border hidden text-xs font-semibold sm:block"
+            >
               {filteredRsvpList.length} data
             </Badge>
           )}
-
         </div>
 
         {/* Guest Table using DataTable */}
@@ -346,33 +346,41 @@ export default function RsvpTrackingPage() {
           onPerPageChange={setPerPage}
           paginationText={(p) => (
             <>
-              Menampilkan <span className="font-medium text-foreground">{(p.page - 1) * p.per_page + 1}</span>–
-              <span className="font-medium text-foreground">{Math.min(p.page * p.per_page, p.total)}</span> dari{' '}
-              <span className="font-medium text-foreground">{p.total}</span> data RSVP
+              Menampilkan{' '}
+              <span className="text-foreground font-medium">{(p.page - 1) * p.per_page + 1}</span>–
+              <span className="text-foreground font-medium">
+                {Math.min(p.page * p.per_page, p.total)}
+              </span>{' '}
+              dari <span className="text-foreground font-medium">{p.total}</span> data RSVP
             </>
           )}
         >
           {paginatedRsvpList.map((item) => (
             <TableRow key={item.guest_id} className="hover:bg-muted/30 transition-colors">
-              <TableCell className="px-6 py-4 font-medium text-foreground">{item.guest_name}</TableCell>
+              <TableCell className="text-foreground px-6 py-4 font-medium">
+                {item.guest_name}
+              </TableCell>
               <TableCell className="px-6 py-4">
-                <Badge variant="secondary" className="font-semibold text-[10px] rounded-full px-2 py-0.5 uppercase tracking-wider bg-primary/10 text-primary border-primary/20">
+                <Badge
+                  variant="secondary"
+                  className="bg-primary/10 text-primary border-primary/20 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase"
+                >
                   {groupLabelMap[item.group || ''] || item.group || '-'}
                 </Badge>
               </TableCell>
-              <TableCell className="px-6 py-4 text-muted-foreground font-mono text-xs">
+              <TableCell className="text-muted-foreground px-6 py-4 font-mono text-xs">
                 {item.phone || '-'}
               </TableCell>
               <TableCell className="px-6 py-4">
                 <AttendanceBadge attendance={item.attendance} />
               </TableCell>
-              <TableCell className="px-6 py-4 text-foreground font-mono">
+              <TableCell className="text-foreground px-6 py-4 font-mono">
                 {item.attendance === 'decline' ? '-' : item.guest_count}
               </TableCell>
               <TableCell className="px-6 py-4">
                 <DeliveryStatusBadge status={item.delivery_status || 'not_sent'} />
               </TableCell>
-              <TableCell className="px-6 py-4 text-muted-foreground text-xs">
+              <TableCell className="text-muted-foreground px-6 py-4 text-xs">
                 {formatTimestamp(item.submitted_at)}
               </TableCell>
             </TableRow>

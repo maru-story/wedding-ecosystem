@@ -83,11 +83,9 @@ const rateLimiterPlugin: FastifyPluginAsync<RateLimiterPluginOptions> = async (a
 
     try {
       // Use pipeline for atomic INCR + TTL in one round-trip
-      const [[err1, count], [err2, ttl]] = await redis
-        .multi()
-        .incr(key)
-        .ttl(key)
-        .exec() as Array<[Error | null, any]>;
+      const [[err1, count], [err2, ttl]] = (await redis.multi().incr(key).ttl(key).exec()) as Array<
+        [Error | null, any]
+      >;
 
       if (err1 || err2 || count === null) {
         throw new Error('Redis rate limit operation failed');
@@ -105,7 +103,7 @@ const rateLimiterPlugin: FastifyPluginAsync<RateLimiterPluginOptions> = async (a
       if (count > config.maxRequests) {
         const retryAfter = ttl > 0 ? ttl : config.windowSeconds;
         reply.header('Retry-After', retryAfter.toString());
-        
+
         return reply.status(429).send({
           success: false,
           error: {

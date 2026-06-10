@@ -4,7 +4,10 @@ import { createEventSchema, updateEventSchema, ErrorCode, EventStatus } from '@w
 import { EventService, isEventError } from '../services/event/event.service';
 import { PrismaEventRepository } from '../repositories';
 import { validate } from '../middleware/validate';
-import { MediaUploadService, isMediaUploadError } from '../services/media-upload/media-upload.service';
+import {
+  MediaUploadService,
+  isMediaUploadError,
+} from '../services/media-upload/media-upload.service';
 import { createCloudStorage } from '../services/media-upload/r2-storage';
 import { getHttpStatusForError } from '../middleware/media-upload/media-upload.middleware';
 import { PIIEncryption } from '../middleware/encryption/encryption';
@@ -23,7 +26,7 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
     cloudStorage: createCloudStorage(),
   });
 
-  const encryptionKey = process.env.AES_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
+  const encryptionKey = process.env.ENCRYPTION_KEY_AES256 || process.env.AES_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
   let pii: PIIEncryption | null = null;
   if (encryptionKey) {
     try {
@@ -67,6 +70,16 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
     const user = request.user!;
     const events = await prisma.event.findMany({
       where: { tenant_id: user.tenant_id },
+      include: {
+        scanner_devices: {
+          where: { is_active: true },
+        },
+        _count: {
+          select: {
+            guests: true,
+          },
+        },
+      },
       orderBy: { created_at: 'desc' },
     });
     return reply.send({ data: events });
@@ -111,29 +124,33 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
             attendance: true,
             guest_count: true,
             submitted_at: true,
-          }
+          },
         },
         check_ins: {
           select: {
             checked_in_at: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     const [total_wishes, visible_wishes] = await Promise.all([
       prisma.message.count({ where: { event_id: id } }),
-      prisma.message.count({ where: { event_id: id, is_visible: true } })
+      prisma.message.count({ where: { event_id: id, is_visible: true } }),
     ]);
 
     const total_guests = guests.length;
-    const total_go_show = guests.filter(g => g.type === 'go_show').length;
-    const total_rsvp = guests.filter(g => g.rsvps.length > 0).length;
-    const total_checked_in = guests.filter(g => g.check_ins.length > 0).length;
+    const total_go_show = guests.filter((g) => g.type === 'go_show').length;
+    const total_rsvp = guests.filter((g) => g.rsvps.length > 0).length;
+    const total_checked_in = guests.filter((g) => g.check_ins.length > 0).length;
 
-    const rsvp_confirmed = guests.filter(g => g.rsvps.length > 0 && g.rsvps[0].attendance !== 'decline').length;
-    const rsvp_declined = guests.filter(g => g.rsvps.length > 0 && g.rsvps[0].attendance === 'decline').length;
-    const rsvp_pending = guests.filter(g => g.rsvps.length === 0).length;
+    const rsvp_confirmed = guests.filter(
+      (g) => g.rsvps.length > 0 && g.rsvps[0].attendance !== 'decline'
+    ).length;
+    const rsvp_declined = guests.filter(
+      (g) => g.rsvps.length > 0 && g.rsvps[0].attendance === 'decline'
+    ).length;
+    const rsvp_pending = guests.filter((g) => g.rsvps.length === 0).length;
 
     const total_pax_invited = guests.reduce((sum, g) => sum + 1 + g.plus_one_count, 0);
     const total_pax_confirmed = guests.reduce((sum, g) => {
@@ -143,57 +160,72 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
       return sum;
     }, 0);
 
-    const attendance_akad = guests.filter(g => g.rsvps.length > 0 && g.rsvps[0].attendance === 'akad').length;
-    const attendance_resepsi = guests.filter(g => g.rsvps.length > 0 && g.rsvps[0].attendance === 'resepsi').length;
-    const attendance_both = guests.filter(g => g.rsvps.length > 0 && g.rsvps[0].attendance === 'both').length;
+    const attendance_akad = guests.filter(
+      (g) => g.rsvps.length > 0 && g.rsvps[0].attendance === 'akad'
+    ).length;
+    const attendance_resepsi = guests.filter(
+      (g) => g.rsvps.length > 0 && g.rsvps[0].attendance === 'resepsi'
+    ).length;
+    const attendance_both = guests.filter(
+      (g) => g.rsvps.length > 0 && g.rsvps[0].attendance === 'both'
+    ).length;
 
-    const checked_in_invited = guests.filter(g => g.check_ins.length > 0 && g.type === 'invited').length;
-    const checked_in_go_show = guests.filter(g => g.check_ins.length > 0 && g.type === 'go_show').length;
+    const checked_in_invited = guests.filter(
+      (g) => g.check_ins.length > 0 && g.type === 'invited'
+    ).length;
+    const checked_in_go_show = guests.filter(
+      (g) => g.check_ins.length > 0 && g.type === 'go_show'
+    ).length;
 
-    const delivery_sent = guests.filter(g => g.delivery_status === 'sent').length;
-    const delivery_not_sent = guests.filter(g => g.delivery_status === 'not_sent').length;
-    const delivery_failed = guests.filter(g => g.delivery_status === 'failed').length;
+    const delivery_sent = guests.filter((g) => g.delivery_status === 'sent').length;
+    const delivery_not_sent = guests.filter((g) => g.delivery_status === 'not_sent').length;
+    const delivery_failed = guests.filter((g) => g.delivery_status === 'failed').length;
 
-    const vip_total = guests.filter(g => g.group === 'vip').length;
-    const vip_confirmed = guests.filter(g => g.group === 'vip' && g.rsvps.length > 0 && g.rsvps[0].attendance !== 'decline').length;
-    const vip_checked_in = guests.filter(g => g.group === 'vip' && g.check_ins.length > 0).length;
+    const vip_total = guests.filter((g) => g.group === 'vip').length;
+    const vip_confirmed = guests.filter(
+      (g) => g.group === 'vip' && g.rsvps.length > 0 && g.rsvps[0].attendance !== 'decline'
+    ).length;
+    const vip_checked_in = guests.filter((g) => g.group === 'vip' && g.check_ins.length > 0).length;
 
     // Group breakdown
     const groups = ['family', 'friend', 'colleague', 'vip'] as const;
     const group_breakdown: Record<string, any> = {};
-    groups.forEach(grp => {
-      const grpGuests = guests.filter(g => g.group === grp);
+    groups.forEach((grp) => {
+      const grpGuests = guests.filter((g) => g.group === grp);
       group_breakdown[grp] = {
         total: grpGuests.length,
-        confirmed: grpGuests.filter(g => g.rsvps.length > 0 && g.rsvps[0].attendance !== 'decline').length,
-        declined: grpGuests.filter(g => g.rsvps.length > 0 && g.rsvps[0].attendance === 'decline').length,
-        pending: grpGuests.filter(g => g.rsvps.length === 0).length,
-        checked_in: grpGuests.filter(g => grpGuests.some(g => g.check_ins.length > 0)).length,
+        confirmed: grpGuests.filter(
+          (g) => g.rsvps.length > 0 && g.rsvps[0].attendance !== 'decline'
+        ).length,
+        declined: grpGuests.filter((g) => g.rsvps.length > 0 && g.rsvps[0].attendance === 'decline')
+          .length,
+        pending: grpGuests.filter((g) => g.rsvps.length === 0).length,
+        checked_in: grpGuests.filter((g) => grpGuests.some((g) => g.check_ins.length > 0)).length,
       };
     });
 
     // RSVP Trend (cumulative)
     const rsvpSubmissions = guests
-      .filter(g => g.rsvps.length > 0)
-      .map(g => g.rsvps[0].submitted_at);
+      .filter((g) => g.rsvps.length > 0)
+      .map((g) => g.rsvps[0].submitted_at);
     const rsvpCountsByDate: Record<string, number> = {};
-    rsvpSubmissions.forEach(date => {
+    rsvpSubmissions.forEach((date) => {
       const dayStr = date.toISOString().split('T')[0];
       rsvpCountsByDate[dayStr] = (rsvpCountsByDate[dayStr] || 0) + 1;
     });
     const sortedDates = Object.keys(rsvpCountsByDate).sort();
     let cumulative = 0;
-    const rsvp_trend = sortedDates.map(date => {
+    const rsvp_trend = sortedDates.map((date) => {
       cumulative += rsvpCountsByDate[date];
       return { date, count: cumulative };
     });
 
     // Check-in Peak Times (WIB UTC+7)
     const checkInTimes = guests
-      .filter(g => g.check_ins.length > 0)
-      .map(g => g.check_ins[0].checked_in_at);
+      .filter((g) => g.check_ins.length > 0)
+      .map((g) => g.check_ins[0].checked_in_at);
     const checkInIntervals: Record<string, number> = {};
-    checkInTimes.forEach(time => {
+    checkInTimes.forEach((time) => {
       const dateWib = new Date(time.getTime() + 7 * 60 * 60 * 1000);
       const hours = dateWib.getUTCHours().toString().padStart(2, '0');
       const minutes = dateWib.getUTCMinutes();
@@ -202,9 +234,9 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
       checkInIntervals[slot] = (checkInIntervals[slot] || 0) + 1;
     });
     const sortedSlots = Object.keys(checkInIntervals).sort();
-    const checkin_peak = sortedSlots.map(timeSlot => ({
+    const checkin_peak = sortedSlots.map((timeSlot) => ({
       timeSlot,
-      count: checkInIntervals[timeSlot]
+      count: checkInIntervals[timeSlot],
     }));
 
     return {
@@ -315,7 +347,8 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
       guest_count: rsvp.guest_count,
       submitted_at: rsvp.submitted_at.toISOString(),
       group: rsvp.guest.group,
-      phone: pii && pii.isEncrypted(rsvp.guest.phone) ? pii.decrypt(rsvp.guest.phone) : rsvp.guest.phone,
+      phone:
+        pii && pii.isEncrypted(rsvp.guest.phone) ? pii.decrypt(rsvp.guest.phone) : rsvp.guest.phone,
       delivery_status: rsvp.guest.delivery_status,
     }));
 

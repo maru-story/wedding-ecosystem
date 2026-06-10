@@ -1,9 +1,15 @@
 import type { Metadata, Viewport } from 'next';
-import { Poppins } from 'next/font/google';
+import { Poppins, Playfair_Display } from 'next/font/google';
 import { AuthProvider } from '@/components/auth-provider';
 import { PWAProvider } from '@/components/pwa-provider';
 import { WebSocketProvider } from '@/components/websocket-provider';
 import './globals.css';
+
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-heading',
+  display: 'swap',
+});
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -33,7 +39,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={poppins.variable}>
+    <html lang="id" className={`${poppins.variable} ${playfairDisplay.variable}`}>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>

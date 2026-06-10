@@ -21,7 +21,7 @@ export function CustomTabs({ tabs, activeTab, onChange, className }: CustomTabsP
   return (
     <div
       className={cn(
-        'flex p-1 bg-muted/60 rounded-xl border border-border/40 w-full sm:w-fit gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex-nowrap select-none',
+        'bg-muted/60 border-border/40 flex w-full [scrollbar-width:none] flex-nowrap gap-1 overflow-x-auto rounded-xl border p-1 select-none sm:w-fit [&::-webkit-scrollbar]:hidden',
         className
       )}
       role="tablist"
@@ -36,16 +36,14 @@ export function CustomTabs({ tabs, activeTab, onChange, className }: CustomTabsP
             aria-selected={isActive}
             onClick={() => onChange(tab.value)}
             className={cn(
-              'relative flex-1 sm:flex-initial px-4 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 cursor-pointer whitespace-nowrap text-center flex items-center justify-center gap-2 z-10',
-              isActive
-                ? 'text-foreground'
-                : 'text-muted-foreground hover:text-foreground'
+              'relative z-10 flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-center text-sm font-semibold whitespace-nowrap transition-colors duration-200 sm:flex-initial',
+              isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {isActive && (
               <motion.span
                 layoutId="activeTabIndicator"
-                className="absolute inset-0 bg-background rounded-lg shadow-sm -z-10 border border-border/20"
+                className="bg-background border-border/20 absolute inset-0 -z-10 rounded-lg border shadow-sm"
                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
               />
             )}

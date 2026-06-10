@@ -6,7 +6,11 @@ import { randomUUID } from 'crypto';
 const prisma = createProductionPrismaClient();
 
 test.describe('Quota and Guest Limit E2E', () => {
-  test('should restrict guest capacity limits and allow admin to update them', async ({ tenantA, playwright, baseURL }) => {
+  test('should restrict guest capacity limits and allow admin to update them', async ({
+    tenantA,
+    playwright,
+    baseURL,
+  }) => {
     // 1. Initially, tenantA has max_guests: 2000 by default (seeded in test-fixtures.ts)
     // Let's update tenantA's max_guests configuration to 1 to test enforcement
     await prisma.eventConfig.update({
@@ -71,11 +75,14 @@ test.describe('Quota and Guest Limit E2E', () => {
     expect(getEventsBody.data[0].event_config.max_guests).toBe(1);
 
     // 6. Global Admin patches max_guests configuration to 5
-    const patchConfigResponse = await adminContext.patch(`/admin/events/${tenantA.eventId}/config`, {
-      data: {
-        max_guests: 5,
-      },
-    });
+    const patchConfigResponse = await adminContext.patch(
+      `/admin/events/${tenantA.eventId}/config`,
+      {
+        data: {
+          max_guests: 5,
+        },
+      }
+    );
     expect(patchConfigResponse.status()).toBe(200);
     const patchConfigBody = await patchConfigResponse.json();
     expect(patchConfigBody.success).toBe(true);
@@ -92,7 +99,7 @@ test.describe('Quota and Guest Limit E2E', () => {
       },
     });
     expect(addGuest2RetryResponse.status()).toBe(201);
-    
+
     // Clean up created guests so tenant deletion cascading works cleanly if needed
     await prisma.guest.deleteMany({
       where: { event_id: tenantA.eventId },

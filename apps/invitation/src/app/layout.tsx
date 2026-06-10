@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" className={`${playfairDisplay.variable} ${poppins.variable}`}>
-      <body className="font-body antialiased mx-auto max-w-md min-h-screen shadow-2xl bg-[var(--color-background)] border-x border-border/10 relative overflow-x-hidden">
+      <body className="font-body border-border/10 relative mx-auto min-h-screen max-w-md overflow-x-hidden border-x bg-[var(--color-background)] antialiased shadow-2xl">
         {children}
       </body>
     </html>

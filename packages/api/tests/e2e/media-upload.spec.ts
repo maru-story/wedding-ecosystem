@@ -1,16 +1,21 @@
 import { test, expect } from './fixtures/test-fixtures';
 
 test.describe('Media Upload API E2E', () => {
-  test('should upload image successfully and organize path based on slugs and section', async ({ tenantA }) => {
-    const response = await tenantA.request.post(`/events/${tenantA.eventId}/media/upload?section=cover`, {
-      multipart: {
-        file: {
-          name: 'photo.jpg',
-          mimeType: 'image/jpeg',
-          buffer: Buffer.from('fake-image-data-here-must-be-some-bytes-long-enough-to-be-buffer'),
+  test('should upload image successfully and organize path based on slugs and section', async ({
+    tenantA,
+  }) => {
+    const response = await tenantA.request.post(
+      `/events/${tenantA.eventId}/media/upload?section=cover`,
+      {
+        multipart: {
+          file: {
+            name: 'photo.jpg',
+            mimeType: 'image/jpeg',
+            buffer: Buffer.from('fake-image-data-here-must-be-some-bytes-long-enough-to-be-buffer'),
+          },
         },
-      },
-    });
+      }
+    );
 
     expect(response.status()).toBe(201);
     const body = await response.json();
@@ -65,7 +70,7 @@ test.describe('Media Upload API E2E', () => {
     const response = await tenantA.request.post(`/events/${tenantA.eventId}/media/upload`, {
       headers: {
         // Send a post without multipart boundary
-        'Content-Type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW'
+        'Content-Type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW',
       },
       data: '',
     });

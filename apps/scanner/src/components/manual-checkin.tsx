@@ -302,8 +302,8 @@ export function ManualCheckIn({ eventId }: ManualCheckInProps) {
   return (
     <div className="flex flex-col p-4">
       {/* Header */}
-      <h2 className="text-lg font-semibold text-gray-900">Check-in Manual</h2>
-      <p className="mt-1 text-sm text-gray-500">Cari nama tamu untuk check-in manual</p>
+      <h2 className="font-heading text-charcoal text-lg font-bold">Check-in Manual</h2>
+      <p className="text-charcoal/60 mt-1 text-sm">Cari nama tamu untuk check-in manual</p>
 
       {/* Search bar */}
       <div className="relative mt-4">
@@ -315,7 +315,7 @@ export function ManualCheckIn({ eventId }: ManualCheckInProps) {
           value={query}
           onChange={(e) => handleSearchChange(e.target.value)}
           placeholder="Ketik minimal 3 huruf untuk mencari..."
-          className="block w-full rounded-xl border border-gray-300 bg-white py-3.5 pl-11 pr-4 text-base text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          className="border-border/60 text-charcoal placeholder-charcoal/40 focus:border-sage focus:ring-sage/20 block w-full rounded-xl border bg-white py-3.5 pr-4 pl-11 text-base transition-colors focus:ring-2 focus:outline-none"
           aria-label="Cari nama tamu"
           autoComplete="off"
         />
@@ -328,14 +328,17 @@ export function ManualCheckIn({ eventId }: ManualCheckInProps) {
 
       {/* Minimum chars hint */}
       {query.length > 0 && query.length < 3 && (
-        <p className="mt-2 text-sm text-gray-400">
+        <p className="text-charcoal/40 mt-2 text-sm">
           Ketik {3 - query.length} huruf lagi untuk mencari
         </p>
       )}
 
       {/* Error message */}
       {checkInError && (
-        <div className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
+        <div
+          className="bg-danger/10 border-danger/20 text-danger mt-3 rounded-lg border p-3 text-sm"
+          role="alert"
+        >
           {checkInError}
         </div>
       )}
@@ -357,12 +360,12 @@ export function ManualCheckIn({ eventId }: ManualCheckInProps) {
       {/* No results — show Go-Show option */}
       {hasSearched && results.length === 0 && query.length >= 3 && !isSearching && (
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-charcoal/60 text-sm">
             Tidak ditemukan tamu dengan nama &ldquo;{query}&rdquo;
           </p>
           <button
             onClick={() => setViewState('go-show')}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="bg-sage hover:bg-sage/90 focus:ring-sage/20 mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium text-white shadow-sm transition-colors focus:ring-2 focus:outline-none"
           >
             <PlusIcon />
             Tambah sebagai Go-Show
@@ -386,17 +389,23 @@ function GuestResultItem({ guest, isCheckingIn, onCheckIn }: GuestResultItemProp
 
   return (
     <div
-      className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+      className="border-border/40 bg-card flex items-center justify-between rounded-xl border p-4 shadow-sm"
       role="listitem"
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate text-base font-medium text-gray-900">{guest.name}</p>
-        {groupLabel && <p className="mt-0.5 text-sm text-gray-500">{groupLabel}</p>}
+        <p className="text-charcoal truncate text-base font-medium">{guest.name}</p>
+        {groupLabel && (
+          <span
+            className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${getGroupBadgeClass(guest.group)}`}
+          >
+            {groupLabel}
+          </span>
+        )}
       </div>
 
       <div className="ml-3 flex-shrink-0">
         {guest.checkedIn ? (
-          <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-500">
+          <span className="bg-success/10 text-success inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium">
             <CheckIcon />
             Sudah Check-in
           </span>
@@ -404,7 +413,7 @@ function GuestResultItem({ guest, isCheckingIn, onCheckIn }: GuestResultItemProp
           <button
             onClick={onCheckIn}
             disabled={isCheckingIn}
-            className="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            className="bg-sage hover:bg-sage/90 focus:ring-sage/20 inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium text-white transition-colors focus:ring-2 focus:outline-none disabled:opacity-50"
             aria-label={`Check-in ${guest.name}`}
           >
             {isCheckingIn ? 'Proses...' : 'Check-in'}
@@ -432,12 +441,27 @@ function getGroupLabel(group: string): string {
   }
 }
 
+function getGroupBadgeClass(group: string): string {
+  switch (group) {
+    case 'family':
+      return 'bg-sage/15 text-charcoal';
+    case 'friend':
+      return 'bg-blush/40 text-charcoal';
+    case 'colleague':
+      return 'bg-muted text-charcoal/60';
+    case 'vip':
+      return 'bg-copper/15 text-copper font-semibold';
+    default:
+      return 'bg-muted text-charcoal/60';
+  }
+}
+
 // ============ Icons ============
 
 function SearchIcon() {
   return (
     <svg
-      className="h-5 w-5 text-gray-400"
+      className="text-charcoal/40 h-5 w-5"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -456,7 +480,7 @@ function SearchIcon() {
 function CheckIcon() {
   return (
     <svg
-      className="h-4 w-4 text-gray-400"
+      className="text-success h-4 w-4"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -484,7 +508,7 @@ function PlusIcon() {
 function LoadingSpinner() {
   return (
     <svg
-      className="h-5 w-5 animate-spin text-gray-400"
+      className="text-sage h-5 w-5 animate-spin"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

@@ -25,7 +25,10 @@ function createClientSocket(port: number): ClientSocket {
 
 function waitForEvent<T>(socket: ClientSocket, event: string): Promise<T> {
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error(`Timeout waiting for event: ${event}`)), 3000);
+    const timeout = setTimeout(
+      () => reject(new Error(`Timeout waiting for event: ${event}`)),
+      3000
+    );
     socket.once(event, (data: T) => {
       clearTimeout(timeout);
       resolve(data);
@@ -101,10 +104,11 @@ describe('createRealtimeServer', () => {
       client.connect();
       await waitForEvent(client, 'connection_status');
 
-      const joinPromise = waitForEvent<{ event_id: string; status: string; connected_clients: number }>(
-        client,
-        'joined_event'
-      );
+      const joinPromise = waitForEvent<{
+        event_id: string;
+        status: string;
+        connected_clients: number;
+      }>(client, 'joined_event');
       client.emit('join_event', 'event-123');
 
       const result = await joinPromise;
@@ -266,10 +270,7 @@ describe('createRealtimeServer', () => {
         event_id: 'event-rsvp',
       };
 
-      const receivePromise = waitForEvent<RsvpUpdatedPayload>(
-        client,
-        RealtimeEvent.RSVP_UPDATED
-      );
+      const receivePromise = waitForEvent<RsvpUpdatedPayload>(client, RealtimeEvent.RSVP_UPDATED);
 
       server.broadcastRsvpUpdate('event-rsvp', payload);
 
@@ -293,10 +294,7 @@ describe('createRealtimeServer', () => {
         event_id: 'event-goshow',
       };
 
-      const receivePromise = waitForEvent<GoShowAddedPayload>(
-        client,
-        RealtimeEvent.GO_SHOW_ADDED
-      );
+      const receivePromise = waitForEvent<GoShowAddedPayload>(client, RealtimeEvent.GO_SHOW_ADDED);
 
       server.broadcastGoShow('event-goshow', payload);
 
@@ -321,10 +319,7 @@ describe('createRealtimeServer', () => {
         total_go_show: 5,
       };
 
-      const receivePromise = waitForEvent<StatsUpdatedPayload>(
-        client,
-        RealtimeEvent.STATS_UPDATED
-      );
+      const receivePromise = waitForEvent<StatsUpdatedPayload>(client, RealtimeEvent.STATS_UPDATED);
 
       server.broadcastStats('event-stats', payload);
 

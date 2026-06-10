@@ -125,9 +125,17 @@ describe('InvitationDeliveryService', () => {
 
     it('should update template', async () => {
       vi.mocked(repository.updateEventConfigTemplate).mockResolvedValue(true);
-      const success = await service.updateMessageTemplate('event-001', 'tenant-001', 'Template Baru');
+      const success = await service.updateMessageTemplate(
+        'event-001',
+        'tenant-001',
+        'Template Baru'
+      );
       expect(success).toBe(true);
-      expect(repository.updateEventConfigTemplate).toHaveBeenCalledWith('event-001', 'tenant-001', 'Template Baru');
+      expect(repository.updateEventConfigTemplate).toHaveBeenCalledWith(
+        'event-001',
+        'tenant-001',
+        'Template Baru'
+      );
     });
   });
 

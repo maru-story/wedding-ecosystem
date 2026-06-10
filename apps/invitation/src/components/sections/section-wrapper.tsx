@@ -28,7 +28,7 @@ export function SectionWrapper({
     <motion.section
       ref={ref}
       className={cn(
-        'aspect-[9/16] w-full relative overflow-hidden flex flex-col items-center justify-center p-8 text-center bg-[var(--color-background)]',
+        'relative flex aspect-[9/16] w-full flex-col items-center justify-center overflow-hidden bg-[var(--color-background)] p-8 text-center',
         className
       )}
       data-section-type={sectionType}
@@ -37,7 +37,9 @@ export function SectionWrapper({
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
-      <div className="w-full h-full flex flex-col items-center justify-center relative z-10">{children}</div>
+      <div className="relative z-10 flex h-full w-full flex-col items-center justify-center">
+        {children}
+      </div>
     </motion.section>
   );
 }

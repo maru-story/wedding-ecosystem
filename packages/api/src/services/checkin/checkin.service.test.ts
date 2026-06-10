@@ -21,8 +21,7 @@ import {
 
 // --- Test Helpers ---
 
-const TEST_ENCRYPTION_KEY =
-  'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
+const TEST_ENCRYPTION_KEY = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
 
 function createMockRepository(): CheckInRepository {
   return {
@@ -110,7 +109,10 @@ describe('CheckInService', () => {
     repository = createMockRepository();
     redis = createMockRedis();
     broadcaster = createMockBroadcaster();
-    vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+    vi.mocked(repository.findEventById).mockResolvedValue({
+      id: 'event-001',
+      tenant_id: 'tenant-001',
+    });
     service = new CheckInService({
       repository,
       redis,
@@ -269,8 +271,7 @@ describe('CheckInService', () => {
 
       it('should return RED when QR payload has corrupted encryption', async () => {
         // Valid format but wrong encryption key
-        const wrongKey =
-          'b1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
+        const wrongKey = 'b1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
         const qrPayload = createValidQRPayload('guest-001', 'event-001', wrongKey);
 
         const result = await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
@@ -408,7 +409,10 @@ describe('CheckInService', () => {
         await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
 
         // Third attempt: existing check-in found, increments check-in
-        vi.mocked(repository.findCheckInByGuestId).mockResolvedValueOnce({ ...checkInRec, scan_count: 2 });
+        vi.mocked(repository.findCheckInByGuestId).mockResolvedValueOnce({
+          ...checkInRec,
+          scan_count: 2,
+        });
         await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
 
         // Only one createCheckIn call should have been made
@@ -510,8 +514,7 @@ describe('CheckInService', () => {
     });
 
     it('should return null when decrypted with wrong key', () => {
-      const wrongKey =
-        'b1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
+      const wrongKey = 'b1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
       const qrPayload = createValidQRPayload('guest-001', 'event-001', wrongKey);
 
       const result = service.decryptQRPayload(qrPayload);
@@ -522,11 +525,28 @@ describe('CheckInService', () => {
   describe('searchGuests (Req 8.1)', () => {
     it('should return search results for valid query (min 3 chars)', async () => {
       const mockResults: GuestSearchResult[] = [
-        { id: 'guest-001', name: 'John Doe', group: GuestGroup.FRIEND, type: GuestType.INVITED, is_checked_in: false, checked_in_at: null },
-        { id: 'guest-002', name: 'Johnny Walker', group: GuestGroup.FAMILY, type: GuestType.INVITED, is_checked_in: false, checked_in_at: null },
+        {
+          id: 'guest-001',
+          name: 'John Doe',
+          group: GuestGroup.FRIEND,
+          type: GuestType.INVITED,
+          is_checked_in: false,
+          checked_in_at: null,
+        },
+        {
+          id: 'guest-002',
+          name: 'Johnny Walker',
+          group: GuestGroup.FAMILY,
+          type: GuestType.INVITED,
+          is_checked_in: false,
+          checked_in_at: null,
+        },
       ];
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.searchGuestsByName).mockResolvedValue(mockResults);
 
       const result = await service.searchGuests('tenant-001', 'event-001', 'Joh');
@@ -561,7 +581,10 @@ describe('CheckInService', () => {
     });
 
     it('should pass max 10 results limit to repository', async () => {
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.searchGuestsByName).mockResolvedValue([]);
 
       await service.searchGuests('tenant-001', 'event-001', 'John');
@@ -575,11 +598,28 @@ describe('CheckInService', () => {
 
     it('should include check-in status in results (Req 8.4)', async () => {
       const mockResults: GuestSearchResult[] = [
-        { id: 'guest-001', name: 'John Doe', group: GuestGroup.FRIEND, type: GuestType.INVITED, is_checked_in: false, checked_in_at: null },
-        { id: 'guest-002', name: 'Jane Doe', group: GuestGroup.FAMILY, type: GuestType.INVITED, is_checked_in: true, checked_in_at: new Date('2024-06-15T09:30:00Z') },
+        {
+          id: 'guest-001',
+          name: 'John Doe',
+          group: GuestGroup.FRIEND,
+          type: GuestType.INVITED,
+          is_checked_in: false,
+          checked_in_at: null,
+        },
+        {
+          id: 'guest-002',
+          name: 'Jane Doe',
+          group: GuestGroup.FAMILY,
+          type: GuestType.INVITED,
+          is_checked_in: true,
+          checked_in_at: new Date('2024-06-15T09:30:00Z'),
+        },
       ];
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.searchGuestsByName).mockResolvedValue(mockResults);
 
       const result = await service.searchGuests('tenant-001', 'event-001', 'Doe');
@@ -594,7 +634,10 @@ describe('CheckInService', () => {
     });
 
     it('should return empty array when no guests match', async () => {
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.searchGuestsByName).mockResolvedValue([]);
 
       const result = await service.searchGuests('tenant-001', 'event-001', 'XYZ');
@@ -617,7 +660,10 @@ describe('CheckInService', () => {
         checked_in_at: new Date('2024-06-15T10:00:00Z'),
       };
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.findGuestByIdAndEvent).mockResolvedValue(mockGuest);
       vi.mocked(repository.findCheckInByGuestId).mockResolvedValue(null);
       vi.mocked(repository.createCheckIn).mockResolvedValue(mockCheckIn);
@@ -642,7 +688,10 @@ describe('CheckInService', () => {
         checked_in_at: new Date('2024-06-15T09:00:00Z'),
       };
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.findGuestByIdAndEvent).mockResolvedValue(mockGuest);
       vi.mocked(repository.findCheckInByGuestId).mockResolvedValue(existingCheckIn);
       vi.mocked(repository.incrementScanCount).mockResolvedValue({
@@ -661,7 +710,10 @@ describe('CheckInService', () => {
     });
 
     it('should return error if guest not found', async () => {
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.findGuestByIdAndEvent).mockResolvedValue(null);
 
       const result = await service.manualCheckIn('tenant-001', 'nonexistent', 'event-001');
@@ -693,7 +745,10 @@ describe('CheckInService', () => {
         checked_in_at: new Date('2024-06-15T10:00:00Z'),
       };
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.findGuestByIdAndEvent).mockResolvedValue(mockGuest);
       vi.mocked(repository.findCheckInByGuestId).mockResolvedValue(null);
       vi.mocked(repository.createCheckIn).mockResolvedValue(mockCheckIn);
@@ -723,7 +778,10 @@ describe('CheckInService', () => {
         checked_in_at: new Date(),
       };
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.findGuestByIdAndEvent).mockResolvedValue(mockGuest);
       vi.mocked(repository.findCheckInByGuestId).mockResolvedValue(existingCheckIn);
       vi.mocked(repository.incrementScanCount).mockResolvedValue({
@@ -734,10 +792,13 @@ describe('CheckInService', () => {
 
       await service.manualCheckIn('tenant-001', 'guest-001', 'event-001');
 
-      expect(broadcaster.broadcast).toHaveBeenCalledWith('event-001', expect.objectContaining({
-        event_type: 'guest_checked_in',
-        scan_count: 2,
-      }));
+      expect(broadcaster.broadcast).toHaveBeenCalledWith(
+        'event-001',
+        expect.objectContaining({
+          event_type: 'guest_checked_in',
+          scan_count: 2,
+        })
+      );
     });
 
     it('should pass scanner_device_id when provided', async () => {
@@ -750,7 +811,10 @@ describe('CheckInService', () => {
         checked_in_at: new Date('2024-06-15T10:00:00Z'),
       };
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.findGuestByIdAndEvent).mockResolvedValue(mockGuest);
       vi.mocked(repository.findCheckInByGuestId).mockResolvedValue(null);
       vi.mocked(repository.createCheckIn).mockResolvedValue(mockCheckIn);
@@ -782,7 +846,10 @@ describe('CheckInService', () => {
         checked_in_at: new Date('2024-06-15T10:00:00Z'),
       };
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.createGoShowGuest).mockResolvedValue(mockGuest);
       vi.mocked(repository.createCheckIn).mockResolvedValue(mockCheckIn);
 
@@ -810,7 +877,10 @@ describe('CheckInService', () => {
         checked_in_at: new Date(),
       };
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.createGoShowGuest).mockResolvedValue(mockGuest);
       vi.mocked(repository.createCheckIn).mockResolvedValue(mockCheckIn);
 
@@ -841,7 +911,10 @@ describe('CheckInService', () => {
         checked_in_at: new Date(),
       };
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.createGoShowGuest).mockResolvedValue(mockGuest);
       vi.mocked(repository.createCheckIn).mockResolvedValue(mockCheckIn);
 
@@ -874,7 +947,10 @@ describe('CheckInService', () => {
         checked_in_at: new Date('2024-06-15T10:00:00Z'),
       };
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.createGoShowGuest).mockResolvedValue(mockGuest);
       vi.mocked(repository.createCheckIn).mockResolvedValue(mockCheckIn);
 
@@ -914,7 +990,11 @@ describe('CheckInService', () => {
     it('should return error if event not found', async () => {
       vi.mocked(repository.findEventById).mockResolvedValue(null);
 
-      const result = await service.registerGoShow('tenant-001', 'Walk-in Guest', 'nonexistent-event');
+      const result = await service.registerGoShow(
+        'tenant-001',
+        'Walk-in Guest',
+        'nonexistent-event'
+      );
 
       expect(isServiceError(result)).toBe(true);
       if (isServiceError(result)) {
@@ -937,7 +1017,10 @@ describe('CheckInService', () => {
         checked_in_at: new Date(),
       };
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.createGoShowGuest).mockResolvedValue(mockGuest);
       vi.mocked(repository.createCheckIn).mockResolvedValue(mockCheckIn);
 
@@ -965,7 +1048,10 @@ describe('CheckInService', () => {
         checked_in_at: new Date(),
       };
 
-      vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001', tenant_id: 'tenant-001' });
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
       vi.mocked(repository.createGoShowGuest).mockResolvedValue(mockGuest);
       vi.mocked(repository.createCheckIn).mockResolvedValue(mockCheckIn);
 
@@ -982,14 +1068,19 @@ describe('CheckInService', () => {
 
   describe('isServiceError type guard', () => {
     it('should return true for error objects', () => {
-      expect(
-        isServiceError({ code: ErrorCode.GUEST_NOT_FOUND, message: 'Not found' })
-      ).toBe(true);
+      expect(isServiceError({ code: ErrorCode.GUEST_NOT_FOUND, message: 'Not found' })).toBe(true);
     });
 
     it('should return false for search results (array)', () => {
       const results: GuestSearchResult[] = [
-        { id: 'guest-001', name: 'John', group: GuestGroup.FRIEND, type: GuestType.INVITED, is_checked_in: false, checked_in_at: null },
+        {
+          id: 'guest-001',
+          name: 'John',
+          group: GuestGroup.FRIEND,
+          type: GuestType.INVITED,
+          is_checked_in: false,
+          checked_in_at: null,
+        },
       ];
       expect(isServiceError(results)).toBe(false);
     });
@@ -998,7 +1089,13 @@ describe('CheckInService', () => {
       expect(
         isServiceError({
           guest: createMockGuest(),
-          check_in: { id: 'c1', guest_id: 'g1', scanner_device_id: null, method: CheckInMethod.MANUAL, checked_in_at: new Date() },
+          check_in: {
+            id: 'c1',
+            guest_id: 'g1',
+            scanner_device_id: null,
+            method: CheckInMethod.MANUAL,
+            checked_in_at: new Date(),
+          },
         })
       ).toBe(false);
     });
@@ -1007,7 +1104,13 @@ describe('CheckInService', () => {
       expect(
         isServiceError({
           guest: createMockGuest(),
-          check_in: { id: 'c1', guest_id: 'g1', scanner_device_id: null, method: CheckInMethod.GO_SHOW, checked_in_at: new Date() },
+          check_in: {
+            id: 'c1',
+            guest_id: 'g1',
+            scanner_device_id: null,
+            method: CheckInMethod.GO_SHOW,
+            checked_in_at: new Date(),
+          },
         })
       ).toBe(false);
     });

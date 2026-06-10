@@ -113,11 +113,7 @@ export interface CheckInRepository {
     checked_in_at: Date;
   }): Promise<CheckInRecord>;
   incrementScanCount(checkInId: string): Promise<CheckInRecord>;
-  searchGuestsByName(
-    eventId: string,
-    query: string,
-    limit: number
-  ): Promise<GuestSearchResult[]>;
+  searchGuestsByName(eventId: string, query: string, limit: number): Promise<GuestSearchResult[]>;
   createGoShowGuest(data: {
     id: string;
     event_id: string;
@@ -135,13 +131,7 @@ export interface RedisClient {
    * SET key value NX EX ttl — atomic set-if-not-exists with expiry.
    * Returns 'OK' if the key was set, null if it already existed.
    */
-  set(
-    key: string,
-    value: string,
-    mode: 'EX',
-    ttl: number,
-    flag: 'NX'
-  ): Promise<string | null>;
+  set(key: string, value: string, mode: 'EX', ttl: number, flag: 'NX'): Promise<string | null>;
 
   /**
    * GET key — retrieve value for a key.
@@ -174,9 +164,7 @@ export class CheckInService {
     this.broadcaster = config.broadcaster ?? null;
     this.encryptionKey = Buffer.from(config.encryptionKey, 'hex');
     if (this.encryptionKey.length !== 32) {
-      throw new Error(
-        'Encryption key must be 32 bytes (64 hex characters) for AES-256'
-      );
+      throw new Error('Encryption key must be 32 bytes (64 hex characters) for AES-256');
     }
   }
 
@@ -350,13 +338,7 @@ export class CheckInService {
 
     if (setResult !== null) {
       // Ensure Redis is populated if it wasn't already
-      await this.redis.set(
-        redisKey,
-        timestamp,
-        'EX',
-        CHECKIN_KEY_TTL_SECONDS,
-        'NX'
-      );
+      await this.redis.set(redisKey, timestamp, 'EX', CHECKIN_KEY_TTL_SECONDS, 'NX');
     }
 
     return {
@@ -398,11 +380,7 @@ export class CheckInService {
     }
 
     // Search with partial match, max 10 results (Req 8.1)
-    const results = await this.repository.searchGuestsByName(
-      eventId,
-      query,
-      MAX_SEARCH_RESULTS
-    );
+    const results = await this.repository.searchGuestsByName(eventId, query, MAX_SEARCH_RESULTS);
 
     return results;
   }
@@ -602,9 +580,7 @@ export class CheckInService {
    *
    * Returns null if decryption fails (invalid QR).
    */
-  decryptQRPayload(
-    payload: string
-  ): { guestId: string; eventId: string } | null {
+  decryptQRPayload(payload: string): { guestId: string; eventId: string } | null {
     try {
       const parts = payload.split(':');
       if (parts.length !== 2) {
@@ -650,9 +626,7 @@ export class CheckInService {
 
 // --- Type guards ---
 
-export function isCheckInError(
-  result: ScanVerificationResult
-): boolean {
+export function isCheckInError(result: ScanVerificationResult): boolean {
   return result.status === VerificationStatus.RED;
 }
 
@@ -660,11 +634,7 @@ export function isCheckInError(
  * Type guard for manual check-in / Go-Show / search errors
  */
 export function isServiceError(
-  result:
-    | GuestSearchResult[]
-    | ManualCheckInResult
-    | GoShowResult
-    | CheckInServiceError
+  result: GuestSearchResult[] | ManualCheckInResult | GoShowResult | CheckInServiceError
 ): result is CheckInServiceError {
   return (
     typeof result === 'object' &&

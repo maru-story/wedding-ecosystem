@@ -53,8 +53,10 @@ export function useTableState<T extends HasId>({
   // Helper function to get selection helpers dynamically based on items on the current page
   const getSelectionHelpers = useCallback(
     (currentItems: T[]) => {
-      const allSelected = currentItems.length > 0 && currentItems.every((item) => selectedIds.includes(item.id));
-      const someSelected = currentItems.some((item) => selectedIds.includes(item.id)) && !allSelected;
+      const allSelected =
+        currentItems.length > 0 && currentItems.every((item) => selectedIds.includes(item.id));
+      const someSelected =
+        currentItems.some((item) => selectedIds.includes(item.id)) && !allSelected;
 
       const handleSelectAll = (checked: boolean) => {
         if (checked) {
@@ -68,7 +70,9 @@ export function useTableState<T extends HasId>({
             return newIds;
           });
         } else {
-          setSelectedIds((prev) => prev.filter((id) => !currentItems.some((item) => item.id === id)));
+          setSelectedIds((prev) =>
+            prev.filter((id) => !currentItems.some((item) => item.id === id))
+          );
         }
       };
 

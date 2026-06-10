@@ -15,7 +15,7 @@ import jwt from 'jsonwebtoken';
 
 // Mock @wedding/db
 vi.mock('@wedding/db', () => ({
-  PrismaClient: class { },
+  PrismaClient: class {},
   createProductionPrismaClient: vi.fn().mockReturnValue({}),
   Prisma: {
     JsonNull: 'JsonNull',
@@ -29,18 +29,20 @@ vi.mock('../../services/guest/guest.service', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../services/guest/guest.service')>();
   return {
     ...actual,
-    GuestService: vi.fn().mockImplementation(() => ({
-      addGuest: vi.fn(),
-      getGuest: vi.fn(),
-      updateGuest: vi.fn(),
-      deleteGuest: vi.fn(),
-      deleteGuests: vi.fn(),
-      listGuests: vi.fn(),
-      searchGuests: vi.fn(),
-      generateQRCode: vi.fn(),
-      nameToSlug: vi.fn(),
-      generateUniqueSlug: vi.fn(),
-    })),
+    GuestService: vi.fn().mockImplementation(function() {
+      return {
+        addGuest: vi.fn(),
+        getGuest: vi.fn(),
+        updateGuest: vi.fn(),
+        deleteGuest: vi.fn(),
+        deleteGuests: vi.fn(),
+        listGuests: vi.fn(),
+        searchGuests: vi.fn(),
+        generateQRCode: vi.fn(),
+        nameToSlug: vi.fn(),
+        generateUniqueSlug: vi.fn(),
+      };
+    }),
   };
 });
 
@@ -52,12 +54,14 @@ vi.mock('../../repositories', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../repositories')>();
   return {
     ...actual,
-    PrismaGuestRepository: vi.fn().mockImplementation(() => ({
-      findGuestNamesByEvent: vi.fn().mockResolvedValue([]),
-    })),
+    PrismaGuestRepository: vi.fn().mockImplementation(class {
+      findGuestNamesByEvent = vi.fn().mockResolvedValue([]);
+    }),
     getCurrentTenantEvent: vi.fn(),
     replyEventNotFound: vi.fn((reply: any) =>
-      reply.status(404).send({ success: false, error: { code: 'RES_5001', message: 'Event tidak ditemukan' } })
+      reply
+        .status(404)
+        .send({ success: false, error: { code: 'RES_5001', message: 'Event tidak ditemukan' } })
     ),
   };
 });
@@ -118,7 +122,9 @@ async function buildApp(): Promise<FastifyInstance> {
   app.decorate('authenticate', async function (request: any, reply: any) {
     const authHeader = request.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
-      return reply.status(401).send({ success: false, error: { code: 'AUTH_2002', message: 'Token diperlukan' } });
+      return reply
+        .status(401)
+        .send({ success: false, error: { code: 'AUTH_2002', message: 'Token diperlukan' } });
     }
     try {
       const decoded = jwt.verify(authHeader.slice(7), JWT_SECRET) as any;
@@ -130,7 +136,9 @@ async function buildApp(): Promise<FastifyInstance> {
         name: decoded.name || 'Test User',
       };
     } catch {
-      return reply.status(401).send({ success: false, error: { code: 'AUTH_2003', message: 'Token tidak valid' } });
+      return reply
+        .status(401)
+        .send({ success: false, error: { code: 'AUTH_2003', message: 'Token tidak valid' } });
     }
   });
 
@@ -157,7 +165,10 @@ describe('Guest Routes', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     // Default: tenant has a current event
-    vi.mocked(getCurrentTenantEvent).mockResolvedValue({ id: 'event-001', slug: 'romeo-juliet' } as any);
+    vi.mocked(getCurrentTenantEvent).mockResolvedValue({
+      id: 'event-001',
+      slug: 'romeo-juliet',
+    } as any);
     app = await buildApp();
     token = makeToken();
   });
@@ -215,7 +226,16 @@ describe('Guest Routes', () => {
     it('should return flat delivery_status shape when include=delivery_status', async () => {
       const service = getServiceInstance(app);
       service.listGuests.mockResolvedValue({
-        data: [{ id: 'g-1', name: 'Budi', slug: 'budi', phone: null, delivery_status: 'not_sent', invitation_url: '/event?to=budi' }],
+        data: [
+          {
+            id: 'g-1',
+            name: 'Budi',
+            slug: 'budi',
+            phone: null,
+            delivery_status: 'not_sent',
+            invitation_url: '/event?to=budi',
+          },
+        ],
         pagination: { page: 1, per_page: 50, total: 1, total_pages: 1 },
       });
 
@@ -338,7 +358,9 @@ describe('Guest Routes', () => {
 
     it('should return 404 when guest not found', async () => {
       const service = getServiceInstance(app);
-      service.updateGuest.mockResolvedValue(makeError(ErrorCode.GUEST_NOT_FOUND, 'Tamu tidak ditemukan'));
+      service.updateGuest.mockResolvedValue(
+        makeError(ErrorCode.GUEST_NOT_FOUND, 'Tamu tidak ditemukan')
+      );
 
       const response = await app.inject({
         method: 'PUT',
@@ -370,7 +392,9 @@ describe('Guest Routes', () => {
 
     it('should return 404 when guest not found', async () => {
       const service = getServiceInstance(app);
-      service.deleteGuest.mockResolvedValue(makeError(ErrorCode.GUEST_NOT_FOUND, 'Tamu tidak ditemukan'));
+      service.deleteGuest.mockResolvedValue(
+        makeError(ErrorCode.GUEST_NOT_FOUND, 'Tamu tidak ditemukan')
+      );
 
       const response = await app.inject({
         method: 'DELETE',
@@ -456,8 +480,6 @@ describe('Guest Routes', () => {
       expect(body.is_active).toBe(true);
     });
 
-
-
     it('should return null QR fields when guest has no QR code', async () => {
       const service = getServiceInstance(app);
       service.getGuest.mockResolvedValue(makeGuest({ qr_code: null }));
@@ -475,7 +497,9 @@ describe('Guest Routes', () => {
 
     it('should return 404 when guest not found', async () => {
       const service = getServiceInstance(app);
-      service.getGuest.mockResolvedValue(makeError(ErrorCode.GUEST_NOT_FOUND, 'Tamu tidak ditemukan'));
+      service.getGuest.mockResolvedValue(
+        makeError(ErrorCode.GUEST_NOT_FOUND, 'Tamu tidak ditemukan')
+      );
 
       const response = await app.inject({
         method: 'GET',

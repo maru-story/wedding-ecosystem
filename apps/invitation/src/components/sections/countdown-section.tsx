@@ -41,7 +41,10 @@ function calculateTimeLeft(targetDate: string): TimeLeft {
 function generateIcsContent(targetDate: string): string {
   const date = new Date(targetDate);
   const formatDate = (d: Date) =>
-    d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    d
+      .toISOString()
+      .replace(/[-:]/g, '')
+      .replace(/\.\d{3}/, '');
 
   const endDate = new Date(date.getTime() + 3 * 60 * 60 * 1000); // 3 hours duration
 
@@ -114,7 +117,7 @@ export function CountdownSection({ content, sortOrder }: CountdownSectionProps) 
 
   return (
     <SectionWrapper sectionType="countdown" sortOrder={sortOrder}>
-      <h2 className="mb-8 text-center font-heading text-2xl font-bold text-[var(--color-primary)] text-balance">
+      <h2 className="font-heading mb-8 text-center text-2xl font-bold text-balance text-[var(--color-primary)]">
         Hitung Mundur
       </h2>
 

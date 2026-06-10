@@ -34,15 +34,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary px-4">
+    <div className="bg-secondary flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
         <div className="mb-8 text-center">
-          <h1 className="font-heading text-3xl font-bold text-primary">
-            Wedding Digital
-          </h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Masuk ke dashboard Anda
-          </p>
+          <h1 className="font-heading text-primary text-3xl font-bold">Wedding Digital</h1>
+          <p className="mt-2 text-sm text-gray-600">Masuk ke dashboard Anda</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -58,17 +54,17 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Email
+              Email atau Username
             </label>
             <input
               id="email"
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="nama@email.com"
+              placeholder="Username atau email"
               required
-              autoComplete="email"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              autoComplete="username"
+              className="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:ring-2 focus:outline-none"
             />
           </div>
 
@@ -84,14 +80,14 @@ export default function LoginPage() {
               placeholder="Masukkan password"
               required
               autoComplete="current-password"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="focus:border-primary focus:ring-primary/20 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:ring-2 focus:outline-none"
             />
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="bg-primary w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {isLoading ? 'Memproses...' : 'Masuk'}
           </button>

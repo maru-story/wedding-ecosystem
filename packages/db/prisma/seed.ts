@@ -56,7 +56,20 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.tenant.deleteMany();
 
-  // 1. Create tenant
+  // 1a. Create System Admin tenant
+  const systemAdminTenantId = randomUUID();
+  const systemAdminTenant = await prisma.tenant.create({
+    data: {
+      id: systemAdminTenantId,
+      name: 'System Admin',
+      slug: 'system-admin',
+      plan_type: 'enterprise',
+      is_active: true,
+    },
+  });
+  console.log(`✅ Tenant created: ${systemAdminTenant.name} (${systemAdminTenant.id})`);
+
+  // 1b. Create Wedding Demo tenant
   const tenantId = randomUUID();
   const tenant = await prisma.tenant.create({
     data: {
@@ -69,20 +82,36 @@ async function main() {
   });
   console.log(`✅ Tenant created: ${tenant.name} (${tenant.id})`);
 
-  // 2. Create user
-  const userId = randomUUID();
+  // 2a. Create Admin User
+  const adminUserId = randomUUID();
   const passwordHash = await bcrypt.hash('password123', 10);
-  const user = await prisma.user.create({
+  const adminUser = await prisma.user.create({
     data: {
-      id: userId,
-      tenant_id: tenantId,
+      id: adminUserId,
+      tenant_id: systemAdminTenantId,
       email: 'admin@demo.com',
+      username: 'admin',
       password_hash: passwordHash,
-      role: 'client',
-      name: 'Admin Demo',
+      role: 'admin',
+      name: 'System Admin',
     },
   });
-  console.log(`✅ User created: ${user.email} (password: password123)`);
+  console.log(`✅ Admin User created: ${adminUser.email} (password: password123)`);
+
+  // 2b. Create Client User
+  const clientUserId = randomUUID();
+  const clientUser = await prisma.user.create({
+    data: {
+      id: clientUserId,
+      tenant_id: tenantId,
+      email: 'client@demo.com',
+      username: 'client',
+      password_hash: passwordHash,
+      role: 'client',
+      name: 'Client Demo',
+    },
+  });
+  console.log(`✅ Client User created: ${clientUser.email} (password: password123)`);
 
   // 3. Create event
   const eventId = randomUUID();

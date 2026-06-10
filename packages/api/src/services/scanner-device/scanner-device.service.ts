@@ -103,9 +103,7 @@ export class ScannerDeviceService {
    * Update device heartbeat (Req 7.6)
    * Called periodically by scanner client to indicate device is still active
    */
-  async heartbeat(
-    deviceId: string
-  ): Promise<ScannerDeviceRecord | ScannerDeviceServiceError> {
+  async heartbeat(deviceId: string): Promise<ScannerDeviceRecord | ScannerDeviceServiceError> {
     const device = await this.repository.findDeviceById(deviceId);
 
     if (!device) {

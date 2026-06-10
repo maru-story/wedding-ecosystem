@@ -14,13 +14,14 @@ We take the security and privacy of wedding hosts and their guests very seriousl
 
 Only the latest main branch version is actively supported with security updates.
 
-| Version | Supported          |
-| ------- | ------------------ |
+| Version | Supported            |
+| ------- | -------------------- |
 | 1.0.x   | Yes (Current Active) |
 
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability, please report it immediately:
+
 1. Email security reports to **security@maru-wedding.co.id** (or open an issue with appropriate security tags if working on private repositories).
 2. Do not disclose the vulnerability publicly until it has been patched and resolved.
 3. We aim to acknowledge reports within 48 hours and release a patch within 7 days.

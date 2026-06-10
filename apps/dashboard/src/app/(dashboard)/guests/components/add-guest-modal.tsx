@@ -87,9 +87,9 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md bg-card border-border/40">
+      <DialogContent className="bg-card border-border/40 sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-heading text-xl tracking-wide text-foreground">
+          <DialogTitle className="font-heading text-foreground text-xl tracking-wide">
             {isEditing ? 'Edit Tamu' : 'Tambah Tamu Baru'}
           </DialogTitle>
           <DialogDescription className="sr-only">
@@ -101,7 +101,7 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
 
         {error && (
           <div
-            className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+            className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-sm"
             role="alert"
           >
             {error}
@@ -128,11 +128,8 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
             <Label htmlFor="guest-group" className="text-foreground">
               Grup <span className="text-destructive">*</span>
             </Label>
-            <Select
-              value={group}
-              onValueChange={(val) => setGroup(val as GuestGroup)}
-            >
-              <SelectTrigger className="w-full bg-card border-border/60 hover:bg-muted/10 transition-colors">
+            <Select value={group} onValueChange={(val) => setGroup(val as GuestGroup)}>
+              <SelectTrigger className="bg-card border-border/60 hover:bg-muted/10 w-full transition-colors">
                 <SelectValue placeholder="Pilih Grup" />
               </SelectTrigger>
               <SelectContent>
@@ -146,9 +143,13 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="guest-phone" className="text-foreground">Nomor Telepon</Label>
-            <div className="flex items-center rounded-lg border border-border/60 bg-card pl-3 focus-within:ring-1 focus-within:ring-ring focus-within:border-ring transition-colors">
-              <span className="text-sm text-muted-foreground font-semibold pr-1 select-none">+62</span>
+            <Label htmlFor="guest-phone" className="text-foreground">
+              Nomor Telepon
+            </Label>
+            <div className="border-border/60 bg-card focus-within:ring-ring focus-within:border-ring flex items-center rounded-lg border pl-3 transition-colors focus-within:ring-1">
+              <span className="text-muted-foreground pr-1 text-sm font-semibold select-none">
+                +62
+              </span>
               <Input
                 id="guest-phone"
                 type="text"
@@ -163,11 +164,10 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
                   setPhone(val);
                 }}
                 placeholder="8xxxxxxxxxx"
-                className="bg-transparent border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-1"
+                className="border-0 bg-transparent px-1 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
           </div>
-
 
           <div className="space-y-1.5">
             <Label htmlFor="guest-plus-one" className="text-foreground">
@@ -182,7 +182,7 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
               onChange={(e) => setPlusOneCount(parseInt(e.target.value, 10) || 0)}
               className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
             />
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-muted-foreground text-[11px]">
               Jumlah orang tambahan yang boleh dibawa tamu (0–10)
             </p>
           </div>

@@ -40,7 +40,7 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Implement account lockout after 5 failed attempts (15min duration)
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.9, 2.10, 2.11_
 
-  - [x]* 2.2 Write unit tests for auth service
+  - [x]\* 2.2 Write unit tests for auth service
     - Test valid login flow
     - Test invalid credentials (generic error message)
     - Test account lockout after 5 failures
@@ -56,12 +56,12 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Reject requests without valid `tenant_id`
     - _Requirements: 1.1, 1.2, 1.3, 1.5, 2.5, 2.6, 2.7, 2.8_
 
-  - [x]* 2.4 Write property test for tenant data isolation
+  - [x]\* 2.4 Write property test for tenant data isolation
     - **Property 1: Tenant Data Isolation**
     - **Property 19: Cross-Tenant Access Rejection**
     - **Validates: Requirements 1.2, 1.3**
 
-  - [x]* 2.5 Write property test for role-based data access
+  - [x]\* 2.5 Write property test for role-based data access
     - **Property 3: Role-Based Data Access**
     - **Validates: Requirements 2.6, 2.7, 2.8**
 
@@ -86,15 +86,15 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Support max 2000 rows per file
     - _Requirements: 3.2, 3.3, 3.4_
 
-  - [x]* 4.3 Write property test for QR code uniqueness
+  - [x]\* 4.3 Write property test for QR code uniqueness
     - **Property 4: QR Code Uniqueness**
     - **Validates: Requirements 3.1, 3.3, 3.6**
 
-  - [x]* 4.4 Write property test for QR code encryption
+  - [x]\* 4.4 Write property test for QR code encryption
     - **Property 5: QR Code Encryption**
     - **Validates: Requirements 3.5, 13.1**
 
-  - [x]* 4.5 Write property test for event data isolation within tenant
+  - [x]\* 4.5 Write property test for event data isolation within tenant
     - **Property 2: Event Data Isolation Within Tenant**
     - **Validates: Requirement 1.4**
 
@@ -107,11 +107,11 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Trigger WebSocket broadcast on RSVP submit (< 500ms)
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
 
-  - [x]* 5.2 Write property test for RSVP guest count validation
+  - [x]\* 5.2 Write property test for RSVP guest count validation
     - **Property 6: RSVP Guest Count Validation**
     - **Validates: Requirements 4.3, 4.4**
 
-  - [x]* 5.3 Write unit tests for RSVP service
+  - [x]\* 5.3 Write unit tests for RSVP service
     - Test valid RSVP submission
     - Test decline hides guest_count
     - Test guest_count exceeds limit rejection
@@ -142,19 +142,19 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Track last_active_at for device heartbeat
     - _Requirements: 7.6, 7.7_
 
-  - [x]* 6.4 Write property test for check-in idempotency
+  - [x]\* 6.4 Write property test for check-in idempotency
     - **Property 11: Check-in Idempotency**
     - **Validates: Requirements 7.5, 7.8**
 
-  - [x]* 6.5 Write property test for scanner verification status mapping
+  - [x]\* 6.5 Write property test for scanner verification status mapping
     - **Property 10: Scanner Verification Status Mapping**
     - **Validates: Requirements 7.2, 7.3, 7.4**
 
-  - [x]* 6.6 Write property test for scanner device limit
+  - [x]\* 6.6 Write property test for scanner device limit
     - **Property 12: Scanner Device Limit**
     - **Validates: Requirement 7.6**
 
-  - [x]* 6.7 Write property test for Go-Show guest tracking
+  - [x]\* 6.7 Write property test for Go-Show guest tracking
     - **Property 13: Go-Show Guest Tracking**
     - **Validates: Requirements 8.5, 8.6**
 
@@ -176,11 +176,11 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Ensure dashboard total_checked_in equals actual DB count on every broadcast
     - _Requirements: 9.6, 9.7_
 
-  - [x]* 8.3 Write property test for WebSocket room isolation
+  - [x]\* 8.3 Write property test for WebSocket room isolation
     - **Property 14: WebSocket Room Isolation**
     - **Validates: Requirement 9.3**
 
-  - [x]* 8.4 Write property test for real-time data consistency
+  - [x]\* 8.4 Write property test for real-time data consistency
     - **Property 16: Real-time Data Consistency**
     - **Validates: Requirement 9.7**
 
@@ -201,11 +201,11 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Return specific error messages for validation failures
     - _Requirements: 5.4, 5.5, 13.8, 13.9_
 
-  - [x]* 9.3 Write property test for section sort order uniqueness
+  - [x]\* 9.3 Write property test for section sort order uniqueness
     - **Property 8: Section Sort Order Uniqueness**
     - **Validates: Requirement 5.9**
 
-  - [x]* 9.4 Write property test for file upload explicit validation
+  - [x]\* 9.4 Write property test for file upload explicit validation
     - **Property 22: File Upload Explicit Validation**
     - **Validates: Requirements 13.8, 13.9**
 
@@ -218,11 +218,11 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Return specific error messages for validation failures
     - _Requirements: 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
 
-  - [x]* 10.2 Write property test for PII encryption at rest
+  - [x]\* 10.2 Write property test for PII encryption at rest
     - **Property 17: PII Encryption at Rest**
     - **Validates: Requirement 13.2**
 
-  - [x]* 10.3 Write property test for server-side input validation
+  - [x]\* 10.3 Write property test for server-side input validation
     - **Property 18: Server-Side Input Validation**
     - **Validates: Requirements 13.5, 13.6**
 
@@ -236,7 +236,7 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Log failed deliveries with error details
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.7_
 
-  - [x]* 11.2 Write property test for invitation sending contact completeness
+  - [x]\* 11.2 Write property test for invitation sending contact completeness
     - **Property 20: Invitation Sending Contact Completeness**
     - **Validates: Requirement 14.5**
 
@@ -285,7 +285,7 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Display failure notifications
     - _Requirements: 14.1, 14.3, 14.5, 14.6, 14.7_
 
-  - [x]* 13.6 Write property test for theme application resilience
+  - [x]\* 13.6 Write property test for theme application resilience
     - **Property 21: Theme Application Resilience**
     - **Validates: Requirement 11.7**
 
@@ -318,11 +318,11 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Display messages list with pagination (20 per page, newest first)
     - _Requirements: 4.1, 4.2, 4.3, 6.11, 6.12_
 
-  - [x]* 14.4 Write property test for active section rendering
+  - [x]\* 14.4 Write property test for active section rendering
     - **Property 7: Active Section Rendering**
     - **Validates: Requirements 5.3, 6.4**
 
-  - [x]* 14.5 Write property test for invitation personalization
+  - [x]\* 14.5 Write property test for invitation personalization
     - **Property 9: Invitation Personalization**
     - **Validates: Requirements 6.1, 14.2**
 
@@ -368,7 +368,7 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Update local cache after sync to reflect latest check-in states
     - _Requirements: 9.1, 9.4, 9.5_
 
-  - [x]* 16.5 Write property test for offline sync completeness
+  - [x]\* 16.5 Write property test for offline sync completeness
     - **Property 15: Offline Sync Completeness**
     - **Validates: Requirements 9.5, 10.2, 10.3**
 
@@ -388,7 +388,7 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
     - Initialize 14 sections with default sort_order on event creation
     - _Requirements: 11.7, 5.10_
 
-  - [x]* 17.3 Write integration tests for end-to-end flows
+  - [x]\* 17.3 Write integration tests for end-to-end flows
     - Test: add guest → generate QR → scan QR → check-in → dashboard update
     - Test: RSVP submit → dashboard real-time update
     - Test: concurrent scanner operations (2 devices, same QR)

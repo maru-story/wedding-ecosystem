@@ -1,6 +1,15 @@
 import bcrypt from 'bcrypt';
-import { ErrorCode } from '@wedding/shared';
-import type { PlanType, UserRole } from '@wedding/shared';
+import { ErrorCode, UserRole } from '@wedding/shared';
+import type { PlanType, GlobalStats } from '@wedding/shared';
+
+// Re-export GlobalStats and sub-types from shared package for consumers of this service
+export type {
+  GlobalStats,
+  PlanBreakdown,
+  TenantStatusBreakdown,
+  CheckInMethodBreakdown,
+  EventStatusBreakdown,
+} from '@wedding/shared';
 
 const BCRYPT_COST_FACTOR = 10;
 
@@ -11,6 +20,9 @@ export interface TenantRecord {
   plan_type: PlanType;
   is_active: boolean;
   created_at: Date;
+  client_username?: string | null;
+  client_email?: string | null;
+  client_name?: string | null;
 }
 
 export interface UserRecord {
@@ -18,17 +30,11 @@ export interface UserRecord {
   tenant_id: string;
   tenant_name: string | null;
   email: string;
+  username: string | null;
   role: UserRole;
   name: string;
   is_active: boolean;
   created_at: Date;
-}
-
-export interface GlobalStats {
-  total_tenants: number;
-  total_users: number;
-  active_scanner_devices: number;
-  total_guests: number;
 }
 
 export interface AuditLogRecord {
@@ -57,7 +63,7 @@ export interface AdminRepository {
 
   createTenantWithClient(
     tenantData: { name: string; slug: string; plan_type: PlanType },
-    clientUserData: { email: string; password_hash: string; name: string }
+    clientUserData: { email: string; username: string | null; password_hash: string; name: string }
   ): Promise<TenantRecord>;
 
   updateTenantStatus(tenantId: string, isActive: boolean): Promise<TenantRecord | null>;
@@ -72,15 +78,22 @@ export interface AdminRepository {
 
   updateUserStatus(userId: string, isActive: boolean): Promise<UserRecord | null>;
 
-  createAdminUser(
-    userData: { email: string; password_hash: string; name: string; tenant_id: string }
-  ): Promise<UserRecord>;
+  createAdminUser(userData: {
+    email: string;
+    password_hash: string;
+    name: string;
+    tenant_id: string;
+  }): Promise<UserRecord>;
 
   getGlobalStats(): Promise<GlobalStats>;
 
   checkTenantSlugExists(slug: string): Promise<boolean>;
 
   checkUserEmailExists(email: string): Promise<boolean>;
+
+  checkUsernameExists(username: string): Promise<boolean>;
+
+  checkTenantHasAdmin(tenantId: string): Promise<boolean>;
 
   listAuditLogs(
     page: number,
@@ -92,6 +105,12 @@ export interface AdminRepository {
     startDate?: string,
     endDate?: string
   ): Promise<{ data: AuditLogRecord[]; total: number }>;
+
+  deleteTenant(id: string): Promise<boolean>;
+
+  getUserById(id: string): Promise<UserRecord | null>;
+
+  deleteUser(id: string): Promise<boolean>;
 }
 
 export class AdminService {
@@ -107,7 +126,12 @@ export class AdminService {
 
   async createTenant(
     tenantData: { name: string; slug: string; plan_type: PlanType },
-    clientUserData: { email: string; passwordPlain: string; name: string }
+    clientUserData: {
+      email?: string | null;
+      username?: string | null;
+      passwordPlain: string;
+      name: string;
+    }
   ): Promise<TenantRecord | AdminServiceError> {
     // 1. Check if slug exists
     const slugExists = await this.repository.checkTenantSlugExists(tenantData.slug);
@@ -118,8 +142,34 @@ export class AdminService {
       };
     }
 
-    // 2. Check if email exists
-    const emailExists = await this.repository.checkUserEmailExists(clientUserData.email);
+    const username = clientUserData.username?.trim() || null;
+    let email = clientUserData.email?.trim() || null;
+
+    if (!username && !email) {
+      return {
+        code: ErrorCode.VALIDATION_FAILED,
+        message: 'Email atau Username harus diisi',
+      };
+    }
+
+    // 2. If username is provided, check if it exists
+    if (username) {
+      const usernameExists = await this.repository.checkUsernameExists(username);
+      if (usernameExists) {
+        return {
+          code: ErrorCode.ALREADY_EXISTS,
+          message: 'Username sudah digunakan oleh pengguna lain',
+        };
+      }
+    }
+
+    // 3. If email is not provided, generate a placeholder based on username
+    if (!email) {
+      email = `${username}@wedding.local`;
+    }
+
+    // 4. Check if email exists
+    const emailExists = await this.repository.checkUserEmailExists(email);
     if (emailExists) {
       return {
         code: ErrorCode.ALREADY_EXISTS,
@@ -127,12 +177,13 @@ export class AdminService {
       };
     }
 
-    // 3. Hash the password
+    // 5. Hash the password
     const passwordHash = await bcrypt.hash(clientUserData.passwordPlain, BCRYPT_COST_FACTOR);
 
-    // 4. Create tenant and client in a transaction
+    // 6. Create tenant and client in a transaction
     return this.repository.createTenantWithClient(tenantData, {
-      email: clientUserData.email,
+      email,
+      username,
       password_hash: passwordHash,
       name: clientUserData.name,
     });
@@ -226,6 +277,60 @@ export class AdminService {
     startDate?: string,
     endDate?: string
   ): Promise<{ data: AuditLogRecord[]; total: number }> {
-    return this.repository.listAuditLogs(page, perPage, action, tenantId, userId, search, startDate, endDate);
+    return this.repository.listAuditLogs(
+      page,
+      perPage,
+      action,
+      tenantId,
+      userId,
+      search,
+      startDate,
+      endDate
+    );
+  }
+
+  async deleteTenant(tenantId: string): Promise<{ success: boolean } | AdminServiceError> {
+    const hasAdmin = await this.repository.checkTenantHasAdmin(tenantId);
+    if (hasAdmin) {
+      return {
+        code: ErrorCode.VALIDATION_FAILED,
+        message: 'Tenant tidak dapat dihapus karena memiliki pengguna dengan peran Administrator',
+      };
+    }
+
+    const success = await this.repository.deleteTenant(tenantId);
+    if (!success) {
+      return {
+        code: ErrorCode.NOT_FOUND,
+        message: 'Tenant tidak ditemukan atau gagal dihapus',
+      };
+    }
+    return { success: true };
+  }
+
+  async deleteUser(userId: string): Promise<{ success: boolean } | AdminServiceError> {
+    const user = await this.repository.getUserById(userId);
+    if (!user) {
+      return {
+        code: ErrorCode.NOT_FOUND,
+        message: 'Pengguna tidak ditemukan atau gagal dihapus',
+      };
+    }
+
+    if (user.role === UserRole.ADMIN) {
+      return {
+        code: ErrorCode.VALIDATION_FAILED,
+        message: 'Pengguna dengan peran Administrator tidak dapat dihapus',
+      };
+    }
+
+    const success = await this.repository.deleteUser(userId);
+    if (!success) {
+      return {
+        code: ErrorCode.NOT_FOUND,
+        message: 'Pengguna tidak ditemukan atau gagal dihapus',
+      };
+    }
+    return { success: true };
   }
 }

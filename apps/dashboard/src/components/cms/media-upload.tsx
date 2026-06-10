@@ -30,15 +30,15 @@ export function MediaUpload({
     mediaType === 'image'
       ? 'image/jpeg,image/png,image/webp'
       : mediaType === 'video'
-      ? 'video/mp4'
-      : 'audio/mpeg,audio/mp3';
+        ? 'video/mp4'
+        : 'audio/mpeg,audio/mp3';
 
   const formatHint =
     mediaType === 'image'
       ? 'Format: JPEG, PNG, WebP. Maks 5MB.'
       : mediaType === 'video'
-      ? 'Format: MP4. Maks 50MB.'
-      : 'Format: MP3. Maks 10MB.';
+        ? 'Format: MP4. Maks 50MB.'
+        : 'Format: MP3. Maks 10MB.';
 
   const handleFileSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,23 +100,15 @@ export function MediaUpload({
 
       {/* Preview area */}
       {preview && (
-        <div className="relative rounded-lg border border-border/60 overflow-hidden bg-muted/20">
+        <div className="border-border/60 bg-muted/20 relative overflow-hidden rounded-lg border">
           {mediaType === 'image' ? (
-            <img
-              src={preview}
-              alt="Preview"
-              className="h-48 w-full object-cover"
-            />
+            <img src={preview} alt="Preview" className="h-48 w-full object-cover" />
           ) : mediaType === 'video' ? (
-            <video
-              src={preview}
-              className="h-48 w-full object-cover"
-              controls
-            />
+            <video src={preview} className="h-48 w-full object-cover" controls />
           ) : (
-            <div className="flex flex-col items-center justify-center h-24 p-4">
-              <Music className="h-8 w-8 text-primary mb-2" />
-              <audio src={preview} controls className="w-full h-8" />
+            <div className="flex h-24 flex-col items-center justify-center p-4">
+              <Music className="text-primary mb-2 h-8 w-8" />
+              <audio src={preview} controls className="h-8 w-full" />
             </div>
           )}
           {onRemove && (
@@ -125,7 +117,7 @@ export function MediaUpload({
               variant="destructive"
               size="icon"
               onClick={handleRemove}
-              className="absolute right-2 top-2 rounded-full p-0 h-7 w-7 shadow-md"
+              className="absolute top-2 right-2 h-7 w-7 rounded-full p-0 shadow-md"
               aria-label="Hapus media"
             >
               <X className="h-4 w-4" />
@@ -137,16 +129,22 @@ export function MediaUpload({
       {/* Upload area */}
       {!preview && (
         <div
-          className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors cursor-pointer ${
-            error ? 'border-destructive/40 bg-destructive/5' : 'border-border/60 bg-muted/10 hover:border-primary/40 hover:bg-muted/20'
+          className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${
+            error
+              ? 'border-destructive/40 bg-destructive/5'
+              : 'border-border/60 bg-muted/10 hover:border-primary/40 hover:bg-muted/20'
           }`}
           onClick={() => fileInputRef.current?.click()}
         >
-          <Upload className="mb-2 h-8 w-8 text-muted-foreground/60" />
-          <p className="text-sm font-medium text-foreground">
-            {mediaType === 'image' ? 'Upload foto' : mediaType === 'video' ? 'Upload video' : 'Upload musik (MP3)'}
+          <Upload className="text-muted-foreground/60 mb-2 h-8 w-8" />
+          <p className="text-foreground text-sm font-medium">
+            {mediaType === 'image'
+              ? 'Upload foto'
+              : mediaType === 'video'
+                ? 'Upload video'
+                : 'Upload musik (MP3)'}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">{formatHint}</p>
+          <p className="text-muted-foreground mt-1 text-xs">{formatHint}</p>
         </div>
       )}
 
@@ -170,12 +168,16 @@ export function MediaUpload({
         >
           {uploading ? (
             <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
               Mengupload...
             </>
           ) : (
             <>
-              {mediaType === 'audio' ? <Music className="h-4 w-4 text-muted-foreground" /> : <FileImage className="h-4 w-4 text-muted-foreground" />}
+              {mediaType === 'audio' ? (
+                <Music className="text-muted-foreground h-4 w-4" />
+              ) : (
+                <FileImage className="text-muted-foreground h-4 w-4" />
+              )}
               {preview ? 'Ganti File' : 'Pilih File'}
             </>
           )}
@@ -184,7 +186,7 @@ export function MediaUpload({
 
       {/* Error message */}
       {error && (
-        <p className="text-xs font-medium text-destructive" role="alert">
+        <p className="text-destructive text-xs font-medium" role="alert">
           {error}
         </p>
       )}

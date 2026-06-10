@@ -9,10 +9,7 @@ import {
 
 // --- Test Helpers ---
 
-function createMockRequest(
-  origin?: string,
-  method = 'GET'
-): FastifyRequest {
+function createMockRequest(origin?: string, method = 'GET'): FastifyRequest {
   return {
     headers: origin ? { origin } : {},
     method,
@@ -33,10 +30,18 @@ function createMockReply(): FastifyReply & {
   };
 
   const reply = {
-    get statusCode() { return state.statusCode; },
-    get body() { return state.body; },
-    get headers() { return state.headers; },
-    get sent() { return state.sent; },
+    get statusCode() {
+      return state.statusCode;
+    },
+    get body() {
+      return state.body;
+    },
+    get headers() {
+      return state.headers;
+    },
+    get sent() {
+      return state.sent;
+    },
     status(code: number) {
       state.statusCode = code;
       return reply;
@@ -82,9 +87,7 @@ describe('CORS Middleware', () => {
 
       await middleware(request, reply);
 
-      expect(reply.headers['Access-Control-Allow-Origin']).toBe(
-        'https://dashboard.wedding.com'
-      );
+      expect(reply.headers['Access-Control-Allow-Origin']).toBe('https://dashboard.wedding.com');
       expect(reply.headers['Access-Control-Allow-Credentials']).toBe('true');
       expect(reply.headers['Vary']).toBe('Origin');
     });
@@ -117,9 +120,7 @@ describe('CORS Middleware', () => {
       await middleware(request, reply);
 
       expect(reply.statusCode).toBe(204);
-      expect(reply.headers['Access-Control-Allow-Origin']).toBe(
-        'https://scanner.wedding.com'
-      );
+      expect(reply.headers['Access-Control-Allow-Origin']).toBe('https://scanner.wedding.com');
       expect(reply.headers['Access-Control-Allow-Methods']).toContain('GET');
       expect(reply.headers['Access-Control-Allow-Methods']).toContain('POST');
       expect(reply.headers['Access-Control-Allow-Headers']).toContain('Authorization');
@@ -144,9 +145,7 @@ describe('CORS Middleware', () => {
 
       await middleware(request, reply);
 
-      expect(reply.headers['Access-Control-Allow-Origin']).toBe(
-        'https://admin.wedding.com'
-      );
+      expect(reply.headers['Access-Control-Allow-Origin']).toBe('https://admin.wedding.com');
     });
 
     it('should expose rate limit headers', async () => {
@@ -156,12 +155,8 @@ describe('CORS Middleware', () => {
 
       await middleware(request, reply);
 
-      expect(reply.headers['Access-Control-Expose-Headers']).toContain(
-        'X-RateLimit-Limit'
-      );
-      expect(reply.headers['Access-Control-Expose-Headers']).toContain(
-        'Retry-After'
-      );
+      expect(reply.headers['Access-Control-Expose-Headers']).toContain('X-RateLimit-Limit');
+      expect(reply.headers['Access-Control-Expose-Headers']).toContain('Retry-After');
     });
 
     it('should allow localhost origins for development', async () => {
@@ -171,29 +166,21 @@ describe('CORS Middleware', () => {
 
       await middleware(request, reply);
 
-      expect(reply.headers['Access-Control-Allow-Origin']).toBe(
-        'http://localhost:3000'
-      );
+      expect(reply.headers['Access-Control-Allow-Origin']).toBe('http://localhost:3000');
     });
   });
 
   describe('isOriginAllowed', () => {
     it('should return true for allowed dashboard origin', () => {
-      expect(
-        isOriginAllowed(testConfig, 'https://dashboard.wedding.com', 'dashboard')
-      ).toBe(true);
+      expect(isOriginAllowed(testConfig, 'https://dashboard.wedding.com', 'dashboard')).toBe(true);
     });
 
     it('should return false for wrong app origin', () => {
-      expect(
-        isOriginAllowed(testConfig, 'https://dashboard.wedding.com', 'scanner')
-      ).toBe(false);
+      expect(isOriginAllowed(testConfig, 'https://dashboard.wedding.com', 'scanner')).toBe(false);
     });
 
     it('should return true when checking any app', () => {
-      expect(
-        isOriginAllowed(testConfig, 'https://invitation.wedding.com')
-      ).toBe(true);
+      expect(isOriginAllowed(testConfig, 'https://invitation.wedding.com')).toBe(true);
     });
 
     it('should return false for unknown origin', () => {
@@ -201,9 +188,7 @@ describe('CORS Middleware', () => {
     });
 
     it('should check additional origins', () => {
-      expect(
-        isOriginAllowed(testConfig, 'https://admin.wedding.com')
-      ).toBe(true);
+      expect(isOriginAllowed(testConfig, 'https://admin.wedding.com')).toBe(true);
     });
   });
 

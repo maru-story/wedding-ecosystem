@@ -126,9 +126,7 @@ function validateObjectFields(
         });
       }
     } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-      errors.push(
-        ...validateObjectFields(value as Record<string, unknown>, fieldPath)
-      );
+      errors.push(...validateObjectFields(value as Record<string, unknown>, fieldPath));
     } else if (Array.isArray(value)) {
       for (let i = 0; i < value.length; i++) {
         const item = value[i];
@@ -142,10 +140,7 @@ function validateObjectFields(
           }
         } else if (item !== null && typeof item === 'object') {
           errors.push(
-            ...validateObjectFields(
-              item as Record<string, unknown>,
-              `${fieldPath}[${i}]`
-            )
+            ...validateObjectFields(item as Record<string, unknown>, `${fieldPath}[${i}]`)
           );
         }
       }

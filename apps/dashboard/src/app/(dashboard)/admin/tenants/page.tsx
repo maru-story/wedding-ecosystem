@@ -31,12 +31,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Building2, 
-  Search, 
-  Plus, 
-  RefreshCw, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Building2,
+  Search,
+  Plus,
+  RefreshCw,
   Calendar,
   Lock,
   Mail,
@@ -47,10 +53,17 @@ import {
   MapPin,
   Eye,
   Building,
-  UserCheck
+  UserCheck,
+  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
 
 interface Tenant {
   id: string;
@@ -59,6 +72,9 @@ interface Tenant {
   plan_type: PlanType;
   is_active: boolean;
   created_at: string;
+  client_username?: string | null;
+  client_email?: string | null;
+  client_name?: string | null;
 }
 
 interface PaginatedTenants {
@@ -71,12 +87,19 @@ interface PaginatedTenants {
   };
 }
 
-import { useAdminTenants, useCreateTenant, useToggleTenantStatus } from '@/hooks/queries';
+import {
+  useAdminTenants,
+  useCreateTenant,
+  useToggleTenantStatus,
+  useDeleteTenant,
+} from '@/hooks/queries';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { TenantTable } from './components/tenant-table';
+import { TenantFilters } from './components/tenant-filters';
 
 export default function AdminTenantsPage() {
   const tableState = useTableState<Tenant>({
@@ -102,6 +125,10 @@ export default function AdminTenantsPage() {
   // Mutations
   const toggleTenantStatusMutation = useToggleTenantStatus();
   const createTenantMutation = useCreateTenant();
+  const deleteTenantMutation = useDeleteTenant();
+
+  // Delete State
+  const [tenantToDelete, setTenantToDelete] = useState<Tenant | null>(null);
 
   // Dialog / Modal Add Tenant
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -111,6 +138,7 @@ export default function AdminTenantsPage() {
     plan_type: PlanType.BASIC,
     client_name: '',
     client_email: '',
+    client_username: '',
     client_password: '',
   });
 
@@ -120,7 +148,9 @@ export default function AdminTenantsPage() {
   const [tenantEvents, setTenantEvents] = useState<any[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
   const [isSavingQuota, setIsSavingQuota] = useState(false);
-  const [quotaInputs, setQuotaInputs] = useState<Record<string, { max_guests: number; max_scanner_devices: number }>>({});
+  const [quotaInputs, setQuotaInputs] = useState<
+    Record<string, { max_guests: number; max_scanner_devices: number }>
+  >({});
 
   useEffect(() => {
     const initialInputs: Record<string, { max_guests: number; max_scanner_devices: number }> = {};
@@ -138,7 +168,9 @@ export default function AdminTenantsPage() {
     setIsQuotaModalOpen(true);
     setIsLoadingEvents(true);
     try {
-      const response = await apiFetch<{ success: boolean; data: any[] }>(`/admin/tenants/${tenant.id}/events`);
+      const response = await apiFetch<{ success: boolean; data: any[] }>(
+        `/admin/tenants/${tenant.id}/events`
+      );
       setTenantEvents(response.data || []);
     } catch (err) {
       toast.error('Gagal mengambil daftar event tenant');
@@ -159,7 +191,9 @@ export default function AdminTenantsPage() {
     setIsDetailOpen(true);
     setIsLoadingDetailEvents(true);
     try {
-      const response = await apiFetch<{ success: boolean; data: any[] }>(`/admin/tenants/${tenant.id}/events`);
+      const response = await apiFetch<{ success: boolean; data: any[] }>(
+        `/admin/tenants/${tenant.id}/events`
+      );
       setDetailEvents(response.data || []);
     } catch (err) {
       toast.error('Gagal mengambil daftar event detail tenant');
@@ -169,7 +203,11 @@ export default function AdminTenantsPage() {
     }
   };
 
-  const handleQuotaInputChange = (eventId: string, field: 'max_guests' | 'max_scanner_devices', value: number) => {
+  const handleQuotaInputChange = (
+    eventId: string,
+    field: 'max_guests' | 'max_scanner_devices',
+    value: number
+  ) => {
     setQuotaInputs((prev) => ({
       ...prev,
       [eventId]: {
@@ -232,7 +270,7 @@ export default function AdminTenantsPage() {
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-');
-    
+
     setNewTenant((prev) => ({ ...prev, name, slug }));
   };
 
@@ -250,6 +288,11 @@ export default function AdminTenantsPage() {
   const handleCreateTenant = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!newTenant.client_email.trim() && !newTenant.client_username.trim()) {
+      toast.error('Salah satu dari Email atau Username harus diisi.');
+      return;
+    }
+
     createTenantMutation.mutate(newTenant, {
       onSuccess: (response) => {
         if (response.success) {
@@ -261,6 +304,7 @@ export default function AdminTenantsPage() {
             plan_type: PlanType.BASIC,
             client_name: '',
             client_email: '',
+            client_username: '',
             client_password: '',
           });
         }
@@ -269,6 +313,26 @@ export default function AdminTenantsPage() {
         if (err instanceof ApiError) {
           const errData = err.data as { error?: { message?: string } };
           toast.error(errData.error?.message || 'Gagal membuat tenant');
+        } else {
+          toast.error('Gagal terhubung ke server');
+        }
+      },
+    });
+  };
+
+  const handleDeleteTenant = async () => {
+    if (!tenantToDelete) return;
+    deleteTenantMutation.mutate(tenantToDelete.id, {
+      onSuccess: (response) => {
+        if (response.success) {
+          toast.success(`Tenant ${tenantToDelete.name} berhasil dihapus`);
+          setTenantToDelete(null);
+        }
+      },
+      onError: (err) => {
+        if (err instanceof ApiError) {
+          const errData = err.data as { error?: { message?: string } };
+          toast.error(errData.error?.message || 'Gagal menghapus tenant');
         } else {
           toast.error('Gagal terhubung ke server');
         }
@@ -312,10 +376,10 @@ export default function AdminTenantsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="font-heading text-foreground text-3xl font-bold tracking-tight">
             Manajemen Tenant
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-sm">
             Daftar dan kelola semua penyewa/tenant pada platform digital secara terpusat.
           </p>
         </div>
@@ -326,57 +390,33 @@ export default function AdminTenantsPage() {
             variant="outline"
             className="flex items-center gap-2"
           >
-            <RefreshCw className={`h-4 w-4 text-muted-foreground ${isFetching ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`text-muted-foreground h-4 w-4 ${isFetching ? 'animate-spin' : ''}`}
+            />
             Perbarui
           </Button>
-          <Button
-            onClick={() => setIsAddOpen(true)}
-            className="flex items-center gap-2"
-          >
+          <Button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Tambah Tenant
           </Button>
         </div>
       </div>
 
-      {/* Filters and Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card p-4 rounded-xl shadow-sm border border-border/40">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Cari nama atau slug tenant..."
-            value={tableState.searchQuery}
-            onChange={(e) => tableState.setSearchQuery(e.target.value)}
-            className="pl-9 rounded-lg border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 transition-colors"
-          />
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground shrink-0">Paket:</span>
-          <Select 
-            value={planFilter} 
-            onValueChange={(val) => {
-              setPlanFilter(val as PlanType | 'ALL');
-              tableState.resetPage();
-            }}
-          >
-            <SelectTrigger className="w-[180px] rounded-lg border-border/60">
-              <SelectValue placeholder="Semua Paket" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Semua Paket</SelectItem>
-              <SelectItem value={PlanType.BASIC}>Basic</SelectItem>
-              <SelectItem value={PlanType.PREMIUM}>Premium</SelectItem>
-              <SelectItem value={PlanType.ENTERPRISE}>Enterprise</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      {/* Tenant Filters */}
+      <TenantFilters
+        searchQuery={tableState.searchQuery}
+        onSearchChange={tableState.setSearchQuery}
+        planFilter={planFilter}
+        onPlanChange={(val) => {
+          setPlanFilter(val);
+          tableState.resetPage();
+        }}
+      />
 
       {/* Error Alert */}
       {errorMessage && (
         <div
-          className="rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+          className="border-destructive/20 bg-destructive/10 text-destructive flex flex-col gap-3 rounded-xl border p-4 text-sm sm:flex-row sm:items-center sm:justify-between"
           role="alert"
         >
           <span>{errorMessage}</span>
@@ -386,117 +426,25 @@ export default function AdminTenantsPage() {
         </div>
       )}
 
-      {/* Tenant Table using DataTable */}
-      <DataTable
-        isLoading={isLoading}
-        loadingText="Memuat data tenant..."
-        isEmpty={filteredTenants.length === 0}
-        emptyTitle="Tidak ada tenant ditemukan"
-        emptyDescription="Coba sesuaikan kata kunci pencarian atau filter tipe paket Anda."
-        emptyIcon={<Building2 className="mx-auto h-12 w-12 text-muted-foreground/30 mb-3" />}
-        header={
-          <>
-            <TableHead className="py-4 px-6 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Nama Tenant
-            </TableHead>
-            <TableHead className="py-4 px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Slug
-            </TableHead>
-            <TableHead className="py-4 px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Tipe Paket
-            </TableHead>
-            <TableHead className="py-4 px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Tanggal Dibuat
-            </TableHead>
-            <TableHead className="py-4 px-6 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">
-              Status Aktif
-            </TableHead>
-          </>
-        }
+      {/* Tenant Table */}
+      <TenantTable
+        tenants={filteredTenants}
         pagination={pagination}
+        isLoading={isLoading}
         onPageChange={tableState.setPage}
         onPerPageChange={tableState.setPerPage}
-        paginationText={(p) => (
-          <>
-            Menampilkan <span className="font-medium text-foreground">{(p.page - 1) * p.per_page + 1}</span>–
-            <span className="font-medium text-foreground">{Math.min(p.page * p.per_page, p.total)}</span> dari{' '}
-            <span className="font-medium text-foreground">{p.total}</span> tenant
-          </>
-        )}
-      >
-        {filteredTenants.map((tenant) => (
-          <TableRow 
-            key={tenant.id} 
-            className="border-b border-border/40 hover:bg-muted/20 cursor-pointer"
-            onClick={() => handleOpenTenantDetail(tenant)}
-          >
-            <TableCell className="py-4 px-6 font-medium text-foreground">
-              {tenant.name}
-            </TableCell>
-            <TableCell className="py-4 px-3 text-muted-foreground text-sm">
-              /{tenant.slug}
-            </TableCell>
-            <TableCell className="py-4 px-3">
-              {tenant.plan_type === PlanType.ENTERPRISE ? (
-                <Badge className="bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-950/30 dark:text-purple-400 dark:border-purple-900/50 font-medium hover:opacity-90 shadow-none">
-                  Enterprise
-                </Badge>
-              ) : tenant.plan_type === PlanType.PREMIUM ? (
-                <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/50 font-medium hover:opacity-90 shadow-none">
-                  Premium
-                </Badge>
-              ) : (
-                <Badge className="bg-muted text-muted-foreground border-border/50 font-medium hover:bg-muted shadow-none">
-                  Basic
-                </Badge>
-              )}
-            </TableCell>
-            <TableCell className="py-4 px-3 text-muted-foreground text-sm">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                <span>{formatDate(tenant.created_at)}</span>
-              </div>
-            </TableCell>
-            <TableCell className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-end gap-3">
-                <span className={`text-xs font-semibold ${tenant.is_active ? 'text-success' : 'text-muted-foreground'}`}>
-                  {tenant.is_active ? 'Aktif' : 'Nonaktif'}
-                </span>
-                <Switch
-                  checked={tenant.is_active}
-                  onCheckedChange={() => handleToggleStatus(tenant.id, tenant.is_active)}
-                  aria-label="Toggle status keaktifan tenant"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  onClick={() => handleOpenTenantDetail(tenant)}
-                  title="Lihat Detail"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  onClick={() => handleOpenQuotaModal(tenant)}
-                  title="Kelola Kuota"
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </DataTable>
+        onToggleStatus={handleToggleStatus}
+        onOpenDetail={handleOpenTenantDetail}
+        onOpenQuota={handleOpenQuotaModal}
+        onDelete={(tenant) => setTenantToDelete(tenant)}
+      />
 
       {/* Tenant Detail Sheet */}
       <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <SheetContent className="overflow-y-auto sm:max-w-lg">
-          <SheetHeader className="pb-4 border-b border-border/40">
-            <SheetTitle className="text-xl font-bold flex items-center gap-2">
-              <Building className="h-5 w-5 text-primary" />
+          <SheetHeader className="border-border/40 border-b pb-4">
+            <SheetTitle className="flex items-center gap-2 text-xl font-bold">
+              <Building className="text-primary h-5 w-5" />
               Detail Tenant
             </SheetTitle>
             <SheetDescription>
@@ -507,75 +455,102 @@ export default function AdminTenantsPage() {
           {detailTenant && (
             <div className="mt-6 space-y-6">
               {/* Tenant General Info */}
-              <div className="bg-muted/30 border border-border/40 p-4 rounded-xl space-y-3">
-                <div className="flex justify-between items-center text-sm">
+              <div className="bg-muted/30 border-border/40 space-y-3 rounded-xl border p-4">
+                <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-medium">Nama Tenant:</span>
-                  <span className="font-bold text-foreground">{detailTenant.name}</span>
+                  <span className="text-foreground font-bold">{detailTenant.name}</span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-medium">Slug Url:</span>
-                  <span className="font-mono text-xs text-foreground bg-muted px-1.5 py-0.5 rounded">
+                  <span className="text-foreground bg-muted rounded px-1.5 py-0.5 font-mono text-xs">
                     /{detailTenant.slug}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-medium">Paket Langganan:</span>
                   <span>
                     {detailTenant.plan_type === PlanType.ENTERPRISE ? (
-                      <Badge className="bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-950/30 dark:text-purple-400 dark:border-purple-900/50 font-medium shadow-none border hover:bg-purple-50">Enterprise</Badge>
+                      <Badge className="border border-purple-100 bg-purple-50 font-medium text-purple-700 shadow-none hover:bg-purple-50 dark:border-purple-900/50 dark:bg-purple-950/30 dark:text-purple-400">
+                        Enterprise
+                      </Badge>
                     ) : detailTenant.plan_type === PlanType.PREMIUM ? (
-                      <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/50 font-medium shadow-none border hover:bg-indigo-50">Premium</Badge>
+                      <Badge className="border border-indigo-100 bg-indigo-50 font-medium text-indigo-700 shadow-none hover:bg-indigo-50 dark:border-indigo-900/50 dark:bg-indigo-950/30 dark:text-indigo-400">
+                        Premium
+                      </Badge>
                     ) : (
-                      <Badge className="bg-muted text-muted-foreground border-border/50 font-medium shadow-none border hover:bg-muted">Basic</Badge>
+                      <Badge className="bg-muted text-muted-foreground border-border/50 hover:bg-muted border font-medium shadow-none">
+                        Basic
+                      </Badge>
                     )}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-medium">Status Akun:</span>
-                  <span className={`font-semibold ${detailTenant.is_active ? 'text-success' : 'text-muted-foreground'}`}>
+                  <span
+                    className={`font-semibold ${detailTenant.is_active ? 'text-success' : 'text-muted-foreground'}`}
+                  >
                     {detailTenant.is_active ? 'Aktif' : 'Nonaktif'}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-medium">Terdaftar Sejak:</span>
-                  <span className="text-muted-foreground">{formatDate(detailTenant.created_at)}</span>
+                  <span className="text-muted-foreground">
+                    {formatDate(detailTenant.created_at)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm pt-2 border-t border-border/40 mt-2">
+                  <span className="text-muted-foreground font-medium">Nama Client:</span>
+                  <span className="text-foreground font-semibold">{detailTenant.client_name || '-'}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground font-medium">Username Client:</span>
+                  <span className="text-foreground font-mono text-xs">{detailTenant.client_username || '-'}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground font-medium">Email Client:</span>
+                  <span className="text-foreground font-semibold">{detailTenant.client_email || '-'}</span>
                 </div>
               </div>
 
               {/* Events Managed */}
               <div className="space-y-4">
-                <h3 className="font-bold text-foreground flex items-center gap-2 text-sm uppercase tracking-wider text-muted-foreground">
-                  <Calendar className="h-4 w-4 text-primary" />
+                <h3 className="text-foreground text-muted-foreground flex items-center gap-2 text-sm font-bold tracking-wider uppercase">
+                  <Calendar className="text-primary h-4 w-4" />
                   Daftar Event Pernikahan ({detailEvents.length})
                 </h3>
 
                 {isLoadingDetailEvents ? (
                   <div className="space-y-3 py-4">
-                    <div className="h-20 animate-pulse bg-muted rounded-xl border border-border/40" />
-                    <div className="h-20 animate-pulse bg-muted rounded-xl border border-border/40" />
+                    <div className="bg-muted border-border/40 h-20 animate-pulse rounded-xl border" />
+                    <div className="bg-muted border-border/40 h-20 animate-pulse rounded-xl border" />
                   </div>
                 ) : detailEvents.length === 0 ? (
-                  <div className="text-center py-8 border border-dashed border-border/60 rounded-xl">
-                    <Calendar className="mx-auto h-8 w-8 text-muted-foreground/30 mb-2" />
-                    <p className="text-xs text-muted-foreground">Belum ada event pernikahan yang dibuat</p>
+                  <div className="border-border/60 rounded-xl border border-dashed py-8 text-center">
+                    <Calendar className="text-muted-foreground/30 mx-auto mb-2 h-8 w-8" />
+                    <p className="text-muted-foreground text-xs">
+                      Belum ada event pernikahan yang dibuat
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {detailEvents.map((event: any) => (
                       <div
                         key={event.id}
-                        className="p-4 border border-border/40 rounded-xl bg-card hover:shadow-sm transition-all space-y-3"
+                        className="border-border/40 bg-card space-y-3 rounded-xl border p-4 transition-all hover:shadow-sm"
                       >
-                        <div className="flex justify-between items-start gap-2">
-                          <h4 className="font-bold text-sm text-foreground">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="text-foreground text-sm font-bold">
                             {event.groom_name} & {event.bride_name}
                           </h4>
-                          <Badge variant="outline" className="capitalize text-[10px] py-0 px-1.5 shadow-none">
+                          <Badge
+                            variant="outline"
+                            className="px-1.5 py-0 text-[10px] capitalize shadow-none"
+                          >
                             {event.status}
                           </Badge>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                        <div className="text-muted-foreground grid grid-cols-2 gap-2 text-xs">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3.5 w-3.5 shrink-0" />
                             <span>{formatDate(event.event_date)}</span>
@@ -586,9 +561,11 @@ export default function AdminTenantsPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-start gap-1 text-xs text-muted-foreground pt-1 border-t border-border/30">
-                          <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                          <span className="line-clamp-1">{event.venue_name} ({event.venue_address})</span>
+                        <div className="text-muted-foreground border-border/30 flex items-start gap-1 border-t pt-1 text-xs">
+                          <MapPin className="text-muted-foreground mt-0.5 h-3.5 w-3.5 shrink-0" />
+                          <span className="line-clamp-1">
+                            {event.venue_name} ({event.venue_address})
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -602,11 +579,11 @@ export default function AdminTenantsPage() {
 
       {/* Add Tenant Dialog */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-xl rounded-2xl p-6 border-border/40 bg-card shadow-xl">
+        <DialogContent className="border-border/40 bg-card max-w-xl rounded-2xl p-6 shadow-xl">
           <form onSubmit={handleCreateTenant}>
             <DialogHeader className="mb-6">
-              <DialogTitle className="text-2xl font-bold flex items-center gap-2 text-foreground">
-                <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+              <DialogTitle className="text-foreground flex items-center gap-2 text-2xl font-bold">
+                <Sparkles className="text-primary h-6 w-6 animate-pulse" />
                 Tambah Tenant Baru
               </DialogTitle>
               <DialogDescription className="text-muted-foreground">
@@ -616,15 +593,18 @@ export default function AdminTenantsPage() {
 
             <div className="space-y-5">
               {/* Tenant Section */}
-              <div className="bg-muted/30 border border-border/40 rounded-xl p-4 space-y-4">
-                <h3 className="text-sm font-bold text-foreground flex items-center gap-2 border-b border-border/40 pb-2">
+              <div className="bg-muted/30 border-border/40 space-y-4 rounded-xl border p-4">
+                <h3 className="text-foreground border-border/40 flex items-center gap-2 border-b pb-2 text-sm font-bold">
                   <Building2 className="h-4 w-4 text-indigo-500" />
                   Detail Tenant
                 </h3>
-                
+
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                    <Label htmlFor="tenant_name" className="text-xs font-bold text-muted-foreground">
+                  <div className="col-span-2 space-y-1.5 sm:col-span-1">
+                    <Label
+                      htmlFor="tenant_name"
+                      className="text-muted-foreground text-xs font-bold"
+                    >
                       Nama Tenant
                     </Label>
                     <Input
@@ -633,37 +613,46 @@ export default function AdminTenantsPage() {
                       value={newTenant.name}
                       onChange={(e) => handleNameChange(e.target.value)}
                       required
-                      className="rounded-lg border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 transition-colors"
+                      className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg transition-colors"
                     />
                   </div>
 
-                  <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                    <Label htmlFor="tenant_slug" className="text-xs font-bold text-muted-foreground">
+                  <div className="col-span-2 space-y-1.5 sm:col-span-1">
+                    <Label
+                      htmlFor="tenant_slug"
+                      className="text-muted-foreground text-xs font-bold"
+                    >
                       Slug URL
                     </Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-sm text-muted-foreground/60 font-medium">/</span>
+                      <span className="text-muted-foreground/60 absolute top-2.5 left-3 text-sm font-medium">
+                        /
+                      </span>
                       <Input
                         id="tenant_slug"
                         placeholder="slug-url"
                         value={newTenant.slug}
-                        onChange={(e) => setNewTenant((prev) => ({ ...prev, slug: e.target.value }))}
+                        onChange={(e) =>
+                          setNewTenant((prev) => ({ ...prev, slug: e.target.value }))
+                        }
                         required
-                        className="pl-6 rounded-lg border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 transition-colors"
+                        className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-6 transition-colors"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="plan_type" className="text-xs font-bold text-muted-foreground">
+                  <Label htmlFor="plan_type" className="text-muted-foreground text-xs font-bold">
                     Tipe Paket
                   </Label>
                   <Select
                     value={newTenant.plan_type}
-                    onValueChange={(val) => setNewTenant((prev) => ({ ...prev, plan_type: val as PlanType }))}
+                    onValueChange={(val) =>
+                      setNewTenant((prev) => ({ ...prev, plan_type: val as PlanType }))
+                    }
                   >
-                    <SelectTrigger id="plan_type" className="rounded-lg border-border/60">
+                    <SelectTrigger id="plan_type" className="border-border/60 rounded-lg">
                       <SelectValue placeholder="Pilih paket" />
                     </SelectTrigger>
                     <SelectContent>
@@ -676,63 +665,95 @@ export default function AdminTenantsPage() {
               </div>
 
               {/* Admin Client User Section */}
-              <div className="bg-muted/30 border border-border/40 rounded-xl p-4 space-y-4">
-                <h3 className="text-sm font-bold text-foreground flex items-center gap-2 border-b border-border/40 pb-2">
+              <div className="bg-muted/30 border-border/40 space-y-4 rounded-xl border p-4">
+                <h3 className="text-foreground border-border/40 flex items-center gap-2 border-b pb-2 text-sm font-bold">
                   <User className="h-4 w-4 text-emerald-500" />
                   Detail Akun Client (Pengelola)
                 </h3>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="client_name" className="text-xs font-bold text-muted-foreground">
+                  <Label htmlFor="client_name" className="text-muted-foreground text-xs font-bold">
                     Nama Lengkap Client
                   </Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <User className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
                     <Input
                       id="client_name"
                       placeholder="Nama lengkap pengelola"
                       value={newTenant.client_name}
-                      onChange={(e) => setNewTenant((prev) => ({ ...prev, client_name: e.target.value }))}
+                      onChange={(e) =>
+                        setNewTenant((prev) => ({ ...prev, client_name: e.target.value }))
+                      }
                       required
-                      className="pl-9 rounded-lg border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 transition-colors"
+                      className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                    <Label htmlFor="client_email" className="text-xs font-bold text-muted-foreground">
-                      Email
+                  <div className="col-span-2 space-y-1.5 sm:col-span-1">
+                    <Label
+                      htmlFor="client_username"
+                      className="text-muted-foreground text-xs font-bold"
+                    >
+                      Username (Opsional)
                     </Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <User className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
+                      <Input
+                        id="client_username"
+                        placeholder="contoh: budi_s"
+                        value={newTenant.client_username}
+                        onChange={(e) =>
+                          setNewTenant((prev) => ({ ...prev, client_username: e.target.value }))
+                        }
+                        className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-span-2 space-y-1.5 sm:col-span-1">
+                    <Label
+                      htmlFor="client_email"
+                      className="text-muted-foreground text-xs font-bold"
+                    >
+                      Email (Opsional)
+                    </Label>
+                    <div className="relative">
+                      <Mail className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
                       <Input
                         id="client_email"
                         type="email"
                         placeholder="client@mail.com"
                         value={newTenant.client_email}
-                        onChange={(e) => setNewTenant((prev) => ({ ...prev, client_email: e.target.value }))}
-                        required
-                        className="pl-9 rounded-lg border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 transition-colors"
+                        onChange={(e) =>
+                          setNewTenant((prev) => ({ ...prev, client_email: e.target.value }))
+                        }
+                        className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5 col-span-2 sm:col-span-1">
-                    <Label htmlFor="client_password" className="text-xs font-bold text-muted-foreground">
+                  <div className="col-span-2 space-y-1.5">
+                    <Label
+                      htmlFor="client_password"
+                      className="text-muted-foreground text-xs font-bold"
+                    >
                       Password Akun
                     </Label>
                     <div className="relative flex gap-2">
                       <div className="relative flex-1">
-                        <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Lock className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
                         <Input
                           id="client_password"
                           type="text"
                           placeholder="Password minimal 8 karakter"
                           value={newTenant.client_password}
-                          onChange={(e) => setNewTenant((prev) => ({ ...prev, client_password: e.target.value }))}
+                          onChange={(e) =>
+                            setNewTenant((prev) => ({ ...prev, client_password: e.target.value }))
+                          }
                           required
-                          className="pl-9 rounded-lg border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 transition-colors"
+                          className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
                         />
                       </div>
                       <Button
@@ -740,9 +761,9 @@ export default function AdminTenantsPage() {
                         onClick={generatePassword}
                         variant="outline"
                         title="Generate Password Acak"
-                        className="px-3 border-border rounded-lg shrink-0 flex items-center justify-center hover:bg-muted"
+                        className="border-border hover:bg-muted flex shrink-0 items-center justify-center rounded-lg px-3"
                       >
-                        <KeyRound className="h-4 w-4 text-muted-foreground" />
+                        <KeyRound className="text-muted-foreground h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -750,12 +771,8 @@ export default function AdminTenantsPage() {
               </div>
             </div>
 
-            <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-2 border-t border-border/40 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsAddOpen(false)}
-              >
+            <DialogFooter className="border-border/40 mt-6 flex flex-col gap-2 border-t pt-4 sm:flex-row">
+              <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
                 Batal
               </Button>
               <Button
@@ -772,40 +789,47 @@ export default function AdminTenantsPage() {
 
       {/* Manage Quota Dialog */}
       <Dialog open={isQuotaModalOpen} onOpenChange={setIsQuotaModalOpen}>
-        <DialogContent className="max-w-md rounded-2xl p-6 border-border/40 bg-card shadow-xl">
+        <DialogContent className="border-border/40 bg-card max-w-md rounded-2xl p-6 shadow-xl">
           <DialogHeader className="mb-4">
-            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground animate-in fade-in duration-200">
+            <DialogTitle className="text-foreground animate-in fade-in flex items-center gap-2 text-xl font-bold duration-200">
               <SlidersHorizontal className="h-5 w-5 text-indigo-500" />
               Kelola Kuota Tamu & Perangkat
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Atur batas maksimal tamu dan scanner untuk tenant <strong>{selectedTenant?.name}</strong>.
+              Atur batas maksimal tamu dan scanner untuk tenant{' '}
+              <strong>{selectedTenant?.name}</strong>.
             </DialogDescription>
           </DialogHeader>
 
           {isLoadingEvents ? (
-            <div className="flex flex-col items-center justify-center py-8 space-y-2">
-              <RefreshCw className="h-8 w-8 text-primary animate-spin" />
-              <p className="text-sm text-muted-foreground">Mengambil daftar event...</p>
+            <div className="flex flex-col items-center justify-center space-y-2 py-8">
+              <RefreshCw className="text-primary h-8 w-8 animate-spin" />
+              <p className="text-muted-foreground text-sm">Mengambil daftar event...</p>
             </div>
           ) : tenantEvents.length === 0 ? (
-            <div className="text-center py-6 text-muted-foreground text-sm">
+            <div className="text-muted-foreground py-6 text-center text-sm">
               Tenant ini belum memiliki event aktif.
             </div>
           ) : (
-            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+            <div className="max-h-[300px] space-y-4 overflow-y-auto pr-1">
               {tenantEvents.map((event) => (
-                <div key={event.id} className="bg-muted/30 border border-border/40 rounded-xl p-4 space-y-3">
-                  <div className="border-b border-border/40 pb-1.5">
-                    <h4 className="text-sm font-bold text-foreground">
+                <div
+                  key={event.id}
+                  className="bg-muted/30 border-border/40 space-y-3 rounded-xl border p-4"
+                >
+                  <div className="border-border/40 border-b pb-1.5">
+                    <h4 className="text-foreground text-sm font-bold">
                       {event.bride_name} & {event.groom_name}
                     </h4>
-                    <p className="text-xs text-muted-foreground">Slug: /{event.slug}</p>
+                    <p className="text-muted-foreground text-xs">Slug: /{event.slug}</p>
                   </div>
 
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <Label htmlFor={`max_guests_${event.id}`} className="text-xs font-bold text-muted-foreground">
+                      <Label
+                        htmlFor={`max_guests_${event.id}`}
+                        className="text-muted-foreground text-xs font-bold"
+                      >
                         Maksimal Jumlah Tamu (max_guests)
                       </Label>
                       <Input
@@ -814,14 +838,23 @@ export default function AdminTenantsPage() {
                         min={QUOTA_MAX_GUESTS_MIN}
                         max={QUOTA_MAX_GUESTS_MAX}
                         value={quotaInputs[event.id]?.max_guests ?? DEFAULT_MAX_GUESTS}
-                        onChange={(e) => handleQuotaInputChange(event.id, 'max_guests', parseInt(e.target.value, 10) || 0)}
+                        onChange={(e) =>
+                          handleQuotaInputChange(
+                            event.id,
+                            'max_guests',
+                            parseInt(e.target.value, 10) || 0
+                          )
+                        }
                         required
-                        className="rounded-lg border-border/60 bg-card focus-visible:ring-primary/20"
+                        className="border-border/60 bg-card focus-visible:ring-primary/20 rounded-lg"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <Label htmlFor={`max_scanner_${event.id}`} className="text-xs font-bold text-muted-foreground">
+                      <Label
+                        htmlFor={`max_scanner_${event.id}`}
+                        className="text-muted-foreground text-xs font-bold"
+                      >
                         Maksimal Perangkat Scanner (max_scanner_devices)
                       </Label>
                       <Input
@@ -829,10 +862,18 @@ export default function AdminTenantsPage() {
                         type="number"
                         min={QUOTA_MAX_SCANNER_MIN}
                         max={QUOTA_MAX_SCANNER_MAX}
-                        value={quotaInputs[event.id]?.max_scanner_devices ?? DEFAULT_MAX_SCANNER_DEVICES}
-                        onChange={(e) => handleQuotaInputChange(event.id, 'max_scanner_devices', parseInt(e.target.value, 10) || 0)}
+                        value={
+                          quotaInputs[event.id]?.max_scanner_devices ?? DEFAULT_MAX_SCANNER_DEVICES
+                        }
+                        onChange={(e) =>
+                          handleQuotaInputChange(
+                            event.id,
+                            'max_scanner_devices',
+                            parseInt(e.target.value, 10) || 0
+                          )
+                        }
                         required
-                        className="rounded-lg border-border/60 bg-card focus-visible:ring-primary/20"
+                        className="border-border/60 bg-card focus-visible:ring-primary/20 rounded-lg"
                       />
                     </div>
                   </div>
@@ -841,7 +882,7 @@ export default function AdminTenantsPage() {
             </div>
           )}
 
-          <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-2 border-t border-border/40 pt-4">
+          <DialogFooter className="border-border/40 mt-6 flex flex-col gap-2 border-t pt-4 sm:flex-row">
             <Button
               type="button"
               variant="outline"
@@ -857,6 +898,43 @@ export default function AdminTenantsPage() {
               className="flex items-center justify-center gap-1.5"
             >
               {isSavingQuota ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Tenant Confirmation Dialog */}
+      <Dialog open={!!tenantToDelete} onOpenChange={(open) => !open && setTenantToDelete(null)}>
+        <DialogContent className="border-border/40 bg-card max-w-md rounded-2xl p-6 shadow-xl">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-destructive animate-in fade-in flex items-center gap-2 text-xl font-bold duration-200">
+              <Trash2 className="h-5 w-5" />
+              Hapus Tenant
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Apakah Anda yakin ingin menghapus tenant <strong>{tenantToDelete?.name}</strong>?
+              Tindakan ini tidak dapat dibatalkan. Semua data terkait (pengguna, event, tamu, RSVP,
+              check-in) akan dihapus secara permanen.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="border-border/40 mt-6 flex flex-col gap-2 border-t pt-4 sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setTenantToDelete(null)}
+              disabled={deleteTenantMutation.isPending}
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteTenant}
+              disabled={deleteTenantMutation.isPending}
+              className="flex items-center justify-center gap-1.5"
+            >
+              {deleteTenantMutation.isPending ? 'Menghapus...' : 'Hapus Permanen'}
             </Button>
           </DialogFooter>
         </DialogContent>

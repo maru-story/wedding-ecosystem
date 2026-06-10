@@ -1,7 +1,9 @@
 import { test, expect } from './fixtures/test-fixtures';
 
 test.describe('CMS Reordering API E2E', () => {
-  test('should successfully initialize default sections and reorder them without unique constraint issues', async ({ tenantA }) => {
+  test('should successfully initialize default sections and reorder them without unique constraint issues', async ({
+    tenantA,
+  }) => {
     // 1. Create a new event via API
     const eventSlug = `reorder-e2e-${Date.now()}`;
     const createEventResp = await tenantA.request.post('/events', {
@@ -27,7 +29,7 @@ test.describe('CMS Reordering API E2E', () => {
 
     // We expect 14 default sections to be initialized automatically
     expect(initialSections).toHaveLength(14);
-    
+
     // Sort orders should be sequential 1..14
     for (let i = 0; i < 14; i++) {
       expect(initialSections[i].sort_order).toBe(i + 1);
@@ -38,11 +40,14 @@ test.describe('CMS Reordering API E2E', () => {
     const targetSectionId = targetSection.id;
 
     // 2. Perform the reorder API call
-    const reorderResp = await tenantA.request.put(`/cms/sections/${eventId}/${targetSectionId}/reorder`, {
-      data: {
-        position: 1,
-      },
-    });
+    const reorderResp = await tenantA.request.put(
+      `/cms/sections/${eventId}/${targetSectionId}/reorder`,
+      {
+        data: {
+          position: 1,
+        },
+      }
+    );
 
     expect(reorderResp.status()).toBe(200);
     const reorderBody = await reorderResp.json();

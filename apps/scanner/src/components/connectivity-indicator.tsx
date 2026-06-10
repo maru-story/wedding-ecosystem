@@ -22,10 +22,8 @@ export function ConnectivityIndicator({
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 text-sm font-medium transition-colors duration-300 ${
-        isOnline
-          ? 'bg-emerald-600 text-white'
-          : 'bg-amber-500 text-white'
+      className={`fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-2 text-sm font-medium transition-colors duration-300 ${
+        isOnline ? 'bg-success text-white' : 'bg-warning text-white'
       }`}
       role="status"
       aria-live="polite"
@@ -35,7 +33,7 @@ export function ConnectivityIndicator({
         {/* Status dot */}
         <span
           className={`inline-block h-2.5 w-2.5 rounded-full ${
-            isOnline ? 'bg-emerald-200 animate-pulse' : 'bg-amber-200'
+            isOnline ? 'animate-pulse bg-white/40' : 'bg-white/20'
           }`}
           aria-hidden="true"
         />
@@ -63,12 +61,10 @@ export function ConnectivityIndicator({
         )}
 
         {syncStatus === 'success' && isOnline && (
-          <span className="text-emerald-100">✓ Tersinkronisasi</span>
+          <span className="text-white/80">✓ Tersinkronisasi</span>
         )}
 
-        {syncStatus === 'error' && (
-          <span className="text-red-100">⚠ Gagal sinkronisasi</span>
-        )}
+        {syncStatus === 'error' && <span className="text-white/80">⚠ Gagal sinkronisasi</span>}
       </div>
     </div>
   );
@@ -83,14 +79,7 @@ function SyncSpinner() {
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path
         className="opacity-75"
         fill="currentColor"

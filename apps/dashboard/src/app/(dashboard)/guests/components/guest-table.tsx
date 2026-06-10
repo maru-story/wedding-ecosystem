@@ -59,15 +59,30 @@ const GROUP_COLORS: Record<GuestGroup, string> = {
 function getRsvpLabel(status: string | null): { label: string; className: string } {
   switch (status) {
     case 'akad':
-      return { label: 'Hadir (Akad)', className: 'bg-success/15 text-success border-transparent hover:bg-success/20' };
+      return {
+        label: 'Hadir (Akad)',
+        className: 'bg-success/15 text-success border-transparent hover:bg-success/20',
+      };
     case 'resepsi':
-      return { label: 'Hadir (Resepsi)', className: 'bg-success/15 text-success border-transparent hover:bg-success/20' };
+      return {
+        label: 'Hadir (Resepsi)',
+        className: 'bg-success/15 text-success border-transparent hover:bg-success/20',
+      };
     case 'both':
-      return { label: 'Hadir (Keduanya)', className: 'bg-success/15 text-success border-transparent hover:bg-success/20' };
+      return {
+        label: 'Hadir (Keduanya)',
+        className: 'bg-success/15 text-success border-transparent hover:bg-success/20',
+      };
     case 'decline':
-      return { label: 'Menolak', className: 'bg-destructive/10 text-destructive border-transparent hover:bg-destructive/15' };
+      return {
+        label: 'Menolak',
+        className: 'bg-destructive/10 text-destructive border-transparent hover:bg-destructive/15',
+      };
     default:
-      return { label: 'Belum RSVP', className: 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80' };
+      return {
+        label: 'Belum RSVP',
+        className: 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80',
+      };
   }
 }
 
@@ -99,7 +114,9 @@ export function GuestTable({
       toast.success(`Tamu "${name}" berhasil dihapus`);
     } catch (err: any) {
       console.error('Delete guest error:', err);
-      toast.error(err instanceof Error ? err.message : `Gagal menghapus tamu "${name}". Silakan coba lagi.`);
+      toast.error(
+        err instanceof Error ? err.message : `Gagal menghapus tamu "${name}". Silakan coba lagi.`
+      );
     } finally {
       setPendingDeleteGuest(null);
     }
@@ -113,7 +130,9 @@ export function GuestTable({
       onClearSelection();
     } catch (err: any) {
       console.error('Bulk delete error:', err);
-      toast.error(err instanceof Error ? err.message : 'Gagal menghapus beberapa tamu. Silakan coba lagi.');
+      toast.error(
+        err instanceof Error ? err.message : 'Gagal menghapus beberapa tamu. Silakan coba lagi.'
+      );
     } finally {
       setShowBulkDeleteDialog(false);
     }
@@ -131,7 +150,7 @@ export function GuestTable({
           <>
             <TableHead className="w-12 px-4 py-3">
               <Checkbox
-                checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                checked={allSelected ? true : someSelected ? 'indeterminate' : false}
                 onCheckedChange={(checked) => onSelectAll(!!checked)}
                 aria-label="Pilih semua tamu"
               />
@@ -163,9 +182,12 @@ export function GuestTable({
         }
         paginationText={(p) => (
           <>
-            Menampilkan <span className="font-medium text-foreground">{(p.page - 1) * p.per_page + 1}</span>–
-            <span className="font-medium text-foreground">{Math.min(p.page * p.per_page, p.total)}</span> dari{' '}
-            <span className="font-medium text-foreground">{p.total}</span> tamu
+            Menampilkan{' '}
+            <span className="text-foreground font-medium">{(p.page - 1) * p.per_page + 1}</span>–
+            <span className="text-foreground font-medium">
+              {Math.min(p.page * p.per_page, p.total)}
+            </span>{' '}
+            dari <span className="text-foreground font-medium">{p.total}</span> tamu
           </>
         )}
       >
@@ -182,10 +204,8 @@ export function GuestTable({
               </TableCell>
               <TableCell className="px-4 py-3">
                 <div>
-                  <p className="font-medium text-foreground">{guest.name}</p>
-                  {guest.phone && (
-                    <p className="text-xs text-muted-foreground">{guest.phone}</p>
-                  )}
+                  <p className="text-foreground font-medium">{guest.name}</p>
+                  {guest.phone && <p className="text-muted-foreground text-xs">{guest.phone}</p>}
                 </div>
               </TableCell>
               <TableCell className="px-4 py-3">
@@ -200,7 +220,7 @@ export function GuestTable({
               </TableCell>
               <TableCell className="px-4 py-3">
                 {guest.check_in_status ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-success">
+                  <span className="text-success inline-flex items-center gap-1 text-xs font-semibold">
                     <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                       <path
                         fillRule="evenodd"
@@ -211,11 +231,11 @@ export function GuestTable({
                     Hadir
                   </span>
                 ) : (
-                  <span className="text-xs text-muted-foreground/60">—</span>
+                  <span className="text-muted-foreground/60 text-xs">—</span>
                 )}
               </TableCell>
               <TableCell className="px-4 py-3">
-                <span className="text-sm text-muted-foreground">
+                <span className="text-muted-foreground text-sm">
                   {guest.plus_one_count > 0 ? `+${guest.plus_one_count}` : '—'}
                 </span>
               </TableCell>
@@ -227,7 +247,7 @@ export function GuestTable({
                     onClick={() => onShowQr(guest)}
                     title="Lihat QR Code"
                     aria-label={`Lihat QR Code ${guest.name}`}
-                    className="h-8 w-8 hover:bg-accent text-muted-foreground hover:text-foreground"
+                    className="hover:bg-accent text-muted-foreground hover:text-foreground h-8 w-8"
                   >
                     <QrCode className="h-4 w-4" />
                   </Button>
@@ -237,7 +257,7 @@ export function GuestTable({
                     onClick={() => onEdit(guest)}
                     title="Edit tamu"
                     aria-label={`Edit ${guest.name}`}
-                    className="h-8 w-8 hover:bg-accent text-muted-foreground hover:text-foreground"
+                    className="hover:bg-accent text-muted-foreground hover:text-foreground h-8 w-8"
                   >
                     <Edit2 className="h-4 w-4" />
                   </Button>
@@ -248,7 +268,7 @@ export function GuestTable({
                     disabled={deleteGuest.isPending}
                     title="Hapus tamu"
                     aria-label={`Hapus ${guest.name}`}
-                    className="h-8 w-8 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                    className="hover:bg-destructive/10 text-muted-foreground hover:text-destructive h-8 w-8 transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -262,16 +282,16 @@ export function GuestTable({
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={!!pendingDeleteGuest}
-        onOpenChange={(open) => { if (!open) setPendingDeleteGuest(null); }}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteGuest(null);
+        }}
       >
-        <DialogContent className="sm:max-w-sm bg-card border-border/40">
+        <DialogContent className="bg-card border-border/40 sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="font-heading text-xl text-foreground">
-              Hapus Tamu
-            </DialogTitle>
+            <DialogTitle className="font-heading text-foreground text-xl">Hapus Tamu</DialogTitle>
             <DialogDescription className="text-muted-foreground">
               Apakah Anda yakin ingin menghapus tamu{' '}
-              <span className="font-semibold text-foreground">"{pendingDeleteGuest?.name}"</span>?
+              <span className="text-foreground font-semibold">"{pendingDeleteGuest?.name}"</span>?
               Tindakan ini tidak dapat dibatalkan.
             </DialogDescription>
           </DialogHeader>
@@ -298,17 +318,20 @@ export function GuestTable({
       {/* Bulk Delete Confirmation Dialog */}
       <Dialog
         open={showBulkDeleteDialog}
-        onOpenChange={(open) => { if (!open) setShowBulkDeleteDialog(false); }}
+        onOpenChange={(open) => {
+          if (!open) setShowBulkDeleteDialog(false);
+        }}
       >
-        <DialogContent className="sm:max-w-sm bg-card border-border/40">
+        <DialogContent className="bg-card border-border/40 sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="font-heading text-xl text-foreground">
+            <DialogTitle className="font-heading text-foreground text-xl">
               Hapus Beberapa Tamu
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
               Apakah Anda yakin ingin menghapus{' '}
-              <span className="font-semibold text-foreground">{selectedIds.length} tamu</span> terpilih?
-              Tindakan ini akan menghapus semua data terkait tamu-tamu tersebut dan tidak dapat dibatalkan.
+              <span className="text-foreground font-semibold">{selectedIds.length} tamu</span>{' '}
+              terpilih? Tindakan ini akan menghapus semua data terkait tamu-tamu tersebut dan tidak
+              dapat dibatalkan.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">

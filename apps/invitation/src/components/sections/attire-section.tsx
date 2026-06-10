@@ -17,7 +17,7 @@ interface AttireSectionProps {
 export function AttireSection({ content, sortOrder }: AttireSectionProps) {
   return (
     <SectionWrapper sectionType="attire" sortOrder={sortOrder}>
-      <h2 className="mb-8 text-center font-heading text-2xl font-bold text-[var(--color-primary)]">
+      <h2 className="font-heading mb-8 text-center text-2xl font-bold text-[var(--color-primary)]">
         Dress Code
       </h2>
 
@@ -42,7 +42,7 @@ export function AttireSection({ content, sortOrder }: AttireSectionProps) {
 
       {content.color_palette && content.color_palette.length > 0 && (
         <div className="text-center">
-          <p className="mb-3 text-xs uppercase tracking-widest text-[var(--color-text)]/60">
+          <p className="mb-3 text-xs tracking-widest text-[var(--color-text)]/60 uppercase">
             Palet Warna
           </p>
           <div className="flex justify-center gap-3">

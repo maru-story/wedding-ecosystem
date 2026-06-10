@@ -49,7 +49,9 @@ interface RsvpFormProps {
  * Validates guest_count against plus_one_count + 1.
  */
 export function RsvpForm({ guestId, eventId, plusOneCount }: RsvpFormProps) {
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(
+    'idle'
+  );
   const [errorMessage, setErrorMessage] = useState('');
   const [existingRsvp, setExistingRsvp] = useState<RsvpResponse | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -116,9 +118,11 @@ export function RsvpForm({ guestId, eventId, plusOneCount }: RsvpFormProps) {
 
   if (isLoadingRsvp) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+      <div className="flex flex-col items-center justify-center space-y-3 py-8 text-center">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--color-primary)] border-t-transparent" />
-        <p className="text-xs text-[var(--color-text)]/65 animate-pulse">Memuat data konfirmasi...</p>
+        <p className="animate-pulse text-xs text-[var(--color-text)]/65">
+          Memuat data konfirmasi...
+        </p>
       </div>
     );
   }
@@ -138,10 +142,12 @@ export function RsvpForm({ guestId, eventId, plusOneCount }: RsvpFormProps) {
   }
 
   if (existingRsvp && !isEditing) {
-    const attendanceLabel = attendanceOptions.find((opt) => opt.value === existingRsvp.attendance)?.label || existingRsvp.attendance;
+    const attendanceLabel =
+      attendanceOptions.find((opt) => opt.value === existingRsvp.attendance)?.label ||
+      existingRsvp.attendance;
     return (
-      <div className="rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-background)] p-5 text-center space-y-4">
-        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-lg">
+      <div className="space-y-4 rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-background)] p-5 text-center">
+        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-lg text-[var(--color-primary)]">
           ✓
         </div>
         <div>
@@ -153,15 +159,15 @@ export function RsvpForm({ guestId, eventId, plusOneCount }: RsvpFormProps) {
           </p>
         </div>
 
-        <div className="rounded-xl border border-[var(--color-text)]/5 bg-[var(--color-background)]/50 p-4 text-left space-y-2.5">
-          <div className="flex justify-between items-center text-xs">
+        <div className="space-y-2.5 rounded-xl border border-[var(--color-text)]/5 bg-[var(--color-background)]/50 p-4 text-left">
+          <div className="flex items-center justify-between text-xs">
             <span className="text-[var(--color-text)]/65">Kehadiran</span>
-            <span className="font-semibold text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-0.5 rounded-full">
+            <span className="rounded-full bg-[var(--color-primary)]/10 px-2 py-0.5 font-semibold text-[var(--color-primary)]">
               {attendanceLabel}
             </span>
           </div>
           {existingRsvp.attendance !== 'decline' && (
-            <div className="flex justify-between items-center text-xs">
+            <div className="flex items-center justify-between text-xs">
               <span className="text-[var(--color-text)]/65">Jumlah Tamu</span>
               <span className="font-semibold text-[var(--color-text)]">
                 {existingRsvp.guest_count} Orang
@@ -178,7 +184,7 @@ export function RsvpForm({ guestId, eventId, plusOneCount }: RsvpFormProps) {
               guest_count: existingRsvp.guest_count,
             });
           }}
-          className="w-full rounded-full border border-[var(--color-primary)] px-6 py-2 text-xs font-semibold text-[var(--color-primary)] transition-all hover:bg-[var(--color-primary)] hover:text-white cursor-pointer"
+          className="w-full cursor-pointer rounded-full border border-[var(--color-primary)] px-6 py-2 text-xs font-semibold text-[var(--color-primary)] transition-all hover:bg-[var(--color-primary)] hover:text-white"
         >
           Ubah RSVP
         </button>
@@ -229,7 +235,7 @@ export function RsvpForm({ guestId, eventId, plusOneCount }: RsvpFormProps) {
             min={1}
             max={plusOneCount + 1}
             {...register('guest_count')}
-            className="w-full rounded-lg border border-[var(--color-text)]/10 bg-[var(--color-background)] px-4 py-2.5 text-sm text-[var(--color-text)] outline-none transition-colors focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]"
+            className="w-full rounded-lg border border-[var(--color-text)]/10 bg-[var(--color-background)] px-4 py-2.5 text-sm text-[var(--color-text)] transition-colors outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]"
           />
           {errors.guest_count && (
             <p className="mt-1.5 text-xs text-red-600">{errors.guest_count.message}</p>
@@ -241,9 +247,7 @@ export function RsvpForm({ guestId, eventId, plusOneCount }: RsvpFormProps) {
       )}
 
       {/* Error message */}
-      {submitStatus === 'error' && (
-        <p className="text-sm text-red-600">{errorMessage}</p>
-      )}
+      {submitStatus === 'error' && <p className="text-sm text-red-600">{errorMessage}</p>}
 
       {/* Submit button */}
       <button

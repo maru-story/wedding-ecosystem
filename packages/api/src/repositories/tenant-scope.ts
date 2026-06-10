@@ -78,7 +78,7 @@ export async function getCurrentTenantEvent(
     orderBy: { created_at: 'desc' },
   });
 
-  return (event as unknown) as TenantEventFull | null;
+  return event as unknown as TenantEventFull | null;
 }
 
 /**

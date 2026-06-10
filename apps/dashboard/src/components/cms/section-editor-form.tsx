@@ -41,7 +41,13 @@ interface SectionEditorFormProps {
   event?: EventData | null;
 }
 
-export function SectionEditorForm({ sectionType, content, onSave, saving, event }: SectionEditorFormProps) {
+export function SectionEditorForm({
+  sectionType,
+  content,
+  onSave,
+  saving,
+  event,
+}: SectionEditorFormProps) {
   const [formData, setFormData] = useState<Record<string, unknown>>(content);
 
   const handleChange = (newData: Record<string, unknown>) => {
@@ -86,7 +92,11 @@ export function SectionEditorForm({ sectionType, content, onSave, saving, event 
       case 'music':
         return <MusicForm {...props} event={event} />;
       default:
-        return <p className="text-sm text-gray-500">Form editor belum tersedia untuk tipe section ini.</p>;
+        return (
+          <p className="text-sm text-gray-500">
+            Form editor belum tersedia untuk tipe section ini.
+          </p>
+        );
     }
   };
 
@@ -96,11 +106,7 @@ export function SectionEditorForm({ sectionType, content, onSave, saving, event 
 
       {/* Save button */}
       <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
-        <Button
-          type="submit"
-          disabled={saving}
-          className="gap-2 font-medium"
-        >
+        <Button type="submit" disabled={saving} className="gap-2 font-medium">
           {saving ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />

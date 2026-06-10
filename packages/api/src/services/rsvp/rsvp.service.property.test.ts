@@ -56,11 +56,7 @@ function createMockBroadcaster(): RsvpBroadcaster {
   };
 }
 
-function createGuestForRsvp(
-  guestId: string,
-  tenantId: string,
-  plusOneCount: number
-): GuestForRsvp {
+function createGuestForRsvp(guestId: string, tenantId: string, plusOneCount: number): GuestForRsvp {
   return {
     id: guestId,
     event_id: 'event-' + guestId.slice(0, 8),

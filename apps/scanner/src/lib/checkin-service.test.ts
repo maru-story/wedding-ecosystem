@@ -186,10 +186,7 @@ describe('verifyQRCode', () => {
       });
 
       // Should update local cache
-      expect(mockUpdateCachedGuestCheckIn).toHaveBeenCalledWith(
-        'guest-1',
-        expect.any(String)
-      );
+      expect(mockUpdateCachedGuestCheckIn).toHaveBeenCalledWith('guest-1', expect.any(String));
     });
 
     it('returns valid result and enqueues subsequent scan when guest already checked in locally', async () => {

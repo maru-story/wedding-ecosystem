@@ -59,8 +59,8 @@ export default function CMSPage() {
     return (
       <div className="flex h-[50vh] items-center justify-center">
         <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="mt-3 text-sm text-muted-foreground font-medium">Memuat editor...</p>
+          <Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground mt-3 text-sm font-medium">Memuat editor...</p>
         </div>
       </div>
     );
@@ -68,10 +68,12 @@ export default function CMSPage() {
 
   if (!event) {
     return (
-      <div className="flex h-[50vh] items-center justify-center text-center p-4">
+      <div className="flex h-[50vh] items-center justify-center p-4 text-center">
         <div>
           <p className="text-destructive font-semibold">Gagal memuat detail acara</p>
-          <p className="text-sm text-muted-foreground mt-1">Event tidak ditemukan untuk akun ini.</p>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Event tidak ditemukan untuk akun ini.
+          </p>
         </div>
       </div>
     );
@@ -83,7 +85,7 @@ export default function CMSPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold">Editor Undangan</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-sm">
             Kelola konten dan urutan section undangan digital Anda
           </p>
         </div>
@@ -114,7 +116,7 @@ export default function CMSPage() {
       </div>
 
       {/* Info */}
-      <div className="mb-4 rounded-lg border border-info/20 bg-info/10 p-3 text-sm text-info">
+      <div className="border-info/20 bg-info/10 text-info mb-4 rounded-lg border p-3 text-sm">
         <strong>Tips:</strong> Seret section untuk mengubah urutan. Klik toggle untuk
         mengaktifkan/menonaktifkan section. Klik nama section untuk mengedit konten.
       </div>

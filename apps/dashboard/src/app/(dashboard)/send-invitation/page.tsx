@@ -91,10 +91,7 @@ export default function SendInvitationPage() {
     q: tableState.debouncedSearchQuery || undefined,
   });
 
-  const {
-    data: templateData,
-    isLoading: isTemplateLoading,
-  } = useInvitationTemplate();
+  const { data: templateData, isLoading: isTemplateLoading } = useInvitationTemplate();
 
   // --- Mutations ---
   const sendInvitationMutation = useSendInvitation();
@@ -190,7 +187,7 @@ export default function SendInvitationPage() {
     const text = textarea.value;
     const newText = text.substring(0, start) + variable + text.substring(end);
     setTemplateText(newText);
-    
+
     setTimeout(() => {
       textarea.focus();
       textarea.selectionStart = textarea.selectionEnd = start + variable.length;
@@ -201,7 +198,9 @@ export default function SendInvitationPage() {
   const handleSavePhone = (guestId: string) => {
     const trimmedPhone = editingPhoneValue.trim();
     if (trimmedPhone && !/^[1-9][0-9]{7,11}$/.test(trimmedPhone)) {
-      toast.error('Format nomor telepon tidak valid. Silakan isi nomor tanpa angka 0 di depan (contoh: 8xxxxxxxxxx).');
+      toast.error(
+        'Format nomor telepon tidak valid. Silakan isi nomor tanpa angka 0 di depan (contoh: 8xxxxxxxxxx).'
+      );
       return;
     }
 
@@ -241,264 +240,281 @@ export default function SendInvitationPage() {
           </p>
         </div>
 
-      {/* Custom Tabs Navigation Component */}
-      <CustomTabs
-        tabs={[
-          { value: 'list', label: 'Daftar Pengiriman' },
-          { value: 'template', label: 'Template Pesan' },
-        ]}
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        className="mb-6"
-      />
+        {/* Custom Tabs Navigation Component */}
+        <CustomTabs
+          tabs={[
+            { value: 'list', label: 'Daftar Pengiriman' },
+            { value: 'template', label: 'Template Pesan' },
+          ]}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          className="mb-6"
+        />
 
-      {activeTab === 'list' && (
-        <>
-          {/* Filters (Placed outside/above Card to match Daftar Tamu layout) */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            {/* Search Input */}
-            <div className="relative w-full max-w-sm sm:w-[240px]">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Cari nama tamu..."
-                value={tableState.searchQuery}
-                onChange={(e) => {
-                  tableState.setSearchQuery(e.target.value);
-                }}
-                className="pl-9 bg-card border-border/60 focus-visible:ring-ring focus-visible:ring-offset-0"
-                aria-label="Cari tamu"
-              />
+        {activeTab === 'list' && (
+          <>
+            {/* Filters (Placed outside/above Card to match Daftar Tamu layout) */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              {/* Search Input */}
+              <div className="relative w-full max-w-sm sm:w-[240px]">
+                <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
+                <Input
+                  type="text"
+                  placeholder="Cari nama tamu..."
+                  value={tableState.searchQuery}
+                  onChange={(e) => {
+                    tableState.setSearchQuery(e.target.value);
+                  }}
+                  className="bg-card border-border/60 focus-visible:ring-ring pl-9 focus-visible:ring-offset-0"
+                  aria-label="Cari tamu"
+                />
+              </div>
+
+              {/* Status Select */}
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm font-medium">Status:</span>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(val) => {
+                    setStatusFilter(val as DeliveryStatus | 'all');
+                    tableState.resetPage();
+                  }}
+                >
+                  <SelectTrigger className="bg-card border-border/60 hover:bg-muted/30 w-[160px]">
+                    <SelectValue placeholder="Semua Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value={DeliveryStatus.NOT_SENT}>Belum Dikirim</SelectItem>
+                    <SelectItem value={DeliveryStatus.SENT}>Terkirim</SelectItem>
+                    <SelectItem value={DeliveryStatus.FAILED}>Gagal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {(tableState.searchQuery || statusFilter !== 'all') && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    tableState.setSearchQuery('');
+                    setStatusFilter('all');
+                    tableState.resetPage();
+                  }}
+                  className="text-muted-foreground hover:text-foreground hover:bg-accent h-9 px-3 text-sm"
+                >
+                  Reset Filter
+                </Button>
+              )}
             </div>
 
-            {/* Status Select */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">
-                Status:
-              </span>
-              <Select
-                value={statusFilter}
-                onValueChange={(val) => {
-                  setStatusFilter(val as DeliveryStatus | 'all');
-                  tableState.resetPage();
-                }}
-              >
-                <SelectTrigger className="w-[160px] bg-card border-border/60 hover:bg-muted/30">
-                  <SelectValue placeholder="Semua Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value={DeliveryStatus.NOT_SENT}>Belum Dikirim</SelectItem>
-                  <SelectItem value={DeliveryStatus.SENT}>Terkirim</SelectItem>
-                  <SelectItem value={DeliveryStatus.FAILED}>Gagal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Guest Table using DataTable */}
+            <DataTable
+              isLoading={isGuestsLoading}
+              loadingText="Memuat data tamu..."
+              isEmpty={filteredGuests.length === 0}
+              emptyTitle="Tidak ada tamu ditemukan"
+              emptyDescription="Silakan cari dengan kata kunci lain atau ubah filter status"
+              emptyIcon={<HelpCircle className="text-muted-foreground/50 mx-auto mb-3 h-10 w-10" />}
+              header={
+                <>
+                  <TableHead className="px-4 py-3">Nama</TableHead>
+                  <TableHead className="px-4 py-3">Kontak WhatsApp</TableHead>
+                  <TableHead className="px-4 py-3">Status Kirim</TableHead>
+                  <TableHead className="px-4 py-3 text-right">Aksi</TableHead>
+                </>
+              }
+              pagination={pagination}
+              onPageChange={tableState.setPage}
+              onPerPageChange={tableState.setPerPage}
+              paginationText={(p) => (
+                <>
+                  Menampilkan{' '}
+                  <span className="text-foreground font-medium">
+                    {(p.page - 1) * p.per_page + 1}
+                  </span>
+                  –
+                  <span className="text-foreground font-medium">
+                    {Math.min(p.page * p.per_page, p.total)}
+                  </span>{' '}
+                  dari <span className="text-foreground font-medium">{p.total}</span> tamu
+                </>
+              )}
+            >
+              {filteredGuests.map((guest) => {
+                const hasPhone = !!guest.phone;
+                const isSendingThis =
+                  sendInvitationMutation.isPending &&
+                  sendInvitationMutation.variables?.guest_id === guest.id;
 
-            {(tableState.searchQuery || statusFilter !== 'all') && (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  tableState.setSearchQuery('');
-                  setStatusFilter('all');
-                  tableState.resetPage();
-                }}
-                className="h-9 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent"
-              >
-                Reset Filter
-              </Button>
-            )}
-          </div>
-
-          {/* Guest Table using DataTable */}
-          <DataTable
-            isLoading={isGuestsLoading}
-            loadingText="Memuat data tamu..."
-            isEmpty={filteredGuests.length === 0}
-            emptyTitle="Tidak ada tamu ditemukan"
-            emptyDescription="Silakan cari dengan kata kunci lain atau ubah filter status"
-            emptyIcon={<HelpCircle className="mx-auto h-10 w-10 text-muted-foreground/50 mb-3" />}
-            header={
-              <>
-                <TableHead className="px-4 py-3">Nama</TableHead>
-                <TableHead className="px-4 py-3">Kontak WhatsApp</TableHead>
-                <TableHead className="px-4 py-3">Status Kirim</TableHead>
-                <TableHead className="px-4 py-3 text-right">Aksi</TableHead>
-              </>
-            }
-            pagination={pagination}
-            onPageChange={tableState.setPage}
-            onPerPageChange={tableState.setPerPage}
-            paginationText={(p) => (
-              <>
-                Menampilkan <span className="font-medium text-foreground">{(p.page - 1) * p.per_page + 1}</span>–
-                <span className="font-medium text-foreground">{Math.min(p.page * p.per_page, p.total)}</span> dari{' '}
-                <span className="font-medium text-foreground">{p.total}</span> tamu
-              </>
-            )}
-          >
-            {filteredGuests.map((guest) => {
-              const hasPhone = !!guest.phone;
-              const isSendingThis = sendInvitationMutation.isPending && sendInvitationMutation.variables?.guest_id === guest.id;
-
-              return (
-                <TableRow key={guest.id} className="hover:bg-muted/30 transition-colors">
-                  <TableCell className="px-4 py-3 font-medium text-foreground">{guest.name}</TableCell>
-                  <TableCell className="px-4 py-3">
-                    {editingPhoneGuestId === guest.id ? (
-                      <div className="flex items-center gap-1.5 max-w-[220px]">
-                        <div className="flex items-center h-8 rounded-md border border-border/60 bg-background pl-2 focus-within:ring-1 focus-within:ring-ring focus-within:border-ring transition-colors w-full">
-                          <span className="text-xs text-muted-foreground font-semibold pr-0.5 select-none">+62</span>
-                          <input
-                            type="text"
-                            value={editingPhoneValue}
-                            onChange={(e) => {
-                              let val = e.target.value.replace(/\D/g, '');
-                              if (val.startsWith('0')) {
-                                val = val.slice(1);
-                              } else if (val.startsWith('62')) {
-                                val = val.slice(2);
-                              }
-                              setEditingPhoneValue(val);
-                            }}
-                            placeholder="8xxxxxxx"
-                            className="h-full w-full bg-transparent border-0 p-0 px-1 text-xs focus:ring-0 focus:outline-none"
-                            autoFocus
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handleSavePhone(guest.id);
-                              } else if (e.key === 'Escape') {
-                                setEditingPhoneGuestId(null);
-                              }
-                            }}
-                          />
+                return (
+                  <TableRow key={guest.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="text-foreground px-4 py-3 font-medium">
+                      {guest.name}
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
+                      {editingPhoneGuestId === guest.id ? (
+                        <div className="flex max-w-[220px] items-center gap-1.5">
+                          <div className="border-border/60 bg-background focus-within:ring-ring focus-within:border-ring flex h-8 w-full items-center rounded-md border pl-2 transition-colors focus-within:ring-1">
+                            <span className="text-muted-foreground pr-0.5 text-xs font-semibold select-none">
+                              +62
+                            </span>
+                            <input
+                              type="text"
+                              value={editingPhoneValue}
+                              onChange={(e) => {
+                                let val = e.target.value.replace(/\D/g, '');
+                                if (val.startsWith('0')) {
+                                  val = val.slice(1);
+                                } else if (val.startsWith('62')) {
+                                  val = val.slice(2);
+                                }
+                                setEditingPhoneValue(val);
+                              }}
+                              placeholder="8xxxxxxx"
+                              className="h-full w-full border-0 bg-transparent p-0 px-1 text-xs focus:ring-0 focus:outline-none"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleSavePhone(guest.id);
+                                } else if (e.key === 'Escape') {
+                                  setEditingPhoneGuestId(null);
+                                }
+                              }}
+                            />
+                          </div>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleSavePhone(guest.id)}
+                            disabled={updateGuestMutation.isPending}
+                            className="text-success hover:text-success/80 hover:bg-success/10 h-8 w-8 shrink-0"
+                            aria-label="Simpan nomor telepon"
+                          >
+                            {updateGuestMutation.isPending &&
+                            updateGuestMutation.variables?.id === guest.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Check className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setEditingPhoneGuestId(null)}
+                            disabled={updateGuestMutation.isPending}
+                            className="text-destructive hover:text-destructive/80 hover:bg-destructive/10 h-8 w-8 shrink-0"
+                            aria-label="Batal edit"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleSavePhone(guest.id)}
-                          disabled={updateGuestMutation.isPending}
-                          className="h-8 w-8 text-success hover:text-success/80 hover:bg-success/10 shrink-0"
-                          aria-label="Simpan nomor telepon"
-                        >
-                          {updateGuestMutation.isPending && updateGuestMutation.variables?.id === guest.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <div className="group flex min-h-[32px] items-center gap-2">
+                          {hasPhone ? (
+                            <span className="text-muted-foreground font-sans text-sm">
+                              {guest.phone}
+                            </span>
                           ) : (
-                            <Check className="h-4 w-4" />
+                            <span className="flex w-fit items-center gap-1.5 rounded-full border border-amber-200/50 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600 dark:bg-amber-950/20">
+                              <AlertTriangle className="h-3 w-3 shrink-0" />
+                              No. telepon kosong
+                            </span>
+                          )}
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditingPhoneGuestId(guest.id);
+                              const suffix = guest.phone?.startsWith('+62')
+                                ? guest.phone.slice(3)
+                                : guest.phone || '';
+                              setEditingPhoneValue(suffix);
+                            }}
+                            className="text-muted-foreground hover:text-foreground h-7 w-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+                            aria-label="Edit nomor telepon"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
+                      <Badge
+                        className={`${DELIVERY_STATUS_STYLES[guest.delivery_status]} rounded-full border px-2.5 py-0.5 text-xs font-semibold`}
+                        variant="outline"
+                      >
+                        {DELIVERY_STATUS_LABELS[guest.delivery_status]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right">
+                      {hasPhone ? (
+                        <Button
+                          size="sm"
+                          onClick={() => handleSendWhatsApp(guest)}
+                          disabled={sendInvitationMutation.isPending}
+                          className="h-8 rounded-md bg-[#25D366] px-3 font-semibold text-white shadow-sm transition-all hover:bg-[#22c35e] active:scale-[0.98]"
+                          aria-label={`Kirim ke ${guest.name} via WhatsApp`}
+                        >
+                          {isSendingThis ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <>
+                              <MessageSquare className="mr-1.5 h-3.5 w-3.5" /> Kirim WA
+                            </>
                           )}
                         </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => setEditingPhoneGuestId(null)}
-                          disabled={updateGuestMutation.isPending}
-                          className="h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10 shrink-0"
-                          aria-label="Batal edit"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 group min-h-[32px]">
-                        {hasPhone ? (
-                          <span className="font-sans text-sm text-muted-foreground">{guest.phone}</span>
-                        ) : (
-                          <span className="text-xs text-amber-600 font-medium flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/20 border border-amber-200/50 px-2 py-0.5 rounded-full w-fit">
-                            <AlertTriangle className="h-3 w-3 shrink-0" />
-                            No. telepon kosong
-                          </span>
-                        )}
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => {
-                            setEditingPhoneGuestId(guest.id);
-                            const suffix = guest.phone?.startsWith('+62')
-                              ? guest.phone.slice(3)
-                              : guest.phone || '';
-                            setEditingPhoneValue(suffix);
-                          }}
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-muted-foreground hover:text-foreground shrink-0"
-                          aria-label="Edit nomor telepon"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <Badge
-                      className={`${DELIVERY_STATUS_STYLES[guest.delivery_status]} rounded-full px-2.5 py-0.5 text-xs font-semibold border`}
-                      variant="outline"
-                    >
-                      {DELIVERY_STATUS_LABELS[guest.delivery_status]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-right">
-                    {hasPhone ? (
-                      <Button
-                        size="sm"
-                        onClick={() => handleSendWhatsApp(guest)}
-                        disabled={sendInvitationMutation.isPending}
-                        className="bg-[#25D366] hover:bg-[#22c35e] text-white font-semibold h-8 px-3 rounded-md shadow-sm transition-all active:scale-[0.98]"
-                        aria-label={`Kirim ke ${guest.name} via WhatsApp`}
-                      >
-                        {isSendingThis ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <>
-                            <MessageSquare className="mr-1.5 h-3.5 w-3.5" /> Kirim WA
-                          </>
-                        )}
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground pr-2">—</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </DataTable>
-        </>
-      )}
+                      ) : (
+                        <span className="text-muted-foreground pr-2 text-xs">—</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </DataTable>
+          </>
+        )}
 
         {/* Tab 2: Template Pesan */}
         {activeTab === 'template' && (
-          <Card className="border-border/60 shadow-sm bg-card">
+          <Card className="border-border/60 bg-card shadow-sm">
             <CardHeader>
               <CardTitle className="text-lg font-bold">Template Undangan WhatsApp</CardTitle>
               <CardDescription>
-                Tulis pesan undangan default yang akan dikirimkan ke tamu Anda. Format pesan ini mendukung gaya teks WhatsApp (contoh: *tebal*, _miring_).
+                Tulis pesan undangan default yang akan dikirimkan ke tamu Anda. Format pesan ini
+                mendukung gaya teks WhatsApp (contoh: *tebal*, _miring_).
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {isTemplateLoading ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="text-primary h-7 w-7 animate-spin" />
                 </div>
               ) : (
                 <div className="space-y-4">
                   {/* Click-to-insert Dynamic Variables */}
                   <div className="space-y-2">
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Variabel Dinamis (Klik untuk memasukkan)</span>
+                    <span className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                      Variabel Dinamis (Klik untuk memasukkan)
+                    </span>
                     <div className="flex flex-wrap gap-2">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => insertVariable('{nama_tamu}')}
-                        className="h-7 border-dashed border-primary/40 hover:border-primary text-xs hover:bg-primary/5 text-primary rounded-full px-3"
+                        className="border-primary/40 hover:border-primary hover:bg-primary/5 text-primary h-7 rounded-full border-dashed px-3 text-xs"
                       >
-                        <PlusCircle className="mr-1.5 h-3 w-3" /> Nama Tamu (`{"{nama_tamu}"}`)
+                        <PlusCircle className="mr-1.5 h-3 w-3" /> Nama Tamu (`{'{nama_tamu}'}`)
                       </Button>
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => insertVariable('{link_undangan}')}
-                        className="h-7 border-dashed border-primary/40 hover:border-primary text-xs hover:bg-primary/5 text-primary rounded-full px-3"
+                        className="border-primary/40 hover:border-primary hover:bg-primary/5 text-primary h-7 rounded-full border-dashed px-3 text-xs"
                       >
-                        <PlusCircle className="mr-1.5 h-3 w-3" /> Link Undangan (`{"{link_undangan}"}`)
+                        <PlusCircle className="mr-1.5 h-3 w-3" /> Link Undangan (`
+                        {'{link_undangan}'}`)
                       </Button>
                     </div>
                   </div>
@@ -510,7 +526,7 @@ export default function SendInvitationPage() {
                       value={templateText}
                       onChange={(e) => setTemplateText(e.target.value)}
                       placeholder="Tulis pesan undangan Anda di sini..."
-                      className="min-h-[220px] bg-background border-border/60 focus-visible:ring-ring font-sans leading-relaxed resize-y p-4 text-sm"
+                      className="bg-background border-border/60 focus-visible:ring-ring min-h-[220px] resize-y p-4 font-sans text-sm leading-relaxed"
                     />
                   </div>
 
@@ -519,7 +535,7 @@ export default function SendInvitationPage() {
                     <Button
                       onClick={handleSaveTemplate}
                       disabled={updateTemplateMutation.isPending}
-                      className="bg-primary hover:bg-primary/95 text-primary-foreground font-semibold px-4"
+                      className="bg-primary hover:bg-primary/95 text-primary-foreground px-4 font-semibold"
                     >
                       {updateTemplateMutation.isPending ? (
                         <>

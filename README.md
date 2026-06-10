@@ -55,16 +55,16 @@ Platform multi-tenant untuk manajemen undangan pernikahan digital, menargetkan p
 
 Aplikasi web responsif untuk mengelola seluruh aspek undangan pernikahan.
 
-| Fitur            | Deskripsi                                                   |
-| ---------------- | ----------------------------------------------------------- |
+| Fitur            | Deskripsi                                                      |
+| ---------------- | -------------------------------------------------------------- |
 | Manajemen Tamu   | CRUD tamu, bulk delete, import CSV (max 2000), filter per grup |
-| QR Code          | Generate otomatis per tamu, payload terenkripsi             |
-| RSVP Tracking    | Monitor konfirmasi kehadiran real-time                      |
-| Check-in Monitor | Dashboard real-time via WebSocket                           |
-| CMS Undangan     | 14 section yang bisa diaktifkan/dinonaktifkan dan diurutkan |
-| Theme System     | 5 preset warna, kustomisasi hex                             |
-| Notifikasi       | Kirim undangan batch (max 500)                              |
-| Multi-tenant     | Data terisolasi per client                                  |
+| QR Code          | Generate otomatis per tamu, payload terenkripsi                |
+| RSVP Tracking    | Monitor konfirmasi kehadiran real-time                         |
+| Check-in Monitor | Dashboard real-time via WebSocket                              |
+| CMS Undangan     | 14 section yang bisa diaktifkan/dinonaktifkan dan diurutkan    |
+| Theme System     | 5 preset warna, kustomisasi hex                                |
+| Notifikasi       | Kirim undangan batch (max 500)                                 |
+| Multi-tenant     | Data terisolasi per client                                     |
 
 **User Roles**: Admin, Client, WO (Wedding Organizer)
 
@@ -121,22 +121,22 @@ Single Fastify server handling REST API and WebSocket. Uses a 4-layer architectu
 
 ### 5. Shared Package (`packages/shared`)
 
-| Fitur            | Deskripsi                                      |
-| ---------------- | ---------------------------------------------- |
-| Zod Schemas      | Centralized validation for frontend & backend  |
-| TypeScript Types | Shared interfaces, enums, and RBAC roles       |
+| Fitur            | Deskripsi                                           |
+| ---------------- | --------------------------------------------------- |
+| Zod Schemas      | Centralized validation for frontend & backend       |
+| TypeScript Types | Shared interfaces, enums, and RBAC roles            |
 | Auth Utility     | Type-safe JWT verification (Single Source of Truth) |
-| Sanitization     | HTML sanitize for user-generated content       |
+| Sanitization     | HTML sanitize for user-generated content            |
 
 ### 6. Database (`packages/db`)
 
-| Fitur           | Deskripsi                                       |
-| --------------- | ----------------------------------------------- |
-| Prisma ORM      | Schema-first, type-safe queries (v7.7)          |
-| Unified Config  | Centralized pooling & SSL logic for all apps    |
-| Connection Pool | CPU-optimized formula: (cores × 2) + 1, min 10  |
-| SSL             | verify-full enforced for production safety      |
-| Multi-tenant    | RLS-ready with `tenant_id` on all user-data     |
+| Fitur           | Deskripsi                                      |
+| --------------- | ---------------------------------------------- |
+| Prisma ORM      | Schema-first, type-safe queries (v7.7)         |
+| Unified Config  | Centralized pooling & SSL logic for all apps   |
+| Connection Pool | CPU-optimized formula: (cores × 2) + 1, min 10 |
+| SSL             | verify-full enforced for production safety     |
+| Multi-tenant    | RLS-ready with `tenant_id` on all user-data    |
 
 ### 7. Realtime (`packages/realtime`)
 
@@ -150,76 +150,81 @@ Single Fastify server handling REST API and WebSocket. Uses a 4-layer architectu
 
 ## Peran & Hak Akses (Roles & Permissions)
 
-Sistem ini menggunakan **Role-Based Access Control (RBAC)** untuk membatasi akses fitur dan data berdasarkan peran masing-masing pengguna. Dilengkapi dengan isolasi *multi-tenant* di tingkat basis data, setiap pengguna (selain Admin Global) hanya dapat mengakses data yang berhak mereka lihat.
+Sistem ini menggunakan **Role-Based Access Control (RBAC)** untuk membatasi akses fitur dan data berdasarkan peran masing-masing pengguna. Dilengkapi dengan isolasi _multi-tenant_ di tingkat basis data, setiap pengguna (selain Admin Global) hanya dapat mengakses data yang berhak mereka lihat.
 
-Berikut adalah spesifikasi lengkap hak akses untuk masing-masing peran (*role*):
+Berikut adalah spesifikasi lengkap hak akses untuk masing-masing peran (_role_):
 
 ### 1. Admin (Global Administrator)
-* **Deskripsi**: Administrator platform yang memiliki kendali penuh secara global terhadap seluruh ekosistem aplikasi.
-* **Lingkup Kerja (Scope)**: Global (Lintas seluruh tenant dan seluruh data sistem).
-* **Dapat Melakukan (Allowed)**:
-  * Melakukan pendaftaran, edit, dan penghapusan tenant baru (*Multi-Tenant Management*).
-  * Melakukan CRUD penuh terhadap seluruh resource database (User, Tenant, Event, Tamu, dsb.).
-  * Mengakses dashboard global dan memantau status kesehatan sistem secara menyeluruh.
-  * Mengonfigurasi pengaturan sistem global dan mengelola lisensi client.
-* **Tidak Dapat Melakukan (Restricted)**:
-  * — (Tidak ada batasan hak akses / Super User).
+
+- **Deskripsi**: Administrator platform yang memiliki kendali penuh secara global terhadap seluruh ekosistem aplikasi.
+- **Lingkup Kerja (Scope)**: Global (Lintas seluruh tenant dan seluruh data sistem).
+- **Dapat Melakukan (Allowed)**:
+  - Melakukan pendaftaran, edit, dan penghapusan tenant baru (_Multi-Tenant Management_).
+  - Melakukan CRUD penuh terhadap seluruh resource database (User, Tenant, Event, Tamu, dsb.).
+  - Mengakses dashboard global dan memantau status kesehatan sistem secara menyeluruh.
+  - Mengonfigurasi pengaturan sistem global dan mengelola lisensi client.
+- **Tidak Dapat Melakukan (Restricted)**:
+  - — (Tidak ada batasan hak akses / Super User).
 
 ### 2. Client (Wedding Owner / Penyelenggara)
-* **Deskripsi**: Akun pemilik/penyelenggara pernikahan yang menyewa tenant pada platform.
-* **Lingkup Kerja (Scope)**: Tenant Milik Sendiri (Hanya dapat mengakses data dalam tenant mereka sendiri).
-* **Dapat Melakukan (Allowed)**:
-  * Membuat, memperbarui, dan menghapus event pernikahan di dalam tenant milik sendiri.
-  * Mengelola daftar tamu secara penuh (CRUD tamu, bulk delete, generate otomatis QR Code, ekspor data, dan import bulk via CSV).
-  * Mengonfigurasi CMS Undangan (mengaktifkan/menonaktifkan dan menyusun ulang urutan 14 section undangan).
-  * Memilih preset warna tema undangan dan melakukan kustomisasi warna hex.
-  * Mengirimkan broadcast notifikasi undangan secara massal (batch max 500 tamu).
-  * Memantau real-time RSVP (kehadiran & pax) dan melihat statistik check-in tamu di hari-H secara real-time via WebSocket.
-* **Tidak Dapat Melakukan (Restricted)**:
-  * Mengakses, melihat, atau memodifikasi data dari tenant/client lain (*strict multi-tenant isolation*).
-  * Membuat tenant baru atau mengelola akun Admin lainnya.
-  * Mendaftarkan scanner device melebihi batas kuota (maksimal 2 device aktif per event).
+
+- **Deskripsi**: Akun pemilik/penyelenggara pernikahan yang menyewa tenant pada platform.
+- **Lingkup Kerja (Scope)**: Tenant Milik Sendiri (Hanya dapat mengakses data dalam tenant mereka sendiri).
+- **Dapat Melakukan (Allowed)**:
+  - Membuat, memperbarui, dan menghapus event pernikahan di dalam tenant milik sendiri.
+  - Mengelola daftar tamu secara penuh (CRUD tamu, bulk delete, generate otomatis QR Code, ekspor data, dan import bulk via CSV).
+  - Mengonfigurasi CMS Undangan (mengaktifkan/menonaktifkan dan menyusun ulang urutan 14 section undangan).
+  - Memilih preset warna tema undangan dan melakukan kustomisasi warna hex.
+  - Mengirimkan broadcast notifikasi undangan secara massal (batch max 500 tamu).
+  - Memantau real-time RSVP (kehadiran & pax) dan melihat statistik check-in tamu di hari-H secara real-time via WebSocket.
+- **Tidak Dapat Melakukan (Restricted)**:
+  - Mengakses, melihat, atau memodifikasi data dari tenant/client lain (_strict multi-tenant isolation_).
+  - Membuat tenant baru atau mengelola akun Admin lainnya.
+  - Mendaftarkan scanner device melebihi batas kuota (maksimal 2 device aktif per event).
 
 ### 3. WO (Wedding Organizer)
-* **Deskripsi**: Peran operasional pihak ketiga yang ditugaskan oleh Client untuk membantu jalannya acara pernikahan.
-* **Lingkup Kerja (Scope)**: Event yang Ditugaskan (*Assigned Events*).
-* **Dapat Melakukan (Allowed)**:
-  * Mengelola daftar tamu untuk event yang ditugaskan kepadanya (tambah tamu, update info RSVP, dsb.).
-  * Memantau jalannya check-in tamu secara real-time di hari-H melalui dashboard WO.
-  * Melihat statistik kehadiran, ringkasan RSVP, dan laporan Check-in tamu.
-* **Tidak Dapat Melakukan (Restricted)**:
-  * Membuat event pernikahan baru atau menghapus event yang sudah ada.
-  * Mengonfigurasi CMS Undangan atau merubah pengaturan tema/desain undangan.
-  * Mengirimkan broadcast notifikasi undangan massal.
-  * Mengakses data event atau data tamu dari client/tenant lain yang tidak ditugaskan kepadanya.
+
+- **Deskripsi**: Peran operasional pihak ketiga yang ditugaskan oleh Client untuk membantu jalannya acara pernikahan.
+- **Lingkup Kerja (Scope)**: Event yang Ditugaskan (_Assigned Events_).
+- **Dapat Melakukan (Allowed)**:
+  - Mengelola daftar tamu untuk event yang ditugaskan kepadanya (tambah tamu, update info RSVP, dsb.).
+  - Memantau jalannya check-in tamu secara real-time di hari-H melalui dashboard WO.
+  - Melihat statistik kehadiran, ringkasan RSVP, dan laporan Check-in tamu.
+- **Tidak Dapat Melakukan (Restricted)**:
+  - Membuat event pernikahan baru atau menghapus event yang sudah ada.
+  - Mengonfigurasi CMS Undangan atau merubah pengaturan tema/desain undangan.
+  - Mengirimkan broadcast notifikasi undangan massal.
+  - Mengakses data event atau data tamu dari client/tenant lain yang tidak ditugaskan kepadanya.
 
 ### 4. Scanner Operator (Petugas Venue)
-* **Deskripsi**: Operator di lokasi acara (hari-H) yang bertugas melakukan verifikasi kehadiran fisik tamu di pintu masuk.
-* **Lingkup Kerja (Scope)**: Satu Event Spesifik pada Hari-H (*Assigned Active Event*).
-* **Dapat Melakukan (Allowed)**:
-  * Melakukan verifikasi QR Code tamu menggunakan kamera device (respon cepat < 2 detik).
-  * Melakukan check-in manual dengan mencari nama tamu (minimal 3 karakter) jika tamu tidak membawa QR Code.
-  * Mendaftarkan tamu dadakan (*Go-Show*) langsung di lokasi acara (hari-H) tanpa generate QR Code, dan langsung tercatat sebagai checked-in.
-  * Menyimpan data scan secara lokal di IndexedDB saat offline, dan melakukan sinkronisasi otomatis (*automatic sync*) ke server ketika koneksi pulih (dengan aturan *Server Wins* jika terjadi konflik).
-  * Mendaftarkan device scanner (maksimal 2 device aktif per event untuk menghindari antrean ganda di gerbang yang sama).
-* **Tidak Dapat Melakukan (Restricted)**:
-  * Mengubah informasi tamu yang sudah terdaftar sebelumnya (selain mencatat status check-in).
-  * Menghapus tamu dari daftar.
-  * Mengedit konfigurasi CMS Undangan, detail acara, maupun tema undangan.
-  * Melakukan broadcast pengiriman undangan.
+
+- **Deskripsi**: Operator di lokasi acara (hari-H) yang bertugas melakukan verifikasi kehadiran fisik tamu di pintu masuk.
+- **Lingkup Kerja (Scope)**: Satu Event Spesifik pada Hari-H (_Assigned Active Event_).
+- **Dapat Melakukan (Allowed)**:
+  - Melakukan verifikasi QR Code tamu menggunakan kamera device (respon cepat < 2 detik).
+  - Melakukan check-in manual dengan mencari nama tamu (minimal 3 karakter) jika tamu tidak membawa QR Code.
+  - Mendaftarkan tamu dadakan (_Go-Show_) langsung di lokasi acara (hari-H) tanpa generate QR Code, dan langsung tercatat sebagai checked-in.
+  - Menyimpan data scan secara lokal di IndexedDB saat offline, dan melakukan sinkronisasi otomatis (_automatic sync_) ke server ketika koneksi pulih (dengan aturan _Server Wins_ jika terjadi konflik).
+  - Mendaftarkan device scanner (maksimal 2 device aktif per event untuk menghindari antrean ganda di gerbang yang sama).
+- **Tidak Dapat Melakukan (Restricted)**:
+  - Mengubah informasi tamu yang sudah terdaftar sebelumnya (selain mencatat status check-in).
+  - Menghapus tamu dari daftar.
+  - Mengedit konfigurasi CMS Undangan, detail acara, maupun tema undangan.
+  - Melakukan broadcast pengiriman undangan.
 
 ### 5. Tamu (Guest)
-* **Deskripsi**: Penerima undangan digital pernikahan.
-* **Lingkup Kerja (Scope)**: Halaman Undangan Publik yang Dipersonalisasi via URL (`/{event-slug}?to={guest-slug}`).
-* **Dapat Melakukan (Allowed)**:
-  * Mengakses halaman undangan digital yang menampilkan sapaan nama mereka secara personal di bagian cover.
-  * Mengisi formulir RSVP (konfirmasi kehadiran pada Akad, Resepsi, Keduanya, atau Tidak Hadir beserta jumlah pax).
-  * Mengirimkan ucapan selamat, doa restu, atau pesan (*wishes/messages*) kepada kedua mempelai.
-  * Melihat 14 section informasi pernikahan (kisah cinta, galeri foto, video prewedding, info dress code, koordinat peta venue, hitung mundur acara, dan info amplop digital/kado).
-* **Tidak Dapat Melakukan (Restricted)**:
-  * Mengakses halaman dashboard admin ataupun dashboard WO (memerlukan autentikasi JWT).
-  * Mengakses aplikasi scanner check-in tamu.
-  * Melihat data tamu lain atau pesan yang bersifat privat.
+
+- **Deskripsi**: Penerima undangan digital pernikahan.
+- **Lingkup Kerja (Scope)**: Halaman Undangan Publik yang Dipersonalisasi via URL (`/{event-slug}?to={guest-slug}`).
+- **Dapat Melakukan (Allowed)**:
+  - Mengakses halaman undangan digital yang menampilkan sapaan nama mereka secara personal di bagian cover.
+  - Mengisi formulir RSVP (konfirmasi kehadiran pada Akad, Resepsi, Keduanya, atau Tidak Hadir beserta jumlah pax).
+  - Mengirimkan ucapan selamat, doa restu, atau pesan (_wishes/messages_) kepada kedua mempelai.
+  - Melihat 14 section informasi pernikahan (kisah cinta, galeri foto, video prewedding, info dress code, koordinat peta venue, hitung mundur acara, dan info amplop digital/kado).
+- **Tidak Dapat Melakukan (Restricted)**:
+  - Mengakses halaman dashboard admin ataupun dashboard WO (memerlukan autentikasi JWT).
+  - Mengakses aplikasi scanner check-in tamu.
+  - Melihat data tamu lain atau pesan yang bersifat privat.
 
 ---
 
@@ -286,12 +291,28 @@ Buat juga `packages/db/.env`:
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/wedding_digital_saas?schema=public"
 ```
 
-### 3. Setup Database
+### 3. Setup Database & Redis (Docker Compose)
+
+Untuk kemudahan development, Anda dapat menjalankan database PostgreSQL dan cache Redis secara lokal menggunakan Docker Compose:
 
 ```bash
-# Buat database
-sudo -u postgres psql -c "CREATE DATABASE wedding_digital_saas;"
+# Jalankan PostgreSQL dan Redis di background
+docker compose up -d
+```
 
+Ini akan otomatis membuat database `wedding` pada port `5432` dengan user/password `postgres/postgrespassword`. Sesuaikan connection string di file `.env` Anda:
+`DATABASE_URL="postgresql://postgres:postgrespassword@localhost:5432/wedding?schema=public"`
+
+Jika Anda ingin menggunakan database PostgreSQL lokal yang diinstal secara manual tanpa Docker:
+
+```bash
+# Buat database manual
+sudo -u postgres psql -c "CREATE DATABASE wedding_digital_saas;"
+```
+
+Setelah database berjalan, jalankan migrasi dan generate Prisma client:
+
+```bash
 # Jalankan migrasi
 npx prisma migrate dev --schema=packages/db/prisma/schema.prisma
 
@@ -301,7 +322,7 @@ npx prisma generate --schema=packages/db/prisma/schema.prisma
 
 ### 4. Start Redis (opsional untuk development)
 
-Redis tidak wajib untuk development — sistem akan graceful degrade tanpa Redis (cache bypass, rate limit in-memory).
+Jika Anda tidak menggunakan Docker Compose, Anda bisa menjalankan Redis lokal secara manual. Redis tidak wajib untuk development — sistem akan graceful degrade tanpa Redis (cache bypass, rate limit in-memory).
 
 ```bash
 # Ubuntu/Debian

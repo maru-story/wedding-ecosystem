@@ -31,11 +31,7 @@ const DEFAULT_ALLOWED_HEADERS = [
   'Origin',
   'X-Tenant-ID',
 ];
-const DEFAULT_EXPOSED_HEADERS = [
-  'X-RateLimit-Limit',
-  'X-RateLimit-Remaining',
-  'Retry-After',
-];
+const DEFAULT_EXPOSED_HEADERS = ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'Retry-After'];
 const DEFAULT_MAX_AGE = 86400; // 24 hours
 
 // --- CORS Middleware ---
@@ -68,10 +64,7 @@ export function createCORSMiddleware(config: CORSConfig) {
     }
   }
 
-  return async function corsHook(
-    request: FastifyRequest,
-    reply: FastifyReply
-  ): Promise<void> {
+  return async function corsHook(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const origin = request.headers.origin;
 
     // Handle preflight OPTIONS requests
@@ -109,11 +102,7 @@ export function createCORSMiddleware(config: CORSConfig) {
  * Check if a given origin is allowed for a specific app.
  * Useful for programmatic checks outside of middleware.
  */
-export function isOriginAllowed(
-  config: CORSConfig,
-  origin: string,
-  app?: AppName
-): boolean {
+export function isOriginAllowed(config: CORSConfig, origin: string, app?: AppName): boolean {
   if (app) {
     return config.origins[app]?.includes(origin) ?? false;
   }

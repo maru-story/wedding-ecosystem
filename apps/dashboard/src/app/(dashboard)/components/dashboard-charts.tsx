@@ -4,17 +4,17 @@ import { useDashboardStats } from '@/hooks/queries';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { 
-  CheckCircle2, 
-  XCircle, 
-  HelpCircle, 
-  Users, 
-  Send, 
-  Clock, 
+import {
+  CheckCircle2,
+  XCircle,
+  HelpCircle,
+  Users,
+  Send,
+  Clock,
   Heart,
   TrendingUp,
   UserCheck,
-  Crown
+  Crown,
 } from 'lucide-react';
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/ui/motion-wrapper';
 
@@ -34,39 +34,53 @@ export function DonutChart({ data, centerLabel, centerSublabel }: DonutChartProp
 
   return (
     <div className="relative flex flex-col items-center justify-center">
-      <svg width="150" height="150" viewBox="0 0 140 140" className="transform -rotate-90">
-        <circle cx="70" cy="70" r={radius} fill="transparent" stroke="#f3f4f6" strokeWidth={strokeWidth} />
-        {total > 0 && data.map((item, index) => {
-          if (item.value === 0) return null;
-          const percentage = (item.value / total) * 100;
-          const strokeDashoffset = circumference - (circumference * percentage) / 100;
-          const rotation = (accumulatedAngle / total) * 360;
-          accumulatedAngle += item.value;
+      <svg width="150" height="150" viewBox="0 0 140 140" className="-rotate-90 transform">
+        <circle
+          cx="70"
+          cy="70"
+          r={radius}
+          fill="transparent"
+          stroke="#f3f4f6"
+          strokeWidth={strokeWidth}
+        />
+        {total > 0 &&
+          data.map((item, index) => {
+            if (item.value === 0) return null;
+            const percentage = (item.value / total) * 100;
+            const strokeDashoffset = circumference - (circumference * percentage) / 100;
+            const rotation = (accumulatedAngle / total) * 360;
+            accumulatedAngle += item.value;
 
-          return (
-            <circle
-              key={index}
-              cx="70"
-              cy="70"
-              r={radius}
-              fill="transparent"
-              stroke={item.color}
-              strokeWidth={strokeWidth}
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              className="transition-all duration-300 hover:opacity-85 cursor-pointer"
-              style={{
-                transform: `rotate(${rotation}deg)`,
-                transformOrigin: '70px 70px',
-              }}
-            />
-          );
-        })}
+            return (
+              <circle
+                key={index}
+                cx="70"
+                cy="70"
+                r={radius}
+                fill="transparent"
+                stroke={item.color}
+                strokeWidth={strokeWidth}
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                className="cursor-pointer transition-all duration-300 hover:opacity-85"
+                style={{
+                  transform: `rotate(${rotation}deg)`,
+                  transformOrigin: '70px 70px',
+                }}
+              />
+            );
+          })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="text-xl font-extrabold text-foreground">{centerLabel !== undefined ? centerLabel : total}</span>
-        {centerSublabel && <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider mt-0.5">{centerSublabel}</span>}
+        <span className="text-foreground text-xl font-extrabold">
+          {centerLabel !== undefined ? centerLabel : total}
+        </span>
+        {centerSublabel && (
+          <span className="text-muted-foreground mt-0.5 text-[9px] font-bold tracking-wider uppercase">
+            {centerSublabel}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -79,27 +93,30 @@ interface BarChartProps {
 }
 
 export function BarChart({ data, height = 180 }: BarChartProps) {
-  const maxVal = Math.max(...data.map(d => d.value), 1);
+  const maxVal = Math.max(...data.map((d) => d.value), 1);
 
   return (
-    <div className="flex w-full items-end justify-around px-2 pt-6" style={{ height: `${height}px` }}>
+    <div
+      className="flex w-full items-end justify-around px-2 pt-6"
+      style={{ height: `${height}px` }}
+    >
       {data.map((item, index) => {
         const heightPercentage = (item.value / maxVal) * 100;
         return (
-          <div key={index} className="flex flex-col items-center group relative w-14">
-            <div className="absolute -top-8 hidden group-hover:flex flex-col items-center bg-foreground text-background text-[10px] font-bold px-2 py-1 rounded shadow-md z-10 whitespace-nowrap">
+          <div key={index} className="group relative flex w-14 flex-col items-center">
+            <div className="bg-foreground text-background absolute -top-8 z-10 hidden flex-col items-center rounded px-2 py-1 text-[10px] font-bold whitespace-nowrap shadow-md group-hover:flex">
               <span>{item.value.toLocaleString('id-ID')}</span>
             </div>
-            
-            <div 
-              style={{ 
+
+            <div
+              style={{
                 height: `${Math.max(heightPercentage, 6)}%`,
                 backgroundColor: item.color,
                 width: '1.5rem',
-              }} 
-              className="rounded-t-md transition-all duration-300 hover:opacity-90 cursor-pointer shadow-xs"
+              }}
+              className="cursor-pointer rounded-t-md shadow-xs transition-all duration-300 hover:opacity-90"
             />
-            <span className="mt-2 text-[10px] font-semibold text-muted-foreground text-center truncate w-full">
+            <span className="text-muted-foreground mt-2 w-full truncate text-center text-[10px] font-semibold">
               {item.label}
             </span>
           </div>
@@ -118,7 +135,7 @@ interface LineChartProps {
 export function LineChart({ data, height = 180 }: LineChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex h-[180px] items-center justify-center text-sm text-muted-foreground border border-dashed rounded-xl bg-muted/10">
+      <div className="text-muted-foreground bg-muted/10 flex h-[180px] items-center justify-center rounded-xl border border-dashed text-sm">
         Belum ada data pendaftaran RSVP
       </div>
     );
@@ -145,13 +162,14 @@ export function LineChart({ data, height = 180 }: LineChartProps) {
     return i === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`;
   }, '');
 
-  const areaD = data.length > 0 
-    ? `${pathD} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`
-    : '';
+  const areaD =
+    data.length > 0
+      ? `${pathD} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`
+      : '';
 
   return (
-    <div className="w-full overflow-x-auto scrollbar-none">
-      <svg width={width} height={height} className="overflow-visible mx-auto">
+    <div className="w-full scrollbar-none overflow-x-auto">
+      <svg width={width} height={height} className="mx-auto overflow-visible">
         <defs>
           <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.25" />
@@ -165,8 +183,23 @@ export function LineChart({ data, height = 180 }: LineChartProps) {
           const val = Math.round(maxVal - (i / 3) * range);
           return (
             <g key={i} className="opacity-40">
-              <line x1={paddingX} y1={y} x2={width - paddingX} y2={y} stroke="var(--color-border)" strokeWidth="1" strokeDasharray="3,3" />
-              <text x={paddingX - 10} y={y + 4} textAnchor="end" className="text-[9px] fill-muted-foreground font-semibold font-mono">{val}</text>
+              <line
+                x1={paddingX}
+                y1={y}
+                x2={width - paddingX}
+                y2={y}
+                stroke="var(--color-border)"
+                strokeWidth="1"
+                strokeDasharray="3,3"
+              />
+              <text
+                x={paddingX - 10}
+                y={y + 4}
+                textAnchor="end"
+                className="fill-muted-foreground font-mono text-[9px] font-semibold"
+              >
+                {val}
+              </text>
             </g>
           );
         })}
@@ -175,25 +208,49 @@ export function LineChart({ data, height = 180 }: LineChartProps) {
         <path d={areaD} fill="url(#chartGradient)" />
 
         {/* Line stroke */}
-        <path d={pathD} fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d={pathD}
+          fill="none"
+          stroke="var(--color-primary)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
 
         {/* Data points */}
         {points.map((p, i) => (
           <g key={i} className="group/point relative">
-            <circle cx={p.x} cy={p.y} r="4" fill="var(--color-background)" stroke="var(--color-primary)" strokeWidth="2" className="transition-all hover:r-6 cursor-pointer" />
+            <circle
+              cx={p.x}
+              cy={p.y}
+              r="4"
+              fill="var(--color-background)"
+              stroke="var(--color-primary)"
+              strokeWidth="2"
+              className="hover:r-6 cursor-pointer transition-all"
+            />
             <title>{`${p.label}: ${p.value} RSVP`}</title>
           </g>
         ))}
 
         {/* X Axis Labels */}
-        {points.length > 0 && [points[0], points[Math.floor(points.length / 2)], points[points.length - 1]].map((p, i) => {
-          if (!p) return null;
-          return (
-            <text key={i} x={p.x} y={height - 2} textAnchor="middle" className="text-[9px] fill-muted-foreground font-semibold">
-              {p.label}
-            </text>
-          );
-        })}
+        {points.length > 0 &&
+          [points[0], points[Math.floor(points.length / 2)], points[points.length - 1]].map(
+            (p, i) => {
+              if (!p) return null;
+              return (
+                <text
+                  key={i}
+                  x={p.x}
+                  y={height - 2}
+                  textAnchor="middle"
+                  className="fill-muted-foreground text-[9px] font-semibold"
+                >
+                  {p.label}
+                </text>
+              );
+            }
+          )}
       </svg>
     </div>
   );
@@ -224,13 +281,16 @@ interface DashboardStatsPayload {
   visible_wishes: number;
   rsvp_trend: { date: string; count: number }[];
   checkin_peak: { timeSlot: string; count: number }[];
-  group_breakdown: Record<string, {
-    total: number;
-    confirmed: number;
-    declined: number;
-    pending: number;
-    checked_in: number;
-  }>;
+  group_breakdown: Record<
+    string,
+    {
+      total: number;
+      confirmed: number;
+      declined: number;
+      pending: number;
+      checked_in: number;
+    }
+  >;
 }
 
 // --- Main Charts Panel ---
@@ -297,7 +357,11 @@ export function DashboardCharts() {
   // 4. On-site Check-in Data
   const checkinData = [
     { label: 'Sudah Check-in', value: safeStats.total_checked_in, color: '#10b981' },
-    { label: 'Belum Datang', value: Math.max(safeStats.total_guests - safeStats.total_checked_in, 0), color: '#e5e7eb' },
+    {
+      label: 'Belum Datang',
+      value: Math.max(safeStats.total_guests - safeStats.total_checked_in, 0),
+      color: '#e5e7eb',
+    },
   ];
 
   // Format Group Labels
@@ -311,17 +375,26 @@ export function DashboardCharts() {
   return (
     <FadeIn delay={0.1}>
       <Tabs defaultValue="pre-event" className="w-full space-y-6">
-        <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="border-border flex items-center justify-between border-b pb-3">
           <TabsList className="bg-muted p-1">
-            <TabsTrigger value="pre-event" className="font-semibold text-xs tracking-wider uppercase">
+            <TabsTrigger
+              value="pre-event"
+              className="text-xs font-semibold tracking-wider uppercase"
+            >
               Pra-Acara (Persiapan)
             </TabsTrigger>
-            <TabsTrigger value="event-day" className="font-semibold text-xs tracking-wider uppercase">
+            <TabsTrigger
+              value="event-day"
+              className="text-xs font-semibold tracking-wider uppercase"
+            >
               Hari-H (Pelaksanaan)
             </TabsTrigger>
           </TabsList>
-          
-          <Badge variant="outline" className="font-semibold font-mono text-[10px] text-muted-foreground uppercase border-border">
+
+          <Badge
+            variant="outline"
+            className="text-muted-foreground border-border font-mono text-[10px] font-semibold uppercase"
+          >
             Live Analytics
           </Badge>
         </div>
@@ -331,70 +404,97 @@ export function DashboardCharts() {
         {/* ============================================================ */}
         <TabsContent value="pre-event" className="space-y-6 outline-none">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            
             {/* Card 1: RSVP Confirmation */}
             <Card className="border-border/60 bg-card shadow-xs">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-foreground">
-                  <CheckCircle2 className="h-4.5 w-4.5 text-success" />
+                <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-bold">
+                  <CheckCircle2 className="text-success h-4.5 w-4.5" />
                   Konfirmasi Kehadiran Tamu
                 </CardTitle>
-                <CardDescription className="text-xs">Rasio respon undangan oleh tamu</CardDescription>
+                <CardDescription className="text-xs">
+                  Rasio respon undangan oleh tamu
+                </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center pt-4">
-                <DonutChart 
-                  data={rsvpDonutData} 
+                <DonutChart
+                  data={rsvpDonutData}
                   centerLabel={`${Math.round(((safeStats.rsvp_confirmed + safeStats.rsvp_declined) / Math.max(safeStats.total_guests, 1)) * 100)}%`}
                   centerSublabel="Respon"
                 />
-                
+
                 {/* Legends */}
-                <div className="mt-5 grid grid-cols-3 gap-4 w-full text-center border-t border-border/40 pt-4">
+                <div className="border-border/40 mt-5 grid w-full grid-cols-3 gap-4 border-t pt-4 text-center">
                   <div>
-                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-success mr-1.5" />
-                    <span className="text-[10px] font-semibold text-muted-foreground block md:inline">Hadir</span>
-                    <p className="text-sm font-extrabold font-mono mt-0.5">{safeStats.rsvp_confirmed}</p>
+                    <span className="bg-success mr-1.5 inline-block h-2.5 w-2.5 rounded-full" />
+                    <span className="text-muted-foreground block text-[10px] font-semibold md:inline">
+                      Hadir
+                    </span>
+                    <p className="mt-0.5 font-mono text-sm font-extrabold">
+                      {safeStats.rsvp_confirmed}
+                    </p>
                   </div>
                   <div>
-                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-destructive mr-1.5" />
-                    <span className="text-[10px] font-semibold text-muted-foreground block md:inline">Menolak</span>
-                    <p className="text-sm font-extrabold font-mono mt-0.5">{safeStats.rsvp_declined}</p>
+                    <span className="bg-destructive mr-1.5 inline-block h-2.5 w-2.5 rounded-full" />
+                    <span className="text-muted-foreground block text-[10px] font-semibold md:inline">
+                      Menolak
+                    </span>
+                    <p className="mt-0.5 font-mono text-sm font-extrabold">
+                      {safeStats.rsvp_declined}
+                    </p>
                   </div>
                   <div>
-                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-gray-400 mr-1.5" />
-                    <span className="text-[10px] font-semibold text-muted-foreground block md:inline">Pending</span>
-                    <p className="text-sm font-extrabold font-mono mt-0.5">{safeStats.rsvp_pending}</p>
+                    <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-gray-400" />
+                    <span className="text-muted-foreground block text-[10px] font-semibold md:inline">
+                      Pending
+                    </span>
+                    <p className="mt-0.5 font-mono text-sm font-extrabold">
+                      {safeStats.rsvp_pending}
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Card 2: Pax Catering Stats */}
-            <Card className="border-border/60 bg-card shadow-xs flex flex-col justify-between">
+            <Card className="border-border/60 bg-card flex flex-col justify-between shadow-xs">
               <CardHeader>
-                <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-foreground">
-                  <Users className="h-4.5 w-4.5 text-primary" />
+                <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-bold">
+                  <Users className="text-primary h-4.5 w-4.5" />
                   Estimasi Porsi Makanan (Pax)
                 </CardTitle>
-                <CardDescription className="text-xs">Prediksi kuantitas porsi catering</CardDescription>
+                <CardDescription className="text-xs">
+                  Prediksi kuantitas porsi catering
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 pt-2">
-                <div className="bg-primary/5 rounded-xl border border-primary/10 p-5 text-center flex flex-col items-center">
-                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">Total Estimasi Pax Hadir</span>
-                  <span className="text-4xl font-extrabold text-primary font-mono mt-1.5">{safeStats.total_pax_confirmed}</span>
-                  <span className="text-[10px] text-muted-foreground mt-1.5">Penjumlahan pax riil RSVP konfirmasi</span>
+                <div className="bg-primary/5 border-primary/10 flex flex-col items-center rounded-xl border p-5 text-center">
+                  <span className="text-primary text-xs font-semibold tracking-wider uppercase">
+                    Total Estimasi Pax Hadir
+                  </span>
+                  <span className="text-primary mt-1.5 font-mono text-4xl font-extrabold">
+                    {safeStats.total_pax_confirmed}
+                  </span>
+                  <span className="text-muted-foreground mt-1.5 text-[10px]">
+                    Penjumlahan pax riil RSVP konfirmasi
+                  </span>
                 </div>
-                
+
                 {/* Comparison progress */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-muted-foreground">Rasio Pax Hadir vs Total Terundang</span>
-                    <span className="font-mono">{safeStats.total_pax_confirmed} / {safeStats.total_pax_invited} Pax</span>
+                    <span className="text-muted-foreground">
+                      Rasio Pax Hadir vs Total Terundang
+                    </span>
+                    <span className="font-mono">
+                      {safeStats.total_pax_confirmed} / {safeStats.total_pax_invited} Pax
+                    </span>
                   </div>
-                  <div className="h-2.5 w-full rounded-full bg-secondary overflow-hidden">
-                    <div 
-                      className="h-full bg-primary rounded-full transition-all duration-500" 
-                      style={{ width: `${Math.min((safeStats.total_pax_confirmed / Math.max(safeStats.total_pax_invited, 1)) * 100, 100)}%` }}
+                  <div className="bg-secondary h-2.5 w-full overflow-hidden rounded-full">
+                    <div
+                      className="bg-primary h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min((safeStats.total_pax_confirmed / Math.max(safeStats.total_pax_invited, 1)) * 100, 100)}%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -404,11 +504,13 @@ export function DashboardCharts() {
             {/* Card 3: Session Distribution */}
             <Card className="border-border/60 bg-card shadow-xs">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-foreground">
-                  <Clock className="h-4.5 w-4.5 text-info" />
+                <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-bold">
+                  <Clock className="text-info h-4.5 w-4.5" />
                   Distribusi Kehadiran Sesi
                 </CardTitle>
-                <CardDescription className="text-xs">Jumlah tamu pada masing-masing sesi</CardDescription>
+                <CardDescription className="text-xs">
+                  Jumlah tamu pada masing-masing sesi
+                </CardDescription>
               </CardHeader>
               <CardContent className="pt-2">
                 <BarChart data={rsvpSessionData} />
@@ -418,35 +520,43 @@ export function DashboardCharts() {
             {/* Card 4: WhatsApp Invitation Delivery */}
             <Card className="border-border/60 bg-card shadow-xs">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-foreground">
+                <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-bold">
                   <Send className="h-4.5 w-4.5 text-emerald-500" />
                   Progress Pengiriman Undangan
                 </CardTitle>
-                <CardDescription className="text-xs">Tamu yang sudah dikirimi pesan WA</CardDescription>
+                <CardDescription className="text-xs">
+                  Tamu yang sudah dikirimi pesan WA
+                </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center pt-4">
-                <DonutChart 
-                  data={deliveryData} 
+                <DonutChart
+                  data={deliveryData}
                   centerLabel={`${Math.round((safeStats.delivery_sent / Math.max(safeStats.total_guests, 1)) * 100)}%`}
                   centerSublabel="Terkirim"
                 />
-                
+
                 {/* Legends */}
-                <div className="mt-5 grid grid-cols-3 gap-2 w-full text-center border-t border-border/40 pt-4 text-[10px]">
+                <div className="border-border/40 mt-5 grid w-full grid-cols-3 gap-2 border-t pt-4 text-center text-[10px]">
                   <div>
-                    <span className="inline-block w-2 h-2 rounded-full bg-[#25D366] mr-1" />
+                    <span className="mr-1 inline-block h-2 w-2 rounded-full bg-[#25D366]" />
                     <span className="text-muted-foreground block font-semibold">Terkirim</span>
-                    <p className="text-xs font-extrabold font-mono mt-0.5">{safeStats.delivery_sent}</p>
+                    <p className="mt-0.5 font-mono text-xs font-extrabold">
+                      {safeStats.delivery_sent}
+                    </p>
                   </div>
                   <div>
-                    <span className="inline-block w-2 h-2 rounded-full bg-gray-300 mr-1" />
+                    <span className="mr-1 inline-block h-2 w-2 rounded-full bg-gray-300" />
                     <span className="text-muted-foreground block font-semibold">Belum</span>
-                    <p className="text-xs font-extrabold font-mono mt-0.5">{safeStats.delivery_not_sent}</p>
+                    <p className="mt-0.5 font-mono text-xs font-extrabold">
+                      {safeStats.delivery_not_sent}
+                    </p>
                   </div>
                   <div>
-                    <span className="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1" />
+                    <span className="mr-1 inline-block h-2 w-2 rounded-full bg-rose-500" />
                     <span className="text-muted-foreground block font-semibold">Gagal</span>
-                    <p className="text-xs font-extrabold font-mono mt-0.5">{safeStats.delivery_failed}</p>
+                    <p className="mt-0.5 font-mono text-xs font-extrabold">
+                      {safeStats.delivery_failed}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -455,72 +565,97 @@ export function DashboardCharts() {
             {/* Card 5: RSVP Timeline Trend */}
             <Card className="border-border/60 bg-card shadow-xs md:col-span-2">
               <CardHeader>
-                <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-foreground">
-                  <TrendingUp className="h-4.5 w-4.5 text-primary" />
+                <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-bold">
+                  <TrendingUp className="text-primary h-4.5 w-4.5" />
                   Tren Kecepatan RSVP Tamu (Akumulatif)
                 </CardTitle>
-                <CardDescription className="text-xs">Kecepatan tamu dalam memberikan konfirmasi</CardDescription>
+                <CardDescription className="text-xs">
+                  Kecepatan tamu dalam memberikan konfirmasi
+                </CardDescription>
               </CardHeader>
               <CardContent className="pt-2">
-                <LineChart data={safeStats.rsvp_trend.map(t => ({ label: t.date, value: t.count }))} />
+                <LineChart
+                  data={safeStats.rsvp_trend.map((t) => ({ label: t.date, value: t.count }))}
+                />
               </CardContent>
             </Card>
 
             {/* Card 6: Guest Distribution by Group */}
             <Card className="border-border/60 bg-card shadow-xs md:col-span-2 lg:col-span-3">
               <CardHeader>
-                <CardTitle className="text-sm font-bold">Rasio Kehadiran Berdasarkan Grup Relasi</CardTitle>
-                <CardDescription className="text-xs">Perbandingan status konfirmasi per kategori relasi</CardDescription>
+                <CardTitle className="text-sm font-bold">
+                  Rasio Kehadiran Berdasarkan Grup Relasi
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Perbandingan status konfirmasi per kategori relasi
+                </CardDescription>
               </CardHeader>
               <CardContent className="pt-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {Object.entries(safeStats.group_breakdown).map(([group, groupStats]: [string, any]) => {
-                    const pct = Math.round((groupStats.confirmed / Math.max(groupStats.total, 1)) * 100);
-                    return (
-                      <div key={group} className="border border-border/50 rounded-xl p-4 bg-muted/10 flex flex-col justify-between space-y-3">
-                        <div className="flex items-center justify-between border-b border-border/40 pb-2">
-                          <span className="font-semibold text-xs text-foreground uppercase tracking-wider">
-                            {groupLabelMap[group] || group}
-                          </span>
-                          <Badge variant="secondary" className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                            {groupStats.total} Tamu
-                          </Badge>
-                        </div>
-                        
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between text-[10px] font-semibold text-muted-foreground">
-                            <span>RSVP Hadir:</span>
-                            <span className="font-mono text-success">{groupStats.confirmed} ({pct}%)</span>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                  {Object.entries(safeStats.group_breakdown).map(
+                    ([group, groupStats]: [string, any]) => {
+                      const pct = Math.round(
+                        (groupStats.confirmed / Math.max(groupStats.total, 1)) * 100
+                      );
+                      return (
+                        <div
+                          key={group}
+                          className="border-border/50 bg-muted/10 flex flex-col justify-between space-y-3 rounded-xl border p-4"
+                        >
+                          <div className="border-border/40 flex items-center justify-between border-b pb-2">
+                            <span className="text-foreground text-xs font-semibold tracking-wider uppercase">
+                              {groupLabelMap[group] || group}
+                            </span>
+                            <Badge
+                              variant="secondary"
+                              className="rounded-full px-1.5 py-0.5 font-mono text-[9px] font-bold"
+                            >
+                              {groupStats.total} Tamu
+                            </Badge>
                           </div>
-                          <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
-                            <div 
-                              className="h-full bg-success rounded-full transition-all duration-300"
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                        </div>
 
-                        <div className="grid grid-cols-3 gap-1 text-[9px] text-center text-muted-foreground pt-1 border-t border-border/30">
-                          <div>
-                            <span className="block font-bold font-mono text-xs text-foreground">{groupStats.confirmed}</span>
-                            <span>Hadir</span>
+                          <div className="space-y-1.5">
+                            <div className="text-muted-foreground flex items-center justify-between text-[10px] font-semibold">
+                              <span>RSVP Hadir:</span>
+                              <span className="text-success font-mono">
+                                {groupStats.confirmed} ({pct}%)
+                              </span>
+                            </div>
+                            <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
+                              <div
+                                className="bg-success h-full rounded-full transition-all duration-300"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <span className="block font-bold font-mono text-xs text-foreground">{groupStats.declined}</span>
-                            <span>Tolak</span>
-                          </div>
-                          <div>
-                            <span className="block font-bold font-mono text-xs text-foreground">{groupStats.pending}</span>
-                            <span>Pending</span>
+
+                          <div className="text-muted-foreground border-border/30 grid grid-cols-3 gap-1 border-t pt-1 text-center text-[9px]">
+                            <div>
+                              <span className="text-foreground block font-mono text-xs font-bold">
+                                {groupStats.confirmed}
+                              </span>
+                              <span>Hadir</span>
+                            </div>
+                            <div>
+                              <span className="text-foreground block font-mono text-xs font-bold">
+                                {groupStats.declined}
+                              </span>
+                              <span>Tolak</span>
+                            </div>
+                            <div>
+                              <span className="text-foreground block font-mono text-xs font-bold">
+                                {groupStats.pending}
+                              </span>
+                              <span>Pending</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    }
+                  )}
                 </div>
               </CardContent>
             </Card>
-
           </div>
         </TabsContent>
 
@@ -529,68 +664,89 @@ export function DashboardCharts() {
         {/* ============================================================ */}
         <TabsContent value="event-day" className="space-y-6 outline-none">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            
             {/* Card 1: Live Check-in Ring */}
             <Card className="border-border/60 bg-card shadow-xs">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-foreground">
-                  <UserCheck className="h-4.5 w-4.5 text-success" />
+                <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-bold">
+                  <UserCheck className="text-success h-4.5 w-4.5" />
                   Rasio Kehadiran Venue (Hari-H)
                 </CardTitle>
-                <CardDescription className="text-xs">Persentase kedatangan tamu di lokasi</CardDescription>
+                <CardDescription className="text-xs">
+                  Persentase kedatangan tamu di lokasi
+                </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center pt-4">
-                <DonutChart 
-                  data={checkinData} 
+                <DonutChart
+                  data={checkinData}
                   centerLabel={`${Math.round((safeStats.total_checked_in / Math.max(safeStats.total_guests, 1)) * 100)}%`}
                   centerSublabel="Tiba"
                 />
-                
+
                 {/* Legends */}
-                <div className="mt-5 grid grid-cols-2 gap-4 w-full text-center border-t border-border/40 pt-4">
+                <div className="border-border/40 mt-5 grid w-full grid-cols-2 gap-4 border-t pt-4 text-center">
                   <div>
-                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-success mr-1.5" />
-                    <span className="text-[10px] font-semibold text-muted-foreground block md:inline">Sudah Datang</span>
-                    <p className="text-sm font-extrabold font-mono mt-0.5">{safeStats.total_checked_in}</p>
+                    <span className="bg-success mr-1.5 inline-block h-2.5 w-2.5 rounded-full" />
+                    <span className="text-muted-foreground block text-[10px] font-semibold md:inline">
+                      Sudah Datang
+                    </span>
+                    <p className="mt-0.5 font-mono text-sm font-extrabold">
+                      {safeStats.total_checked_in}
+                    </p>
                   </div>
                   <div>
-                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-gray-300 mr-1.5" />
-                    <span className="text-[10px] font-semibold text-muted-foreground block md:inline">Belum Datang</span>
-                    <p className="text-sm font-extrabold font-mono mt-0.5">{Math.max(safeStats.total_guests - safeStats.total_checked_in, 0)}</p>
+                    <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-gray-300" />
+                    <span className="text-muted-foreground block text-[10px] font-semibold md:inline">
+                      Belum Datang
+                    </span>
+                    <p className="mt-0.5 font-mono text-sm font-extrabold">
+                      {Math.max(safeStats.total_guests - safeStats.total_checked_in, 0)}
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Card 2: VIP Attendance Ring */}
-            <Card className="border-border/60 bg-card shadow-xs flex flex-col justify-between">
+            <Card className="border-border/60 bg-card flex flex-col justify-between shadow-xs">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-foreground">
+                <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-bold">
                   <Crown className="h-4.5 w-4.5 text-amber-500" />
                   Monitoring Tamu VIP
                 </CardTitle>
-                <CardDescription className="text-xs">Kehadiran khusus tamu VIP terdaftar</CardDescription>
+                <CardDescription className="text-xs">
+                  Kehadiran khusus tamu VIP terdaftar
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 pt-2">
-                <div className="bg-amber-500/5 rounded-xl border border-amber-500/10 p-5 text-center flex flex-col items-center">
-                  <span className="text-xs font-semibold text-amber-600 uppercase tracking-wider">VIP Sudah Tiba di Venue</span>
-                  <span className="text-4xl font-extrabold text-amber-600 font-mono mt-1.5">
-                    {safeStats.vip_checked_in} <span className="text-lg text-muted-foreground">/ {safeStats.vip_total}</span>
+                <div className="flex flex-col items-center rounded-xl border border-amber-500/10 bg-amber-500/5 p-5 text-center">
+                  <span className="text-xs font-semibold tracking-wider text-amber-600 uppercase">
+                    VIP Sudah Tiba di Venue
                   </span>
-                  <span className="text-[10px] text-muted-foreground mt-1.5">Tamu penting terdaftar dengan tag VIP</span>
+                  <span className="mt-1.5 font-mono text-4xl font-extrabold text-amber-600">
+                    {safeStats.vip_checked_in}{' '}
+                    <span className="text-muted-foreground text-lg">/ {safeStats.vip_total}</span>
+                  </span>
+                  <span className="text-muted-foreground mt-1.5 text-[10px]">
+                    Tamu penting terdaftar dengan tag VIP
+                  </span>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs font-semibold">
                     <span className="text-muted-foreground">Persentase Kehadiran VIP</span>
                     <span className="font-mono text-amber-600">
-                      {safeStats.vip_total > 0 ? Math.round((safeStats.vip_checked_in / safeStats.vip_total) * 100) : 0}%
+                      {safeStats.vip_total > 0
+                        ? Math.round((safeStats.vip_checked_in / safeStats.vip_total) * 100)
+                        : 0}
+                      %
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
-                    <div 
-                      className="h-full bg-amber-500 rounded-full transition-all duration-500" 
-                      style={{ width: `${safeStats.vip_total > 0 ? (safeStats.vip_checked_in / safeStats.vip_total) * 100 : 0}%` }}
+                  <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
+                    <div
+                      className="h-full rounded-full bg-amber-500 transition-all duration-500"
+                      style={{
+                        width: `${safeStats.vip_total > 0 ? (safeStats.vip_checked_in / safeStats.vip_total) * 100 : 0}%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -598,28 +754,42 @@ export function DashboardCharts() {
             </Card>
 
             {/* Card 3: Wishes sentiment */}
-            <Card className="border-border/60 bg-card shadow-xs flex flex-col justify-between">
+            <Card className="border-border/60 bg-card flex flex-col justify-between shadow-xs">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-foreground">
-                  <Heart className="h-4.5 w-4.5 text-rose-500 animate-pulse" />
+                <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-bold">
+                  <Heart className="h-4.5 w-4.5 animate-pulse text-rose-500" />
                   Pesan Ucapan & Doa Tamu
                 </CardTitle>
-                <CardDescription className="text-xs">Aktivitas doa di dalam buku tamu digital</CardDescription>
+                <CardDescription className="text-xs">
+                  Aktivitas doa di dalam buku tamu digital
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 pt-2">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="border border-border/50 rounded-xl p-4 bg-muted/10 text-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Total Ucapan</span>
-                    <span className="text-3xl font-extrabold font-mono text-foreground mt-1.5 block">{safeStats.total_wishes}</span>
+                  <div className="border-border/50 bg-muted/10 rounded-xl border p-4 text-center">
+                    <span className="text-muted-foreground block text-[10px] font-bold tracking-wider uppercase">
+                      Total Ucapan
+                    </span>
+                    <span className="text-foreground mt-1.5 block font-mono text-3xl font-extrabold">
+                      {safeStats.total_wishes}
+                    </span>
                   </div>
-                  <div className="border border-border/50 rounded-xl p-4 bg-muted/10 text-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Tampil (Visible)</span>
-                    <span className="text-3xl font-extrabold font-mono text-success mt-1.5 block">{safeStats.visible_wishes}</span>
+                  <div className="border-border/50 bg-muted/10 rounded-xl border p-4 text-center">
+                    <span className="text-muted-foreground block text-[10px] font-bold tracking-wider uppercase">
+                      Tampil (Visible)
+                    </span>
+                    <span className="text-success mt-1.5 block font-mono text-3xl font-extrabold">
+                      {safeStats.visible_wishes}
+                    </span>
                   </div>
                 </div>
 
-                <div className="text-xs text-muted-foreground leading-relaxed text-center italic">
-                  &ldquo;{safeStats.total_wishes > 0 ? `${Math.round((safeStats.visible_wishes / safeStats.total_wishes) * 100)}% doa dari tamu telah lolos moderasi untuk tampil di layar slideshow.` : 'Belum ada pesan doa dari tamu.'}&rdquo;
+                <div className="text-muted-foreground text-center text-xs leading-relaxed italic">
+                  &ldquo;
+                  {safeStats.total_wishes > 0
+                    ? `${Math.round((safeStats.visible_wishes / safeStats.total_wishes) * 100)}% doa dari tamu telah lolos moderasi untuk tampil di layar slideshow.`
+                    : 'Belum ada pesan doa dari tamu.'}
+                  &rdquo;
                 </div>
               </CardContent>
             </Card>
@@ -627,27 +797,32 @@ export function DashboardCharts() {
             {/* Card 4: Peak Check-in Hours */}
             <Card className="border-border/60 bg-card shadow-xs md:col-span-3 lg:col-span-3">
               <CardHeader>
-                <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-foreground">
-                  <Clock className="h-4.5 w-4.5 text-primary" />
+                <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-bold">
+                  <Clock className="text-primary h-4.5 w-4.5" />
                   Grafik Waktu Puncak Check-In Tamu
                 </CardTitle>
-                <CardDescription className="text-xs">Frekuensi kedatangan tamu per 30-menit interval waktu (WIB)</CardDescription>
+                <CardDescription className="text-xs">
+                  Frekuensi kedatangan tamu per 30-menit interval waktu (WIB)
+                </CardDescription>
               </CardHeader>
               <CardContent className="pt-2">
                 {safeStats.checkin_peak.length > 0 ? (
-                  <BarChart data={safeStats.checkin_peak.map((slot: { timeSlot: string; count: number }) => ({
-                    label: slot.timeSlot,
-                    value: slot.count,
-                    color: 'var(--color-primary)'
-                  }))} />
+                  <BarChart
+                    data={safeStats.checkin_peak.map(
+                      (slot: { timeSlot: string; count: number }) => ({
+                        label: slot.timeSlot,
+                        value: slot.count,
+                        color: 'var(--color-primary)',
+                      })
+                    )}
+                  />
                 ) : (
-                  <div className="flex h-[180px] items-center justify-center text-sm text-muted-foreground border border-dashed rounded-xl bg-muted/10">
+                  <div className="text-muted-foreground bg-muted/10 flex h-[180px] items-center justify-center rounded-xl border border-dashed text-sm">
                     Menunggu tamu pertama melakukan check-in via QR / Manual...
                   </div>
                 )}
               </CardContent>
             </Card>
-
           </div>
         </TabsContent>
       </Tabs>
@@ -659,10 +834,10 @@ export function DashboardCharts() {
 function ChartsSkeletons() {
   return (
     <div className="space-y-6">
-      <div className="h-10 w-64 bg-muted animate-pulse rounded-lg" />
+      <div className="bg-muted h-10 w-64 animate-pulse rounded-lg" />
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i} className="border-border/40 h-[280px] animate-pulse bg-card" />
+          <Card key={i} className="border-border/40 bg-card h-[280px] animate-pulse" />
         ))}
       </div>
     </div>

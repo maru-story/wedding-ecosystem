@@ -1,8 +1,9 @@
 import { ErrorCode, DeliveryStatus } from '@wedding/shared';
+import { PIIEncryption } from '../../middleware/encryption/encryption';
 
 // --- Constants ---
 
-export const DEFAULT_TEMPLATE = 
+export const DEFAULT_TEMPLATE =
   'Kepada Yth. {nama_tamu},\n\n' +
   'Tanpa mengurangi rasa hormat, kami mengundang Anda untuk hadir di acara pernikahan kami.\n\n' +
   'Detail undangan dan RSVP dapat diakses melalui link berikut:\n' +
@@ -67,17 +68,9 @@ export interface InvitationDeliveryRepository {
     tenantId: string
   ): Promise<{ invitation_message_template: string | null } | null>;
 
-  updateEventConfigTemplate(
-    eventId: string,
-    tenantId: string,
-    template: string
-  ): Promise<boolean>;
+  updateEventConfigTemplate(eventId: string, tenantId: string, template: string): Promise<boolean>;
 
-  updateDeliveryStatus(
-    guestId: string,
-    tenantId: string,
-    status: DeliveryStatus
-  ): Promise<boolean>;
+  updateDeliveryStatus(guestId: string, tenantId: string, status: DeliveryStatus): Promise<boolean>;
 
   logDeliveryFailure(log: DeliveryLogEntry): Promise<void>;
 }
@@ -89,11 +82,7 @@ export interface WhatsAppProvider {
 }
 
 export interface EmailProvider {
-  send(
-    email: string,
-    subject: string,
-    body: string
-  ): Promise<{ success: boolean; error?: string }>;
+  send(email: string, subject: string, body: string): Promise<{ success: boolean; error?: string }>;
 }
 
 // --- Invitation Delivery Service ---
@@ -103,17 +92,22 @@ export class InvitationDeliveryService {
   private readonly whatsappProvider: WhatsAppProvider;
   private readonly emailProvider: EmailProvider;
   private readonly invitationOrigin: string;
+  private readonly piiEncryption: PIIEncryption | null = null;
 
   constructor(config: {
     repository: InvitationDeliveryRepository;
     whatsappProvider: WhatsAppProvider;
     emailProvider: EmailProvider;
     invitationOrigin: string;
+    encryptionKey?: string;
   }) {
     this.repository = config.repository;
     this.whatsappProvider = config.whatsappProvider;
     this.emailProvider = config.emailProvider;
     this.invitationOrigin = config.invitationOrigin;
+    if (config.encryptionKey) {
+      this.piiEncryption = new PIIEncryption({ encryptionKey: config.encryptionKey });
+    }
   }
 
   // --- Contact Completeness Check ---
@@ -149,7 +143,11 @@ export class InvitationDeliveryService {
     return config?.invitation_message_template || DEFAULT_TEMPLATE;
   }
 
-  async updateMessageTemplate(eventId: string, tenantId: string, template: string): Promise<boolean> {
+  async updateMessageTemplate(
+    eventId: string,
+    tenantId: string,
+    template: string
+  ): Promise<boolean> {
     return this.repository.updateEventConfigTemplate(eventId, tenantId, template);
   }
 
@@ -167,6 +165,12 @@ export class InvitationDeliveryService {
         code: ErrorCode.NOT_FOUND,
         message: 'Tamu tidak ditemukan',
       };
+    }
+
+    if (guest.phone && this.piiEncryption) {
+      guest.phone = this.piiEncryption.isEncrypted(guest.phone)
+        ? this.piiEncryption.decrypt(guest.phone)
+        : guest.phone;
     }
 
     // Verify guest belongs to the event
@@ -222,12 +226,16 @@ export class InvitationDeliveryService {
         // Run mock provider for backward compatibility & test compliance
         result = await this.whatsappProvider.send(guest.phone!, compiledMessage);
       } else {
-        result = await this.emailProvider.send(guest.email!, 'Undangan Pernikahan', compiledMessage);
+        result = await this.emailProvider.send(
+          guest.email!,
+          'Undangan Pernikahan',
+          compiledMessage
+        );
       }
 
       if (result.success) {
         await this.repository.updateDeliveryStatus(guest.id, tenantId, DeliveryStatus.SENT);
-        
+
         const finalResult: SendInvitationResult = {
           guest_id: guest.id,
           channel: input.channel,
@@ -295,9 +303,7 @@ export class InvitationDeliveryService {
 
 // --- Type Guard ---
 
-export function isInvitationDeliveryError(
-  result: any
-): result is InvitationDeliveryError {
+export function isInvitationDeliveryError(result: any): result is InvitationDeliveryError {
   return (
     result &&
     typeof result === 'object' &&

@@ -27,6 +27,7 @@ import {
   getValidAccessToken,
   getStoredEventId,
   getStoredDeviceId,
+  deactivateDevice,
 } from '@/lib/auth';
 import { LoginScreen } from './login-screen';
 
@@ -136,9 +137,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [accessToken]);
 
   const handleLogout = useCallback(() => {
-    authLogout();
-    setUser(null);
-    setAccessToken(null);
+    const deviceId = getStoredDeviceId();
+    if (deviceId) {
+      deactivateDevice(deviceId).finally(() => {
+        authLogout();
+        setUser(null);
+        setAccessToken(null);
+      });
+    } else {
+      authLogout();
+      setUser(null);
+      setAccessToken(null);
+    }
     if (refreshTimerRef.current) {
       clearTimeout(refreshTimerRef.current);
     }
@@ -158,10 +168,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Show loading spinner while checking auth state
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="bg-cream flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-3 border-gray-300 border-t-emerald-600" />
-          <p className="text-sm text-gray-500">Memuat...</p>
+          <div className="border-charcoal/10 border-t-sage h-8 w-8 animate-spin rounded-full border-3" />
+          <p className="text-charcoal/60 text-sm">Memuat...</p>
         </div>
       </div>
     );

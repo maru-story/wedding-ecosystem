@@ -11,13 +11,7 @@ interface FadeInProps {
   className?: string;
 }
 
-export function FadeIn({
-  children,
-  delay = 0,
-  duration = 0.3,
-  y = 8,
-  className,
-}: FadeInProps) {
+export function FadeIn({ children, delay = 0, duration = 0.3, y = 8, className }: FadeInProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y }}

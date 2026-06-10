@@ -42,7 +42,10 @@ export class PrismaCMSRepository implements CMSRepository {
     return section ? this.toSectionRecord(section) : null;
   }
 
-  async findSectionByType(eventId: string, sectionType: SectionType): Promise<SectionRecord | null> {
+  async findSectionByType(
+    eventId: string,
+    sectionType: SectionType
+  ): Promise<SectionRecord | null> {
     const section = await this.prisma.invitationSection.findFirst({
       where: { event_id: eventId, section_type: sectionType },
     });
@@ -158,7 +161,10 @@ export class PrismaCMSRepository implements CMSRepository {
       section_type: section.section_type as SectionType,
       sort_order: section.sort_order,
       is_active: section.is_active,
-      content: typeof section.content === 'object' && section.content !== null ? (section.content as Record<string, unknown>) : {},
+      content:
+        typeof section.content === 'object' && section.content !== null
+          ? (section.content as Record<string, unknown>)
+          : {},
       updated_at: section.updated_at,
     };
   }

@@ -19,9 +19,7 @@ export function RsvpSection({ guestId, eventId, plusOneCount }: RsvpSectionProps
         <h2 className="font-heading text-2xl font-bold text-[var(--color-primary)]">
           Konfirmasi Kehadiran
         </h2>
-        <p className="mt-2 text-sm text-[var(--color-text)]/60">
-          Mohon konfirmasi kehadiran Anda
-        </p>
+        <p className="mt-2 text-sm text-[var(--color-text)]/60">Mohon konfirmasi kehadiran Anda</p>
       </div>
 
       <div className="rounded-xl border border-[var(--color-text)]/5 bg-[var(--color-background)] p-6 shadow-sm">

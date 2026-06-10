@@ -403,7 +403,6 @@ export const RESPONSE_CACHE_CONSTANTS = {
   TTL_GUEST_LIST: 60,
 } as const;
 
-
 // --- Exported Plugin ---
 
 /**

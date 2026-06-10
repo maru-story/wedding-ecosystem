@@ -81,7 +81,12 @@ describe('useRealtimeStats hook tests', () => {
     expect(mockSocket.on).toHaveBeenCalledWith('go_show_added', expect.any(Function));
     expect(mockSocket.on).toHaveBeenCalledWith('guest_checked_in', expect.any(Function));
 
-    expect(stats).toEqual({ total_guests: 10, total_rsvp: 5, total_checked_in: 3, total_go_show: 1 });
+    expect(stats).toEqual({
+      total_guests: 10,
+      total_rsvp: 5,
+      total_checked_in: 3,
+      total_go_show: 1,
+    });
     expect(rsvpList).toEqual([]);
   });
 
@@ -135,7 +140,7 @@ describe('useRealtimeStats hook tests', () => {
 
     // Test the updater callback logic
     const updater = mockQueryClient.setQueryData.mock.calls[0][1] as (old: any) => any;
-    
+
     // Case 1: Initial empty list
     const result1 = updater({ data: [] });
     expect(result1).toEqual({ data: [rsvpItem] });

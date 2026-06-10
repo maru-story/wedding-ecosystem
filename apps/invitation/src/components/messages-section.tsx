@@ -7,10 +7,7 @@ import { z } from 'zod';
 import { fetchMessages, submitMessage, type MessageData } from '@/lib/api';
 
 const messageSchema = z.object({
-  sender_name: z
-    .string()
-    .min(1, 'Nama tidak boleh kosong')
-    .max(100, 'Nama maksimal 100 karakter'),
+  sender_name: z.string().min(1, 'Nama tidak boleh kosong').max(100, 'Nama maksimal 100 karakter'),
   message_text: z
     .string()
     .min(1, 'Ucapan tidak boleh kosong')
@@ -39,7 +36,9 @@ export function MessagesSection({ eventId }: MessagesSectionProps) {
 // --- Message Form ---
 
 function MessageForm({ eventId }: { eventId: string }) {
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(
+    'idle'
+  );
   const [errorMessage, setErrorMessage] = useState('');
 
   const {
@@ -94,7 +93,7 @@ function MessageForm({ eventId }: { eventId: string }) {
           maxLength={100}
           placeholder="Masukkan nama Anda"
           {...register('sender_name')}
-          className="w-full rounded-lg border border-[var(--color-text)]/10 bg-[var(--color-background)] px-4 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text)]/40 outline-none transition-colors focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]"
+          className="w-full rounded-lg border border-[var(--color-text)]/10 bg-[var(--color-background)] px-4 py-2.5 text-sm text-[var(--color-text)] transition-colors outline-none placeholder:text-[var(--color-text)]/40 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]"
         />
         {errors.sender_name && (
           <p className="mt-1 text-xs text-red-600">{errors.sender_name.message}</p>
@@ -115,7 +114,7 @@ function MessageForm({ eventId }: { eventId: string }) {
           maxLength={500}
           placeholder="Tulis ucapan dan doa untuk kedua mempelai..."
           {...register('message_text')}
-          className="w-full resize-none rounded-lg border border-[var(--color-text)]/10 bg-[var(--color-background)] px-4 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text)]/40 outline-none transition-colors focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]"
+          className="w-full resize-none rounded-lg border border-[var(--color-text)]/10 bg-[var(--color-background)] px-4 py-2.5 text-sm text-[var(--color-text)] transition-colors outline-none placeholder:text-[var(--color-text)]/40 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]"
         />
         <div className="mt-1 flex items-center justify-between">
           {errors.message_text ? (
@@ -123,9 +122,7 @@ function MessageForm({ eventId }: { eventId: string }) {
           ) : (
             <span />
           )}
-          <span className="text-xs text-[var(--color-text)]/50">
-            {messageText.length}/500
-          </span>
+          <span className="text-xs text-[var(--color-text)]/50">{messageText.length}/500</span>
         </div>
       </div>
 
@@ -135,9 +132,7 @@ function MessageForm({ eventId }: { eventId: string }) {
       )}
 
       {/* Error message */}
-      {submitStatus === 'error' && (
-        <p className="text-sm text-red-600">{errorMessage}</p>
-      )}
+      {submitStatus === 'error' && <p className="text-sm text-red-600">{errorMessage}</p>}
 
       {/* Submit button */}
       <button
@@ -160,21 +155,24 @@ function MessagesList({ eventId }: { eventId: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const loadMessages = useCallback(async (pageNum: number) => {
-    setIsLoading(true);
-    setError('');
+  const loadMessages = useCallback(
+    async (pageNum: number) => {
+      setIsLoading(true);
+      setError('');
 
-    try {
-      const data = await fetchMessages(eventId, pageNum, 20);
-      setMessages(data.messages);
-      setTotalPages(data.total_pages);
-      setPage(pageNum);
-    } catch {
-      setError('Gagal memuat ucapan');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [eventId]);
+      try {
+        const data = await fetchMessages(eventId, pageNum, 20);
+        setMessages(data.messages);
+        setTotalPages(data.total_pages);
+        setPage(pageNum);
+      } catch {
+        setError('Gagal memuat ucapan');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [eventId]
+  );
 
   useEffect(() => {
     loadMessages(1);
@@ -182,18 +180,12 @@ function MessagesList({ eventId }: { eventId: string }) {
 
   if (isLoading && messages.length === 0) {
     return (
-      <div className="py-8 text-center text-sm text-[var(--color-text)]/50">
-        Memuat ucapan...
-      </div>
+      <div className="py-8 text-center text-sm text-[var(--color-text)]/50">Memuat ucapan...</div>
     );
   }
 
   if (error && messages.length === 0) {
-    return (
-      <div className="py-8 text-center text-sm text-red-600">
-        {error}
-      </div>
-    );
+    return <div className="py-8 text-center text-sm text-red-600">{error}</div>;
   }
 
   if (messages.length === 0) {
@@ -206,9 +198,7 @@ function MessagesList({ eventId }: { eventId: string }) {
 
   return (
     <div className="space-y-4">
-      <h4 className="text-sm font-medium text-[var(--color-text)]/70">
-        Ucapan dari Tamu
-      </h4>
+      <h4 className="text-sm font-medium text-[var(--color-text)]/70">Ucapan dari Tamu</h4>
 
       {/* Messages list */}
       <div className="space-y-3">
@@ -257,12 +247,8 @@ function MessageCard({ message }: { message: MessageData }) {
   return (
     <div className="rounded-lg border border-[var(--color-text)]/5 bg-[var(--color-background)] p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-medium text-[var(--color-primary)]">
-          {message.sender_name}
-        </p>
-        <time className="shrink-0 text-[10px] text-[var(--color-text)]/40">
-          {formattedDate}
-        </time>
+        <p className="text-sm font-medium text-[var(--color-primary)]">{message.sender_name}</p>
+        <time className="shrink-0 text-[10px] text-[var(--color-text)]/40">{formattedDate}</time>
       </div>
       <p className="mt-1.5 text-sm leading-relaxed text-[var(--color-text)]/80">
         {message.message_text}

@@ -18,7 +18,9 @@ function createTestToken(payload: {
   email: string;
   name?: string;
 }) {
-  return jwt.sign({ ...payload, name: payload.name || 'Test User' }, JWT_SECRET, { expiresIn: '15m' });
+  return jwt.sign({ ...payload, name: payload.name || 'Test User' }, JWT_SECRET, {
+    expiresIn: '15m',
+  });
 }
 
 describe('API Gateway Routing', () => {
@@ -50,7 +52,9 @@ describe('API Gateway Routing', () => {
     app.decorate('authenticate', async function (request: any, reply: any) {
       const authHeader = request.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        reply.status(401).send({ success: false, error: { code: 'AUTH_2002', message: 'Token diperlukan' } });
+        reply
+          .status(401)
+          .send({ success: false, error: { code: 'AUTH_2002', message: 'Token diperlukan' } });
         return;
       }
       const token = authHeader.slice(7);
@@ -64,7 +68,9 @@ describe('API Gateway Routing', () => {
           name: decoded.name || 'Test User',
         };
       } catch {
-        reply.status(401).send({ success: false, error: { code: 'AUTH_2003', message: 'Token tidak valid' } });
+        reply
+          .status(401)
+          .send({ success: false, error: { code: 'AUTH_2003', message: 'Token tidak valid' } });
       }
     });
 
@@ -72,13 +78,17 @@ describe('API Gateway Routing', () => {
     app.get('/health', async () => ({ status: 'ok' }));
 
     // Protected test route
-    app.get('/protected', {
-      onRequest: async (request, reply) => {
-        await (app as any).authenticate(request, reply);
+    app.get(
+      '/protected',
+      {
+        onRequest: async (request, reply) => {
+          await (app as any).authenticate(request, reply);
+        },
       },
-    }, async (request: any) => {
-      return { user: request.user };
-    });
+      async (request: any) => {
+        return { user: request.user };
+      }
+    );
 
     await app.ready();
   });

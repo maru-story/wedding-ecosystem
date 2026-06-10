@@ -11,7 +11,7 @@ import type {
 import type { PaginationInput } from '@wedding/shared';
 
 export class PrismaGuestRepository implements GuestRepository {
-  constructor(private readonly prisma: PrismaClient) { }
+  constructor(private readonly prisma: PrismaClient) {}
 
   async createGuest(data: {
     id: string;
@@ -155,7 +155,6 @@ export class PrismaGuestRepository implements GuestRepository {
       check_in_status: guest.check_ins.length > 0,
       qr_active: guest.qr_codes.length > 0,
     }));
-
 
     return {
       data,

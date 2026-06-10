@@ -3,7 +3,13 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import { PrismaClient } from '@wedding/db';
-import { loginSchema, RefreshTokenPayload, updateProfileSchema, changePasswordSchema, ErrorCode } from '@wedding/shared';
+import {
+  loginSchema,
+  RefreshTokenPayload,
+  updateProfileSchema,
+  changePasswordSchema,
+  ErrorCode,
+} from '@wedding/shared';
 import { validate } from '../middleware/validate';
 
 interface AuthRouteOptions extends FastifyPluginOptions {
@@ -26,9 +32,11 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
 
     const { email, password } = body;
 
-    // Find user by email (across all tenants for simplicity in dev)
+    // Find user by email or username (across all tenants for simplicity in dev)
     const user = await prisma.user.findFirst({
-      where: { email },
+      where: {
+        OR: [{ email }, { username: email }],
+      },
     });
 
     if (!user) {
@@ -64,11 +72,9 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
     };
 
     const access_token = jwt.sign(payload, jwtSecret, { expiresIn: ACCESS_TOKEN_EXPIRY });
-    const refresh_token = jwt.sign(
-      { sub: user.id, jti: randomUUID() },
-      refreshSecret,
-      { expiresIn: `${REFRESH_TOKEN_EXPIRY_DAYS}d` }
-    );
+    const refresh_token = jwt.sign({ sub: user.id, jti: randomUUID() }, refreshSecret, {
+      expiresIn: `${REFRESH_TOKEN_EXPIRY_DAYS}d`,
+    });
 
     return reply.send({
       user: {
@@ -129,11 +135,9 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
       };
 
       const access_token = jwt.sign(payload, jwtSecret, { expiresIn: ACCESS_TOKEN_EXPIRY });
-      const new_refresh_token = jwt.sign(
-        { sub: user.id, jti: randomUUID() },
-        refreshSecret,
-        { expiresIn: `${REFRESH_TOKEN_EXPIRY_DAYS}d` }
-      );
+      const new_refresh_token = jwt.sign({ sub: user.id, jti: randomUUID() }, refreshSecret, {
+        expiresIn: `${REFRESH_TOKEN_EXPIRY_DAYS}d`,
+      });
 
       return reply.send({
         access_token,
@@ -169,8 +173,31 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
       if (existing) {
         return reply.status(400).send({
           success: false,
-          error: { code: ErrorCode.ALREADY_EXISTS, message: 'Email sudah terdaftar untuk pengguna lain' },
+          error: {
+            code: ErrorCode.ALREADY_EXISTS,
+            message: 'Email sudah terdaftar untuk pengguna lain',
+          },
         });
+      }
+
+      // Ensure username is not already taken by another user
+      if (body.username) {
+        const existingUsername = await prisma.user.findFirst({
+          where: {
+            username: body.username,
+            id: { not: user.id },
+          },
+        });
+
+        if (existingUsername) {
+          return reply.status(400).send({
+            success: false,
+            error: {
+              code: ErrorCode.ALREADY_EXISTS,
+              message: 'Username sudah terdaftar untuk pengguna lain',
+            },
+          });
+        }
       }
 
       const updated = await prisma.user.update({
@@ -178,6 +205,7 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
         data: {
           name: body.name,
           email: body.email,
+          username: body.username || null,
         },
       });
 
@@ -189,6 +217,7 @@ export async function authRoutes(app: FastifyInstance, opts: AuthRouteOptions) {
           email: updated.email,
           role: updated.role,
           name: updated.name,
+          username: updated.username,
         },
       });
     });

@@ -34,8 +34,12 @@ function createMockReply(): FastifyReply & {
   };
 
   const reply = {
-    get statusCode() { return state.statusCode; },
-    get body() { return state.body; },
+    get statusCode() {
+      return state.statusCode;
+    },
+    get body() {
+      return state.body;
+    },
     status(code: number) {
       state.statusCode = code;
       return reply;

@@ -133,11 +133,7 @@ export function matchAutoLogRoute(
 /**
  * Fastify plugin that provides audit logging for sensitive operations.
  */
-const auditLoggerPlugin: FastifyPluginCallback<AuditLoggerOptions> = (
-  fastify,
-  opts,
-  done
-) => {
+const auditLoggerPlugin: FastifyPluginCallback<AuditLoggerOptions> = (fastify, opts, done) => {
   const autoLogRoutes = opts.autoLogRoutes ?? DEFAULT_AUTO_LOG_ROUTES;
   const prisma = opts.prisma;
 
@@ -149,18 +145,20 @@ const auditLoggerPlugin: FastifyPluginCallback<AuditLoggerOptions> = (
       request.log.info({ audit: entry }, `audit: ${action}`);
 
       if (prisma) {
-        prisma.auditLog.create({
-          data: {
-            timestamp: new Date(entry.timestamp),
-            user_id: entry.user_id,
-            tenant_id: entry.tenant_id,
-            action: entry.action,
-            request_id: entry.request_id,
-            metadata: (entry.metadata as Prisma.InputJsonValue) ?? Prisma.JsonNull,
-          },
-        }).catch((err: Error) => {
-          request.log.error({ err }, 'Gagal menyimpan log audit ke database');
-        });
+        prisma.auditLog
+          .create({
+            data: {
+              timestamp: new Date(entry.timestamp),
+              user_id: entry.user_id,
+              tenant_id: entry.tenant_id,
+              action: entry.action,
+              request_id: entry.request_id,
+              metadata: (entry.metadata as Prisma.InputJsonValue) ?? Prisma.JsonNull,
+            },
+          })
+          .catch((err: Error) => {
+            request.log.error({ err }, 'Gagal menyimpan log audit ke database');
+          });
       }
     }
   );

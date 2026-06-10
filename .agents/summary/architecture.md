@@ -77,13 +77,14 @@ graph TB
 **Domain coverage**: All core domains (Guest, Check-in, RSVP, CMS, Events, Admin) have been migrated to the full **Route → Service → Repository** stack. Direct Prisma calls from services are deprecated.
 
 **Request Lifecycle**:
+
 1.  **Bootstrap**: Plugins register global hooks (logger, rate-limit).
 2.  **Context**: `auth` plugin decorates request with `user` and `tenant_id`.
 3.  **Unified Auth**: The `AuthUser` interface in `@wedding/shared` is the single source of truth for user profile data (id, tenant_id, role, email, name).
 4.  **Entry**: Routes use `AuthenticatedRequest` to access type-safe user context.
-4.  **Enforcement**: Middleware applies RBAC and validates input against Zod schemas.
-5.  **Logic**: Services execute business rules without database awareness.
-6.  **Persistence**: Repositories interact with Prisma using explicit types (Zero-Cast policy).
+5.  **Enforcement**: Middleware applies RBAC and validates input against Zod schemas.
+6.  **Logic**: Services execute business rules without database awareness.
+7.  **Persistence**: Repositories interact with Prisma using explicit types (Zero-Cast policy).
 
 ### Frontend Architecture (per app)
 
@@ -229,12 +230,12 @@ graph TB
 
 ## Key Design Decisions
 
-| Decision | Rationale |
-|----------|-----------|
-| Single Redis instance (cache + pub/sub) | ≤500 guests, pub/sub traffic negligible |
-| Single API instance (no clustering) | 500 guests won't saturate single Fastify process |
-| No staging environment | Validation via Vercel previews + CI pipeline |
-| Room-based WebSocket | Data isolation per event without Redis adapter overhead |
-| Prisma over raw SQL | Type-safe queries, schema-first migrations |
-| Next.js App Router | RSC for invitation performance, shared layout patterns |
-| PWA for Scanner | Offline-first requirement for venue reliability |
+| Decision                                | Rationale                                               |
+| --------------------------------------- | ------------------------------------------------------- |
+| Single Redis instance (cache + pub/sub) | ≤500 guests, pub/sub traffic negligible                 |
+| Single API instance (no clustering)     | 500 guests won't saturate single Fastify process        |
+| No staging environment                  | Validation via Vercel previews + CI pipeline            |
+| Room-based WebSocket                    | Data isolation per event without Redis adapter overhead |
+| Prisma over raw SQL                     | Type-safe queries, schema-first migrations              |
+| Next.js App Router                      | RSC for invitation performance, shared layout patterns  |
+| PWA for Scanner                         | Offline-first requirement for venue reliability         |

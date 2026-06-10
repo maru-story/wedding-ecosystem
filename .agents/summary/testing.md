@@ -10,14 +10,14 @@
 
 ## Test Distribution
 
-| Package | Tests | Type |
-|---------|-------|------|
-| `@wedding/api` | ~924 + 14 E2E | Unit + Integration + Property-based + Playwright E2E |
-| `@wedding/shared` | ~63 | Unit + Property-based |
-| `@wedding/realtime` | ~87 | Unit + Integration + Property-based |
-| `@wedding/dashboard` | ~81 | Unit + Property-based |
-| `@wedding/invitation` | ~32 + 14 UI | Unit + Property-based + Playwright UI Smoke Tests |
-| `@wedding/scanner` | ~43 | Unit + Property-based |
+| Package               | Tests         | Type                                                 |
+| --------------------- | ------------- | ---------------------------------------------------- |
+| `@wedding/api`        | ~924 + 14 E2E | Unit + Integration + Property-based + Playwright E2E |
+| `@wedding/shared`     | ~63           | Unit + Property-based                                |
+| `@wedding/realtime`   | ~87           | Unit + Integration + Property-based                  |
+| `@wedding/dashboard`  | ~81           | Unit + Property-based                                |
+| `@wedding/invitation` | ~32 + 14 UI   | Unit + Property-based + Playwright UI Smoke Tests    |
+| `@wedding/scanner`    | ~43           | Unit + Property-based                                |
 
 ## Running Tests
 
@@ -144,10 +144,12 @@ import fc from 'fast-check';
 // Define arbitraries (random data generators)
 const arbGuestId = fc.uuid();
 const arbGuestGroup = fc.constantFrom(
-  GuestGroup.FAMILY, GuestGroup.FRIEND, GuestGroup.COLLEAGUE, GuestGroup.VIP
+  GuestGroup.FAMILY,
+  GuestGroup.FRIEND,
+  GuestGroup.COLLEAGUE,
+  GuestGroup.VIP
 );
-const arbGuestName = fc.string({ minLength: 1, maxLength: 50 })
-  .filter((s) => s.trim().length > 0);
+const arbGuestName = fc.string({ minLength: 1, maxLength: 50 }).filter((s) => s.trim().length > 0);
 
 // Property test
 it('should never create duplicate check-in records', () => {
@@ -208,7 +210,10 @@ function createMockReply() {
     statusCode: 200,
     sent: false,
     status: vi.fn().mockReturnThis(),
-    send: vi.fn().mockImplementation(() => { reply.sent = true; return reply; }),
+    send: vi.fn().mockImplementation(() => {
+      reply.sent = true;
+      return reply;
+    }),
     header: vi.fn().mockReturnThis(),
   };
   return reply;
@@ -230,25 +235,28 @@ function createClientSocket(port: number, token: string) {
 function waitForEvent(socket: Socket, event: string, timeout = 5000) {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('Timeout')), timeout);
-    socket.once(event, (data) => { clearTimeout(timer); resolve(data); });
+    socket.once(event, (data) => {
+      clearTimeout(timer);
+      resolve(data);
+    });
   });
 }
 ```
 
 ## Property-Based Test Coverage
 
-| Domain | Properties Verified |
-|--------|-------------------|
-| QR Validation | Encrypted payload always decryptable; invalid payloads always rejected; tampered payloads detected |
+| Domain               | Properties Verified                                                                                  |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| QR Validation        | Encrypted payload always decryptable; invalid payloads always rejected; tampered payloads detected   |
 | Check-in Idempotency | Multiple scans of same QR never create duplicate records; first returns VALID, rest return DUPLICATE |
-| RSVP Processing | Guest count never exceeds capacity; attendance type always valid; upsert is idempotent |
-| Tenant Isolation | Queries with wrong tenant_id always return empty/forbidden; cross-tenant data never leaks |
-| Offline Sync | All queued items eventually synced; server timestamp wins on conflict; no data loss |
-| Room Isolation | Events broadcast only to correct room; joining wrong room is rejected |
-| CMS Sort Order | Reordering always produces valid sequential sort_order; no gaps or duplicates |
-| Scanner Device | Max 2 devices enforced regardless of registration order; lane assignment is deterministic |
-| Go-Show | Go-show guests always get type=go_show and method=go_show; never assigned QR codes |
-| Invitation Delivery | Custom template compilation; delivery status tracking ('sent'); WhatsApp Web URL compilation |
+| RSVP Processing      | Guest count never exceeds capacity; attendance type always valid; upsert is idempotent               |
+| Tenant Isolation     | Queries with wrong tenant_id always return empty/forbidden; cross-tenant data never leaks            |
+| Offline Sync         | All queued items eventually synced; server timestamp wins on conflict; no data loss                  |
+| Room Isolation       | Events broadcast only to correct room; joining wrong room is rejected                                |
+| CMS Sort Order       | Reordering always produces valid sequential sort_order; no gaps or duplicates                        |
+| Scanner Device       | Max 2 devices enforced regardless of registration order; lane assignment is deterministic            |
+| Go-Show              | Go-show guests always get type=go_show and method=go_show; never assigned QR codes                   |
+| Invitation Delivery  | Custom template compilation; delivery status tracking ('sent'); WhatsApp Web URL compilation         |
 
 ## Integration Test Patterns
 
@@ -267,6 +275,7 @@ graph LR
 ```
 
 Tests verify that:
+
 - State changes propagate correctly across services
 - Real-time broadcasts fire with correct payloads
 - Stats are accurately recalculated after each operation
@@ -281,8 +290,8 @@ import { defineConfig, configDefaults } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    globals: false,        // Explicit imports (describe, it, expect)
-    environment: 'node',   // Node environment (backend packages)
+    globals: false, // Explicit imports (describe, it, expect)
+    environment: 'node', // Node environment (backend packages)
     exclude: [...configDefaults.exclude, 'tests/e2e/**/*'], // Exclude Playwright tests
     // environment: 'jsdom' // For frontend packages
   },
@@ -300,6 +309,7 @@ Playwright is configured under `apps/invitation/playwright.config.ts` for runnin
 ## E2E Testing Validation Rules
 
 Whenever a new feature is added or a new capability is introduced:
+
 1. **Mandatory E2E Check**: Write or update E2E tests under `packages/api/tests/e2e` to verify the user flows and backend integration. Run the suite sequentially:
    ```bash
    npm run test:e2e --workspace=packages/api

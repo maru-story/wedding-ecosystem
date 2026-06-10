@@ -3,23 +3,13 @@ import { ErrorCode } from '@wedding/shared';
 // --- Constants ---
 
 /** Allowed MIME types for image uploads (Req 5.4, 13.8) */
-export const ALLOWED_IMAGE_MIMES = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-] as const;
+export const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 
 /** Allowed MIME types for video uploads (Req 5.4, 13.8) */
-export const ALLOWED_VIDEO_MIMES = [
-  'video/mp4',
-  'video/webm',
-] as const;
+export const ALLOWED_VIDEO_MIMES = ['video/mp4', 'video/webm'] as const;
 
 /** Allowed MIME types for audio uploads */
-export const ALLOWED_AUDIO_MIMES = [
-  'audio/mpeg',
-  'audio/mp3',
-] as const;
+export const ALLOWED_AUDIO_MIMES = ['audio/mpeg', 'audio/mp3'] as const;
 
 /** All allowed MIME types */
 export const ALLOWED_MIMES = [
@@ -157,10 +147,7 @@ export class MediaUploadService {
   private readonly virusScanner: VirusScanner;
   private readonly cloudStorage: CloudStorage;
 
-  constructor(config: {
-    virusScanner?: VirusScanner;
-    cloudStorage: CloudStorage;
-  }) {
+  constructor(config: { virusScanner?: VirusScanner; cloudStorage: CloudStorage }) {
     this.virusScanner = config.virusScanner ?? new NoOpVirusScanner();
     this.cloudStorage = config.cloudStorage;
   }
@@ -241,7 +228,14 @@ export class MediaUploadService {
     const extension = this.getFileExtension(file.originalname);
     const expectedMime = EXTENSION_MIME_MAP[extension];
 
-    if (!expectedMime || (expectedMime !== file.mimetype && !(extension === '.mp3' && (file.mimetype === 'audio/mpeg' || file.mimetype === 'audio/mp3')))) {
+    if (
+      !expectedMime ||
+      (expectedMime !== file.mimetype &&
+        !(
+          extension === '.mp3' &&
+          (file.mimetype === 'audio/mpeg' || file.mimetype === 'audio/mp3')
+        ))
+    ) {
       return {
         code: ErrorCode.INVALID_FILE_FORMAT,
         message: `Ekstensi file tidak sesuai dengan tipe file. Format yang didukung: JPEG, PNG, WebP (gambar), MP4, WebM (video), dan MP3 (audio).`,

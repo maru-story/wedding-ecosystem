@@ -24,10 +24,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="id"
-      className={cn(playfairDisplay.variable, poppins.variable, 'font-sans')}
-    >
+    <html lang="id" className={cn(playfairDisplay.variable, poppins.variable, 'font-sans')}>
       <body className="font-body antialiased">
         <Providers>{children}</Providers>
       </body>

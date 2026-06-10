@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchEvents, registerDevice, storeEventId, type EventInfo, AuthError } from '@/lib/auth';
 import { useAuth } from './auth-provider';
 
@@ -23,22 +23,18 @@ export function EventSelector({ onEventSelected, initialEventId }: EventSelector
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchInProgressRef = useRef(false);
+
   const loadEvents = useCallback(async () => {
+    if (fetchInProgressRef.current) return;
+    fetchInProgressRef.current = true;
+
     setIsLoading(true);
     setError(null);
 
     try {
       const data = await fetchEvents();
       setEvents(data);
-
-      // If there's a stored event ID and it's in the list, auto-select it
-      if (initialEventId) {
-        const found = data.find((e) => e.id === initialEventId);
-        if (found && found.status === 'published') {
-          await handleSelectEvent(found.id);
-          return;
-        }
-      }
     } catch (err) {
       if (err instanceof AuthError && err.code === 'AUTH_EXPIRED') {
         logout();
@@ -47,8 +43,9 @@ export function EventSelector({ onEventSelected, initialEventId }: EventSelector
       setError(err instanceof Error ? err.message : 'Gagal memuat daftar event.');
     } finally {
       setIsLoading(false);
+      fetchInProgressRef.current = false;
     }
-  }, [initialEventId, logout]);
+  }, [logout]);
 
   useEffect(() => {
     loadEvents();
@@ -121,9 +118,12 @@ export function EventSelector({ onEventSelected, initialEventId }: EventSelector
 
       {/* Error */}
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-          <p className="text-sm text-red-700">{error}</p>
-          <button onClick={loadEvents} className="mt-2 text-xs font-medium text-red-600 underline">
+        <div className="border-danger/20 bg-danger/10 mb-4 rounded-lg border px-4 py-3">
+          <p className="text-danger text-sm">{error}</p>
+          <button
+            onClick={loadEvents}
+            className="text-danger mt-2 text-xs font-medium hover:underline"
+          >
             Coba lagi
           </button>
         </div>
@@ -131,18 +131,18 @@ export function EventSelector({ onEventSelected, initialEventId }: EventSelector
 
       {/* Registering overlay */}
       {isRegistering && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-emerald-700" />
-          <p className="text-sm text-emerald-700">Mendaftarkan device...</p>
+        <div className="border-sage/20 bg-sage/10 mb-4 flex items-center gap-2 rounded-lg border px-4 py-3">
+          <div className="border-sage/40 border-t-sage h-4 w-4 animate-spin rounded-full border-2" />
+          <p className="text-sage text-sm">Mendaftarkan device...</p>
         </div>
       )}
 
       {/* Event list */}
       {events.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center text-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+          <div className="bg-sage/10 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
             <svg
-              className="h-6 w-6 text-gray-400"
+              className="text-charcoal/40 h-6 w-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -156,8 +156,8 @@ export function EventSelector({ onEventSelected, initialEventId }: EventSelector
               />
             </svg>
           </div>
-          <p className="text-sm text-gray-500">Belum ada event yang tersedia.</p>
-          <p className="mt-1 text-xs text-gray-400">Hubungi admin untuk menambahkan event.</p>
+          <p className="text-charcoal/60 text-sm">Belum ada event yang tersedia.</p>
+          <p className="text-charcoal/40 mt-1 text-xs">Hubungi admin untuk menambahkan event.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -168,19 +168,35 @@ export function EventSelector({ onEventSelected, initialEventId }: EventSelector
                 key={event.id}
                 onClick={() => handleSelectEvent(event.id)}
                 disabled={isRegistering}
-                className="w-full rounded-xl border border-gray-200 bg-white p-4 text-left transition-all hover:border-emerald-300 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-50"
+                className="border-border/40 bg-card hover:border-sage focus:ring-sage/20 w-full rounded-xl border p-4 text-left transition-all hover:shadow-sm focus:ring-2 focus:outline-none disabled:opacity-50"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="text-charcoal font-semibold">
                       {event.bride_name} & {event.groom_name}
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500">{formatDate(event.event_date)}</p>
-                    <p className="mt-0.5 text-xs text-gray-400">{event.venue_name}</p>
+                    <p className="text-charcoal/60 mt-1 text-sm">{formatDate(event.event_date)}</p>
+                    <p className="text-charcoal/40 mt-0.5 text-xs">{event.venue_name}</p>
+
+                    {/* Event Stats Badges */}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span className="bg-cream text-charcoal/70 border-border/20 inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium">
+                        👥 {event._count?.guests || 0} Tamu
+                      </span>
+                      <span
+                        className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${
+                          (event.scanner_devices?.length || 0) >= 2
+                            ? 'bg-danger/10 text-danger border-danger/20'
+                            : 'bg-sage/10 text-sage border-sage/20'
+                        }`}
+                      >
+                        📷 Scanner: {event.scanner_devices?.length || 0}/2
+                      </span>
+                    </div>
                   </div>
-                  <div className="ml-3 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50">
+                  <div className="bg-sage/10 ml-3 flex h-8 w-8 items-center justify-center rounded-full">
                     <svg
-                      className="h-4 w-4 text-emerald-600"
+                      className="text-sage h-4 w-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -204,13 +220,13 @@ export function EventSelector({ onEventSelected, initialEventId }: EventSelector
             .map((event) => (
               <div
                 key={event.id}
-                className="w-full rounded-xl border border-gray-100 bg-gray-50 p-4 opacity-60"
+                className="border-border/20 bg-cream/40 w-full rounded-xl border p-4 opacity-60"
               >
-                <h3 className="font-semibold text-gray-600">
+                <h3 className="text-charcoal/60 font-semibold">
                   {event.bride_name} & {event.groom_name}
                 </h3>
-                <p className="mt-1 text-sm text-gray-400">{formatDate(event.event_date)}</p>
-                <span className="mt-2 inline-block rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-500">
+                <p className="text-charcoal/40 mt-1 text-sm">{formatDate(event.event_date)}</p>
+                <span className="bg-charcoal/10 text-charcoal/60 mt-2 inline-block rounded-full px-2 py-0.5 text-xs">
                   {event.status === 'draft' ? 'Draft' : 'Selesai'}
                 </span>
               </div>

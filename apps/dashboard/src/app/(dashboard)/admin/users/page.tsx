@@ -25,12 +25,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Users, 
-  Search, 
-  RefreshCw, 
-  KeyRound, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Users,
+  Search,
+  RefreshCw,
+  KeyRound,
   Calendar,
   Lock,
   Mail,
@@ -38,7 +44,8 @@ import {
   Clipboard,
   Check,
   Building,
-  Plus
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -47,6 +54,7 @@ interface UserRecord {
   tenant_id: string;
   tenant_name: string | null;
   email: string;
+  username: string | null;
   role: UserRole;
   name: string;
   is_active: boolean;
@@ -63,11 +71,13 @@ interface PaginatedUsers {
   };
 }
 
-import { useAdminUsers, useResetUserPassword } from '@/hooks/queries';
+import { useAdminUsers, useResetUserPassword, useDeleteUser } from '@/hooks/queries';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { UserTable } from './components/user-table';
+import { UserFilters } from './components/user-filters';
 
 export default function AdminUsersPage() {
   const tableState = useTableState<UserRecord>({
@@ -97,6 +107,9 @@ export default function AdminUsersPage() {
 
   // Mutation
   const resetUserPasswordMutation = useResetUserPassword();
+  const deleteUserMutation = useDeleteUser();
+
+  const [userToDelete, setUserToDelete] = useState<UserRecord | null>(null);
 
   // Auth User context
   const { user: currentUser } = useAuth();
@@ -104,10 +117,13 @@ export default function AdminUsersPage() {
   // Toggle user active status
   const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
     try {
-      const response = await apiFetch<{ success: boolean; data: any }>(`/admin/users/${userId}/status`, {
-        method: 'PATCH',
-        body: { is_active: !currentStatus },
-      });
+      const response = await apiFetch<{ success: boolean; data: any }>(
+        `/admin/users/${userId}/status`,
+        {
+          method: 'PATCH',
+          body: { is_active: !currentStatus },
+        }
+      );
       if (response.success) {
         toast.success('Status pengguna berhasil diperbarui');
         refetch();
@@ -115,6 +131,32 @@ export default function AdminUsersPage() {
     } catch (err) {
       toast.error('Gagal memperbarui status pengguna');
     }
+  };
+
+  // Delete user
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    if (userToDelete.role === UserRole.ADMIN) {
+      toast.error('Pengguna dengan peran Administrator tidak dapat dihapus');
+      setUserToDelete(null);
+      return;
+    }
+    deleteUserMutation.mutate(userToDelete.id, {
+      onSuccess: (response) => {
+        if (response.success) {
+          toast.success(`Pengguna ${userToDelete.name} berhasil dihapus`);
+          setUserToDelete(null);
+        }
+      },
+      onError: (err) => {
+        if (err instanceof ApiError) {
+          const errData = err.data as { error?: { message?: string } };
+          toast.error(errData.error?.message || 'Gagal menghapus pengguna');
+        } else {
+          toast.error('Gagal terhubung ke server');
+        }
+      },
+    });
   };
 
   // Add Admin Dialog state & handlers
@@ -240,7 +282,8 @@ export default function AdminUsersPage() {
     (u: UserRecord) =>
       u.name.toLowerCase().includes(tableState.debouncedSearchQuery.toLowerCase()) ||
       u.email.toLowerCase().includes(tableState.debouncedSearchQuery.toLowerCase()) ||
-      (u.tenant_name && u.tenant_name.toLowerCase().includes(tableState.debouncedSearchQuery.toLowerCase()))
+      (u.tenant_name &&
+        u.tenant_name.toLowerCase().includes(tableState.debouncedSearchQuery.toLowerCase()))
   );
 
   return (
@@ -248,11 +291,12 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="font-heading text-foreground text-3xl font-bold tracking-tight">
             Manajemen Pengguna
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Kelola semua akun pengguna di dalam sistem dan atur ulang kredensial akses jika diperlukan.
+          <p className="text-muted-foreground mt-1 text-sm">
+            Kelola semua akun pengguna di dalam sistem dan atur ulang kredensial akses jika
+            diperlukan.
           </p>
         </div>
         <div className="flex gap-2">
@@ -262,7 +306,9 @@ export default function AdminUsersPage() {
             variant="outline"
             className="flex items-center gap-2 self-start"
           >
-            <RefreshCw className={`h-4 w-4 text-muted-foreground ${isFetching ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`text-muted-foreground h-4 w-4 ${isFetching ? 'animate-spin' : ''}`}
+            />
             Perbarui
           </Button>
           <Button
@@ -275,45 +321,21 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Filters and Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card p-4 rounded-xl shadow-sm border border-border/40">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Cari nama, email, atau tenant..."
-            value={tableState.searchQuery}
-            onChange={(e) => tableState.setSearchQuery(e.target.value)}
-            className="pl-9 rounded-lg border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 transition-colors"
-          />
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground shrink-0">Peran:</span>
-          <Select 
-            value={roleFilter} 
-            onValueChange={(val) => {
-              setRoleFilter(val as UserRole | 'ALL');
-              tableState.resetPage();
-            }}
-          >
-            <SelectTrigger className="w-[180px] rounded-lg border-border/60">
-              <SelectValue placeholder="Semua Peran" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Semua Peran</SelectItem>
-              <SelectItem value={UserRole.ADMIN}>Administrator</SelectItem>
-              <SelectItem value={UserRole.CLIENT}>Client (Pemilik)</SelectItem>
-              <SelectItem value={UserRole.WO}>Wedding Organizer</SelectItem>
-              <SelectItem value={UserRole.SCANNER}>Operator Scanner</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      {/* User Filters */}
+      <UserFilters
+        searchQuery={tableState.searchQuery}
+        onSearchChange={tableState.setSearchQuery}
+        roleFilter={roleFilter}
+        onRoleChange={(val) => {
+          setRoleFilter(val);
+          tableState.resetPage();
+        }}
+      />
 
       {/* Error Alert */}
       {errorMessage && (
         <div
-          className="rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-in fade-in duration-200"
+          className="border-destructive/20 bg-destructive/10 text-destructive animate-in fade-in flex flex-col gap-3 rounded-xl border p-4 text-sm duration-200 sm:flex-row sm:items-center sm:justify-between"
           role="alert"
         >
           <span>{errorMessage}</span>
@@ -323,138 +345,31 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* Users Table using DataTable */}
-      <DataTable
-        isLoading={isLoading}
-        loadingText="Memuat data pengguna..."
-        isEmpty={filteredUsers.length === 0}
-        emptyTitle="Tidak ada pengguna ditemukan"
-        emptyDescription="Coba sesuaikan kata kunci pencarian atau filter peran Anda."
-        emptyIcon={<Users className="mx-auto h-12 w-12 text-muted-foreground/30 mb-3" />}
-        header={
-          <>
-            <TableHead className="py-4 px-6 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Nama Pengguna
-            </TableHead>
-            <TableHead className="py-4 px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Peran
-            </TableHead>
-            <TableHead className="py-4 px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Tenant Asosiasi
-            </TableHead>
-            <TableHead className="py-4 px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Tanggal Terdaftar
-            </TableHead>
-            <TableHead className="py-4 px-6 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">
-              Tindakan
-            </TableHead>
-          </>
-        }
+      {/* Users Table */}
+      <UserTable
+        users={filteredUsers}
         pagination={pagination}
+        isLoading={isLoading}
         onPageChange={tableState.setPage}
         onPerPageChange={tableState.setPerPage}
-        paginationText={(p) => (
-          <>
-            Menampilkan <span className="font-medium text-foreground">{(p.page - 1) * p.per_page + 1}</span>–
-            <span className="font-medium text-foreground">{Math.min(p.page * p.per_page, p.total)}</span> dari{' '}
-            <span className="font-medium text-foreground">{p.total}</span> pengguna
-          </>
-        )}
-      >
-        {filteredUsers.map((user) => (
-          <TableRow key={user.id} className="border-b border-border/40 hover:bg-muted/20">
-            <TableCell className="py-4 px-6">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className={`font-medium ${user.is_active ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
-                    {user.name}
-                  </span>
-                  {!user.is_active && (
-                    <Badge variant="destructive" className="text-[10px] py-0 px-1.5 shadow-none border hover:bg-destructive font-semibold">
-                      Ditangguhkan
-                    </Badge>
-                  )}
-                </div>
-                <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                  <Mail className="h-3 w-3 text-muted-foreground" />
-                  {user.email}
-                </span>
-              </div>
-            </TableCell>
-            <TableCell className="py-4 px-3">
-              {user.role === UserRole.ADMIN ? (
-                <Badge className="bg-red-50 text-red-700 border-red-100 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50 font-medium hover:opacity-90 shadow-none">
-                  Super Admin
-                </Badge>
-              ) : user.role === UserRole.CLIENT ? (
-                <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/50 font-medium hover:opacity-90 shadow-none">
-                  Client
-                </Badge>
-              ) : user.role === UserRole.WO ? (
-                <Badge className="bg-teal-50 text-teal-700 border-teal-100 dark:bg-teal-950/30 dark:text-teal-400 dark:border-teal-900/50 font-medium hover:opacity-90 shadow-none">
-                  Wedding Organizer
-                </Badge>
-              ) : (
-                <Badge className="bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50 font-medium hover:opacity-90 shadow-none">
-                  Scanner Operator
-                </Badge>
-              )}
-            </TableCell>
-            <TableCell className="py-4 px-3 text-foreground text-sm">
-              {user.tenant_name ? (
-                <div className="flex items-center gap-1.5 font-medium text-foreground">
-                   <Building className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span>{user.tenant_name}</span>
-                </div>
-              ) : (
-                <span className="text-xs italic text-muted-foreground font-medium">Layanan Platform (Global)</span>
-              )}
-            </TableCell>
-            <TableCell className="py-4 px-3 text-muted-foreground text-sm">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                <span>{formatDate(user.created_at)}</span>
-              </div>
-            </TableCell>
-            <TableCell className="py-4 px-6">
-              <div className="flex items-center justify-end gap-4">
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs font-semibold ${user.is_active ? 'text-success' : 'text-muted-foreground'}`}>
-                    {user.is_active ? 'Aktif' : 'Nonaktif'}
-                  </span>
-                  <Switch
-                    checked={user.is_active}
-                    onCheckedChange={() => handleToggleUserStatus(user.id, user.is_active)}
-                    disabled={user.id === currentUser?.id}
-                    aria-label="Toggle status keaktifan user"
-                  />
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setResetUser(user)}
-                  className="flex items-center gap-1.5 text-xs hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all font-medium h-8"
-                >
-                  <KeyRound className="h-3.5 w-3.5" />
-                  Reset Password
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </DataTable>
+        onToggleStatus={handleToggleUserStatus}
+        onResetPassword={(user) => setResetUser(user)}
+        onDelete={(user) => setUserToDelete(user)}
+        currentUser={currentUser}
+      />
 
       {/* Add Admin Dialog */}
       <Dialog open={isAddAdminOpen} onOpenChange={setIsAddAdminOpen}>
-        <DialogContent className="max-w-md rounded-2xl p-6 border-border/40 bg-card shadow-xl">
+        <DialogContent className="border-border/40 bg-card max-w-md rounded-2xl p-6 shadow-xl">
           <form onSubmit={handleCreateAdmin}>
             <DialogHeader className="mb-6">
-              <DialogTitle className="text-2xl font-bold flex items-center gap-2 text-foreground">
-                <Plus className="h-6 w-6 text-primary" />
+              <DialogTitle className="text-foreground flex items-center gap-2 text-2xl font-bold">
+                <Plus className="text-primary h-6 w-6" />
                 Tambah Administrator Baru
               </DialogTitle>
               <DialogDescription className="text-muted-foreground">
-                Buat akun administrator platform baru. Administrator memiliki akses penuh ke seluruh tenant.
+                Buat akun administrator platform baru. Administrator memiliki akses penuh ke seluruh
+                tenant.
               </DialogDescription>
             </DialogHeader>
 
@@ -464,10 +379,10 @@ export default function AdminUsersPage() {
                 <Input
                   id="admin_name"
                   value={newAdmin.name}
-                  onChange={(e) => setNewAdmin(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) => setNewAdmin((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="Masukkan nama lengkap"
                   required
-                  className="rounded-lg border-border/60 focus-visible:ring-primary/20 bg-background"
+                  className="border-border/60 focus-visible:ring-primary/20 bg-background rounded-lg"
                 />
               </div>
 
@@ -477,10 +392,10 @@ export default function AdminUsersPage() {
                   id="admin_email"
                   type="email"
                   value={newAdmin.email}
-                  onChange={(e) => setNewAdmin(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) => setNewAdmin((prev) => ({ ...prev, email: e.target.value }))}
                   placeholder="admin@platform.com"
                   required
-                  className="rounded-lg border-border/60 focus-visible:ring-primary/20 bg-background"
+                  className="border-border/60 focus-visible:ring-primary/20 bg-background rounded-lg"
                 />
               </div>
 
@@ -490,16 +405,21 @@ export default function AdminUsersPage() {
                   id="admin_password"
                   type="password"
                   value={newAdmin.password}
-                  onChange={(e) => setNewAdmin(prev => ({ ...prev, password: e.target.value }))}
+                  onChange={(e) => setNewAdmin((prev) => ({ ...prev, password: e.target.value }))}
                   placeholder="Minimal 8 karakter"
                   required
-                  className="rounded-lg border-border/60 focus-visible:ring-primary/20 bg-background"
+                  className="border-border/60 focus-visible:ring-primary/20 bg-background rounded-lg"
                 />
               </div>
             </div>
 
             <DialogFooter className="mt-6 gap-2 sm:gap-0">
-              <Button type="button" variant="outline" className="rounded-lg" onClick={() => setIsAddAdminOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-lg"
+                onClick={() => setIsAddAdminOpen(false)}
+              >
                 Batal
               </Button>
               <Button type="submit" disabled={isCreatingAdmin} className="rounded-lg">
@@ -512,11 +432,11 @@ export default function AdminUsersPage() {
 
       {/* Reset Password Dialog */}
       <Dialog open={resetUser !== null} onOpenChange={(open) => !open && setResetUser(null)}>
-        <DialogContent className="max-w-md rounded-2xl p-6 border-border/40 bg-card shadow-xl">
+        <DialogContent className="border-border/40 bg-card max-w-md rounded-2xl p-6 shadow-xl">
           {resetUser && (
             <form onSubmit={handleResetPassword}>
               <DialogHeader className="mb-5">
-                <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
+                <DialogTitle className="text-foreground flex items-center gap-2 text-xl font-bold">
                   <KeyRound className="h-5 w-5 text-red-500" />
                   Atur Ulang Password
                 </DialogTitle>
@@ -526,18 +446,18 @@ export default function AdminUsersPage() {
               </DialogHeader>
 
               {/* User info display */}
-              <div className="bg-muted/30 border border-border/40 rounded-xl p-4 mb-5 space-y-2">
+              <div className="bg-muted/30 border-border/40 mb-5 space-y-2 rounded-xl border p-4">
                 <div className="flex justify-between text-xs">
-                  <span className="font-semibold text-muted-foreground">Nama Pengguna:</span>
-                  <span className="font-bold text-foreground">{resetUser.name}</span>
+                  <span className="text-muted-foreground font-semibold">Nama Pengguna:</span>
+                  <span className="text-foreground font-bold">{resetUser.name}</span>
                 </div>
-                <div className="flex justify-between text-xs border-t border-border/40 pt-2">
-                  <span className="font-semibold text-muted-foreground">Email Login:</span>
-                  <span className="font-bold text-foreground">{resetUser.email}</span>
+                <div className="border-border/40 flex justify-between border-t pt-2 text-xs">
+                  <span className="text-muted-foreground font-semibold">Email Login:</span>
+                  <span className="text-foreground font-bold">{resetUser.email}</span>
                 </div>
-                <div className="flex justify-between text-xs border-t border-border/40 pt-2">
-                  <span className="font-semibold text-muted-foreground">Tenant:</span>
-                  <span className="font-bold text-foreground">
+                <div className="border-border/40 flex justify-between border-t pt-2 text-xs">
+                  <span className="text-muted-foreground font-semibold">Tenant:</span>
+                  <span className="text-foreground font-bold">
                     {resetUser.tenant_name || 'Layanan Platform (Global)'}
                   </span>
                 </div>
@@ -545,12 +465,15 @@ export default function AdminUsersPage() {
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="reset_password" className="text-xs font-bold text-muted-foreground">
+                  <Label
+                    htmlFor="reset_password"
+                    className="text-muted-foreground text-xs font-bold"
+                  >
                     Password Baru
                   </Label>
                   <div className="relative flex gap-2">
                     <div className="relative flex-1">
-                      <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Lock className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
                       <Input
                         id="reset_password"
                         type="text"
@@ -558,18 +481,18 @@ export default function AdminUsersPage() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         required
-                        className="pl-9 rounded-lg border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 transition-colors"
+                        className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
                       />
                     </div>
-                    
+
                     <Button
                       type="button"
                       onClick={generatePassword}
                       variant="outline"
                       title="Buat Password Kuat"
-                      className="px-3 border-border rounded-lg shrink-0 flex items-center justify-center hover:bg-muted"
+                      className="border-border hover:bg-muted flex shrink-0 items-center justify-center rounded-lg px-3"
                     >
-                      <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                      <Sparkles className="text-primary h-4 w-4 animate-pulse" />
                     </Button>
 
                     {newPassword.length >= 8 && (
@@ -578,23 +501,23 @@ export default function AdminUsersPage() {
                         onClick={copyToClipboard}
                         variant="outline"
                         title="Salin Password"
-                        className="px-3 border-border rounded-lg shrink-0 flex items-center justify-center hover:bg-muted"
+                        className="border-border hover:bg-muted flex shrink-0 items-center justify-center rounded-lg px-3"
                       >
                         {copied ? (
-                          <Check className="h-4 w-4 text-success animate-scale-up" />
+                          <Check className="text-success animate-scale-up h-4 w-4" />
                         ) : (
-                          <Clipboard className="h-4 w-4 text-muted-foreground" />
+                          <Clipboard className="text-muted-foreground h-4 w-4" />
                         )}
                       </Button>
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground italic">
+                  <p className="text-muted-foreground text-[11px] italic">
                     Gunakan tombol bintang untuk menghasilkan password aman secara acak.
                   </p>
                 </div>
               </div>
 
-              <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-2 border-t border-border/40 pt-4">
+              <DialogFooter className="border-border/40 mt-6 flex flex-col gap-2 border-t pt-4 sm:flex-row">
                 <Button
                   type="button"
                   variant="outline"
@@ -608,13 +531,50 @@ export default function AdminUsersPage() {
                 <Button
                   type="submit"
                   disabled={resetUserPasswordMutation.isPending || newPassword.length < 8}
-                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                  className="flex items-center justify-center gap-1.5 rounded-lg bg-red-600 text-white transition-colors hover:bg-red-700"
                 >
                   {resetUserPasswordMutation.isPending ? 'Memperbarui...' : 'Simpan Sandi Baru'}
                 </Button>
               </DialogFooter>
             </form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+        <DialogContent className="border-border/40 bg-card max-w-md rounded-2xl p-6 shadow-xl">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-destructive animate-in fade-in flex items-center gap-2 text-xl font-bold duration-200">
+              <Trash2 className="h-5 w-5" />
+              Hapus Pengguna
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Apakah Anda yakin ingin menghapus pengguna <strong>{userToDelete?.name}</strong>?
+              Tindakan ini tidak dapat dibatalkan dan akan menghapus akses mereka secara permanen
+              dari sistem.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="border-border/40 mt-6 flex flex-col gap-2 border-t pt-4 sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setUserToDelete(null)}
+              disabled={deleteUserMutation.isPending}
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteUser}
+              disabled={deleteUserMutation.isPending}
+              className="flex items-center justify-center gap-1.5"
+            >
+              {deleteUserMutation.isPending ? 'Menghapus...' : 'Hapus Permanen'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -118,7 +118,7 @@ export function createMediaUploadHandler(config: MediaUploadConfig) {
     reply: FastifyReply
   ): Promise<void> => {
     const req = request as MediaUploadRequest;
-    
+
     // Extract tenant context from authenticated request
     const user = req.user;
     if (!user?.tenant_id) {

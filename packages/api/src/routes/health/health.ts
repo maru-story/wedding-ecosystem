@@ -78,8 +78,10 @@ function checkWebSocket(getRealtimeServer: () => RealtimeServer | null): Depende
 function determineOverallStatus(
   dependencies: HealthCheckResponse['dependencies']
 ): HealthCheckResponse['status'] {
-  const criticalDown = dependencies.postgresql.status === 'down' || dependencies.websocket.status === 'down';
-  const nonCriticalDown = dependencies.redis_cache.status === 'down' || dependencies.redis_pubsub.status === 'down';
+  const criticalDown =
+    dependencies.postgresql.status === 'down' || dependencies.websocket.status === 'down';
+  const nonCriticalDown =
+    dependencies.redis_cache.status === 'down' || dependencies.redis_pubsub.status === 'down';
 
   if (criticalDown) return 'unhealthy';
   if (nonCriticalDown) return 'degraded';
@@ -101,7 +103,7 @@ export async function healthRoutes(app: FastifyInstance, opts: HealthRouteOption
         Promise.all([
           checkPostgresql(prisma),
           checkRedis(getCacheClient),
-          checkRedis(getPubSubClient)
+          checkRedis(getPubSubClient),
         ]),
         timeoutPromise,
       ]);
