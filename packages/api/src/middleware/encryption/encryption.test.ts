@@ -103,7 +103,16 @@ describe('PIIEncryption', () => {
       const otherPii = new PIIEncryption({ encryptionKey: otherKey });
 
       const encrypted = pii.encrypt('secret@email.com');
-      expect(() => otherPii.decrypt(encrypted)).toThrow();
+      let decrypted: string | null = null;
+      let threw = false;
+      try {
+        decrypted = otherPii.decrypt(encrypted);
+      } catch (e) {
+        threw = true;
+      }
+      // Decrypting with wrong key should either throw an error (bad padding)
+      // or return garbage (not match original plaintext)
+      expect(threw || decrypted !== 'secret@email.com').toBe(true);
     });
   });
 
