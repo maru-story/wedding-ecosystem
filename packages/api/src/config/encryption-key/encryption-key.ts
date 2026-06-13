@@ -64,7 +64,10 @@ export const ENCRYPTION_KEY_ENV_VAR = 'ENCRYPTION_KEY_AES256';
  * @returns Validated encryption key configuration
  */
 export function loadEncryptionKey(): EncryptionKeyConfig {
-  const rawKey = process.env[ENCRYPTION_KEY_ENV_VAR];
+  const rawKey =
+    process.env.ENCRYPTION_KEY_AES256 ||
+    process.env.AES_ENCRYPTION_KEY ||
+    process.env.ENCRYPTION_KEY;
 
   const result = encryptionKeySchema.safeParse(rawKey);
 
@@ -90,7 +93,10 @@ export function loadEncryptionKey(): EncryptionKeyConfig {
  * @returns true if the key is present and valid, false otherwise
  */
 export function validateEncryptionKeyAvailable(): boolean {
-  const rawKey = process.env[ENCRYPTION_KEY_ENV_VAR];
+  const rawKey =
+    process.env.ENCRYPTION_KEY_AES256 ||
+    process.env.AES_ENCRYPTION_KEY ||
+    process.env.ENCRYPTION_KEY;
   const result = encryptionKeySchema.safeParse(rawKey);
   return result.success;
 }

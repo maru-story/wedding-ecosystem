@@ -108,7 +108,10 @@ export function validateEnv(): EnvConfig {
     R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
     R2_BUCKET_NAME: process.env.R2_BUCKET_NAME,
     R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
-    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
+    ENCRYPTION_KEY:
+      process.env.ENCRYPTION_KEY_AES256 ||
+      process.env.AES_ENCRYPTION_KEY ||
+      process.env.ENCRYPTION_KEY,
     APP_VERSION: process.env.APP_VERSION,
   };
 
@@ -117,7 +120,12 @@ export function validateEnv(): EnvConfig {
 
     if (isProduction) {
       // Warn about recommended vars
-      const missingRecommended = PRODUCTION_RECOMMENDED_VARS.filter((v) => !process.env[v]);
+      const missingRecommended = PRODUCTION_RECOMMENDED_VARS.filter((v) => {
+        if (v === 'ENCRYPTION_KEY') {
+          return !config.ENCRYPTION_KEY;
+        }
+        return !process.env[v];
+      });
       if (missingRecommended.length > 0) {
         console.warn(
           `[ENV] ⚠️  Recommended environment variables not set in production: ${missingRecommended.join(', ')}`

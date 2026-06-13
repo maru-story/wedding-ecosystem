@@ -44,7 +44,7 @@ JWT_SECRET=<generate: openssl rand -hex 32>
 REFRESH_SECRET=<generate: openssl rand -hex 32>
 
 # Encryption
-AES_ENCRYPTION_KEY=<generate: openssl rand -hex 16>
+AES_ENCRYPTION_KEY=<generate: openssl rand -hex 32>
 ```
 
 ### CORS (agar frontend Vercel bisa connect)
@@ -134,4 +134,4 @@ curl https://your-api.up.railway.app/health
 | `R2_SECRET_ACCESS_KEY`    | Cloudflare | Same as above                                                |
 | `R2_ACCOUNT_ID`           | Cloudflare | Dashboard → Overview → Account ID (sidebar)                  |
 | `JWT_SECRET`              | Generate   | `openssl rand -hex 32`                                       |
-| `AES_ENCRYPTION_KEY`      | Generate   | `openssl rand -hex 16`                                       |
+| `AES_ENCRYPTION_KEY`      | Generate   | `openssl rand -hex 32`                                       |

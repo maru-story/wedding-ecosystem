@@ -33,11 +33,12 @@ import {
 import { getFastifyLoggerConfig } from './config/logger/logger';
 import { getFastifyProductionOptions, getProductionConfig } from './config/production';
 import { getCacheClient, disconnectRedis } from './config/redis/redis';
-import { validateEnv } from './config/env';
+import { validateEnv, loadEncryptionKey } from './config';
 import multipart from '@fastify/multipart';
 
 // --- Config ---
 const env = validateEnv();
+loadEncryptionKey(); // Validates AES-256 encryption key configuration (throws if missing/invalid)
 const JWT_SECRET = env.JWT_SECRET;
 const REFRESH_SECRET = env.REFRESH_SECRET;
 

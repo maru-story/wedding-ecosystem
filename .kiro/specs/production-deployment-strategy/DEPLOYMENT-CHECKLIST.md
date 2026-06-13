@@ -226,7 +226,7 @@ NEXT_PUBLIC_CDN_URL=https://cdn.weddingku.com
 ```bash
 # Generate random secrets
 openssl rand -hex 32          # Untuk JWT_SECRET
-openssl rand -hex 16          # Untuk AES-256 key (32 bytes hex)
+openssl rand -hex 32          # Untuk AES-256 key (64 hex characters / 32 bytes)
 
 # Database migration (production)
 npx prisma migrate deploy
