@@ -5,7 +5,7 @@
 - **Unit/Integration Framework**: Vitest 3.2.4
 - **E2E Testing Framework**: Playwright 1.55.1 (API & Socket.io WebSocket)
 - **Property-Based Testing**: fast-check 4.8.0
-- **Total Tests**: ~1218 + 14 Playwright E2E cases across all packages
+- **Total Tests**: ~1235 + 14 Playwright E2E cases across all packages
 - **Coverage Target**: 80% minimum for business logic
 
 ## Test Distribution
@@ -13,7 +13,7 @@
 | Package               | Tests         | Type                                                 |
 | --------------------- | ------------- | ---------------------------------------------------- |
 | `@wedding/api`        | ~924 + 14 E2E | Unit + Integration + Property-based + Playwright E2E |
-| `@wedding/shared`     | ~63           | Unit + Property-based                                |
+| `@wedding/shared`     | 80            | Unit + Property-based                                |
 | `@wedding/realtime`   | ~87           | Unit + Integration + Property-based                  |
 | `@wedding/dashboard`  | ~81           | Unit + Property-based                                |
 | `@wedding/invitation` | ~32 + 14 UI   | Unit + Property-based + Playwright UI Smoke Tests    |
