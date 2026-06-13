@@ -39,6 +39,7 @@ import {
   Pencil,
   Check,
   X,
+  RefreshCw,
 } from 'lucide-react';
 import { GUESTS_PER_PAGE } from '@/lib/constants';
 
@@ -85,6 +86,8 @@ export default function SendInvitationPage() {
     data: guestsData,
     isLoading: isGuestsLoading,
     error: guestsError,
+    refetch: refetchGuests,
+    isFetching: isGuestsFetching,
   } = useGuestsWithDeliveryStatus({
     page: tableState.page,
     perPage: tableState.perPage,
@@ -291,6 +294,17 @@ export default function SendInvitationPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetchGuests()}
+                disabled={isGuestsLoading || isGuestsFetching}
+                className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground h-9 flex items-center gap-1.5"
+              >
+                <RefreshCw className={`h-4 w-4 ${isGuestsFetching ? 'animate-spin' : ''}`} />
+                Perbarui
+              </Button>
 
               {(tableState.searchQuery || statusFilter !== 'all') && (
                 <Button

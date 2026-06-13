@@ -44,6 +44,21 @@ export default function OnboardingPage() {
     },
   });
 
+  const [invitationPrefix, setInvitationPrefix] = useState('undangan.com/');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const host = window.location.host;
+      if (host.includes('localhost') || host.includes('127.0.0.1')) {
+        setInvitationPrefix('localhost:3001/');
+      } else if (host.includes('dashboard')) {
+        setInvitationPrefix(host.replace('dashboard', 'invitation') + '/');
+      } else {
+        setInvitationPrefix('invitation.wedding-ecosystem.com/');
+      }
+    }
+  }, []);
+
   const createEventMutation = useMutation({
     mutationFn: (data: CreateEventInput) =>
       apiFetch('/events', {
@@ -121,7 +136,7 @@ export default function OnboardingPage() {
           <div className="space-y-2">
             <Label htmlFor="slug">Slug Undangan (URL)</Label>
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground/80 text-sm">undangan.com/</span>
+              <span className="text-muted-foreground/80 text-sm">{invitationPrefix}</span>
               <Input
                 id="slug"
                 {...register('slug')}
@@ -143,6 +158,7 @@ export default function OnboardingPage() {
                 id="event_date"
                 {...register('event_date')}
                 type="date"
+                min={new Date().toISOString().split('T')[0]}
                 className="bg-card text-foreground h-11 py-2.5 pr-4 pl-10 transition-all duration-200"
               />
             </div>
