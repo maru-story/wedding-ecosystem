@@ -3,7 +3,7 @@
 ## Project Identity
 
 - **Name**: wedding-digital-saas
-- **Version**: 0.1.0
+- **Version**: 0.2.0
 - **Description**: Multi-tenant platform for digital wedding invitation management, targeting the Indonesian market
 - **License**: Private — All rights reserved
 - **Language**: TypeScript 5.9.3
