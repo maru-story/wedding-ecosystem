@@ -23,7 +23,7 @@ export function SuccessOverlay({ guestName, onDismiss, duration = 3000 }: Succes
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-emerald-600 text-white"
+      className="bg-success fixed inset-0 z-[100] flex flex-col items-center justify-center text-white"
       role="alert"
       aria-live="assertive"
       onClick={onDismiss}
@@ -37,23 +37,18 @@ export function SuccessOverlay({ guestName, onDismiss, duration = 3000 }: Succes
           viewBox="0 0 24 24"
           aria-hidden="true"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={3}
-            d="M5 13l4 4L19 7"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
         </svg>
       </div>
 
       {/* Guest name */}
-      <h2 className="text-3xl font-bold">{guestName}</h2>
+      <h2 className="font-heading text-3xl font-bold">{guestName}</h2>
 
       {/* Confirmation text */}
-      <p className="mt-3 text-lg text-emerald-100">Check-in Berhasil</p>
+      <p className="mt-3 text-lg text-white/80">Check-in Berhasil</p>
 
       {/* Dismiss hint */}
-      <p className="mt-8 text-sm text-emerald-200">
+      <p className="mt-8 text-sm text-white/60">
         Otomatis tertutup dalam {Math.round(duration / 1000)} detik
       </p>
     </div>

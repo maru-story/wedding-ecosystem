@@ -1,5 +1,5 @@
 import type { RealtimeServer } from '@wedding/realtime';
-import { RsvpBroadcaster, RsvpBroadcastPayload } from '../services/rsvp.service';
+import { RsvpBroadcaster, RsvpBroadcastPayload } from '../services/rsvp/rsvp.service';
 
 export class RealtimeRsvpBroadcaster implements RsvpBroadcaster {
   constructor(private readonly getRealtime: () => RealtimeServer | null) {}

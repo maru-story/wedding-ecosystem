@@ -53,7 +53,7 @@
 │   │   ├── src/config/     # Production config, database, Redis, logger
 │   │   ├── src/middleware/  # CORS, rate limiting, tenant isolation, RBAC, encryption
 │   │   ├── src/plugins/    # Audit logger, response cache, security headers, request validation
-│   │   ├── src/routes/     # Route handlers (auth, guests, events, checkin, rsvp, cms, scanner, messages, invitations, notifications, health)
+│   │   ├── src/routes/     # Route handlers (auth, guests, events, checkin, rsvp, cms, scanner, messages, invitations, invitation-deliveries, health)
 │   │   └── src/services/   # Business logic layer
 │   ├── db/                 # Prisma 7 schema, migrations, client factory
 │   ├── shared/             # Shared TypeScript types, Zod schemas, enums, error codes, utilities
@@ -84,6 +84,7 @@
 | Auth       | JWT (jsonwebtoken) + bcrypt | 9.0 / 6.0                                     |
 | Validation | Zod                         | 3.25                                          |
 | Testing    | Vitest + fast-check         | 3.2 / 4.8                                     |
+| E2E Test   | Playwright                  | 1.55.1                                        |
 | Language   | TypeScript                  | 5.9                                           |
 | Monorepo   | npm workspaces + Turborepo  | 2.4                                           |
 | Node.js    | Minimum                     | 20.0.0                                        |
@@ -106,12 +107,12 @@
 
 ## User Roles & Permissions
 
-| Role             | Scope           | Can Do                                   | Cannot Do             |
-| ---------------- | --------------- | ---------------------------------------- | --------------------- |
-| Admin            | All tenants     | Full CRUD, tenant management             | —                     |
-| Client           | Own tenant      | Manage own events, guests, CMS, themes   | Access other tenants  |
-| WO               | Assigned events | Manage assigned events, guests, check-in | Create/delete events  |
-| Scanner Operator | Assigned event  | QR scan, manual check-in, Go-Show        | Guest management, CMS |
+| Role             | Scope          | Can Do                                   | Cannot Do            |
+| ---------------- | -------------- | ---------------------------------------- | -------------------- |
+| Admin            | All tenants    | Full CRUD, tenant management, QR scanner | —                    |
+| Client           | Own tenant     | Manage events, guests, CMS, QR scanner   | Access other tenants |
+| WO               | Disabled (MVP) | None (restricted in MVP)                 | All actions          |
+| Scanner Operator | Disabled (MVP) | None (restricted in MVP)                 | All actions          |
 
 ---
 
@@ -120,13 +121,13 @@
 1. **Tenant isolation** — EVERY database query MUST be scoped by `tenant_id`. Never expose data across tenants.
 2. **Personalized URLs** — Format: `/{event-slug}?to={guest-slug}`. The guest-slug determines the name on the cover.
 3. **QR uniqueness** — One QR code per guest per event. Payload contains `guest_id` + `event_id`.
-4. **Duplicate detection** — Prevent duplicate check-ins. Second scan returns YELLOW status with first check-in timestamp.
+4. **Duplicate detection** — Allow duplicate check-ins. Subsequent scans increment the `scan_count` counter and return a success status (GREEN).
 5. **Go-Show flow** — Walk-in guests added on-site. Temporary record, no QR code, immediately checked in.
 6. **CMS sections** — 14 configurable sections per invitation. Each toggleable and reorderable.
 7. **RSVP states** — `pending` | `confirmed` | `declined` | `checked_in`.
 8. **Real-time broadcast** — Check-in and RSVP updates broadcast via WebSocket, scoped to event room.
 9. **Offline queue** — Scanner stores actions in IndexedDB when offline, syncs on reconnect. Conflict resolution: server timestamp wins.
-10. **Event capacity** — Max 500 guests per event.
+10. **Event capacity** — Max 2000 guests per event.
 
 ---
 
@@ -137,22 +138,35 @@
 - `POST /auth/login` — Login, returns JWT access_token (15min) + refresh_token (7 days)
 - `POST /auth/refresh` — Refresh access token
 
+### Auth (Auth required)
+
+- `PUT /auth/profile` — Update client name and email
+- `PUT /auth/change-password` — Change password (requires current password)
+
 ### Events (Auth required)
 
 - `GET /events` — List events for tenant
+- `POST /events` — Create a new wedding event
+- `GET /events/current` — Get current tenant's latest event
+- `GET /events/current/stats` — Get current event statistics
+- `GET /events/:id/stats` — Get event statistics (guests, RSVPs, check-ins)
+- `GET /events/:id/rsvp` — Get RSVP list for event
+- `PUT /events/:id` — Update wedding event details
+- `POST /events/:id/media/upload` — Upload media file (image/video/audio) to Cloudflare R2 (optional query param `?section=` structure: e.g., `cover`, `gallery`, `story`)
 
 ### Guests (Auth required)
 
 - `GET /guests` — List guests (paginated, filterable by group)
 - `POST /guests` — Create guest (auto-generates QR)
 - `PUT /guests/:id` — Update guest
-- `GET /guests/search?q=&event_id=` — Search by name (min 3 chars)
+- `GET /guests/search?q=&event_id=` — Search by name (min 2 chars)
 - `GET /guests/:id/qr` — Get QR code data
 - `POST /guests/import` — Bulk import from CSV
+- `POST /guests/bulk-delete` — Bulk delete guests and deactivate their QR codes
 
 ### Check-in (Auth required)
 
-- `POST /checkin/scan` — QR scan verification (returns GREEN/YELLOW/RED)
+- `POST /checkin/scan` — QR scan verification (returns GREEN/RED)
 - `POST /checkin/manual` — Manual check-in by guest_id
 - `POST /checkin/go-show` — Register + check-in walk-in guest
 - `POST /checkin/sync` — Sync offline check-in records
@@ -180,15 +194,39 @@
 ### Messages (No auth — public)
 
 - `POST /messages` — Send wish/message
-- `GET /messages?event_id=` — Get messages for event
+- `GET /messages/:eventId` — Get messages for event
 
-### Notifications (Auth required)
+### Messages (Auth required)
 
-- `GET /notifications` — Get delivery status
+- `GET /messages/:eventId/admin` — Get all messages (visible and hidden) for event
+- `PUT /messages/:messageId/visibility` — Toggle visibility of a message
+- `DELETE /messages/:messageId` — Delete a message
+
+### Invitation Deliveries (Auth required)
+
+- `GET /invitation-deliveries/message-template` — Get message template for event
+- `PUT /invitation-deliveries/message-template` — Update message template for event
+- `POST /invitation-deliveries/send` — Send single invitation via WhatsApp Web redirect
 
 ### Health (No auth)
 
 - `GET /health` — Returns status of PostgreSQL, Redis, WebSocket
+
+### Platform Admin (Auth required + Admin role)
+
+- `GET /admin/stats` — Get global platform KPIs
+- `GET /admin/tenants` — List all tenants (paginated, search, filter)
+- `POST /admin/tenants` — Create a new tenant with master client credentials
+- `PATCH /admin/tenants/:id/status` — Toggle tenant active/inactive status
+- `DELETE /admin/tenants/:id` — Delete a tenant (cascades to delete users, events, configs, guests, check-ins)
+- `GET /admin/users` — List all users across the platform (paginated, search, role filters, is_active status)
+- `PATCH /admin/users/:id/status` — Toggle user active/inactive status (suspend/activate account)
+- `DELETE /admin/users/:id` — Delete a user (blocks self-deletion and deleting any administrator-role users)
+- `POST /admin/users/admin` — Create a new platform administrator
+- `PUT /admin/users/:id/reset-password` — Generate and reset user password with secure random string
+- `GET /admin/audit-logs` — List platform-wide system audit logs with pagination, search, action filter, and date-range filters (`start_date`/`end_date`)
+- `GET /admin/tenants/:id/events` — List events for a tenant with their config limits
+- `PATCH /admin/events/:eventId/config` — Update event config limits
 
 ---
 
@@ -248,6 +286,8 @@ npm install                    # Install all dependencies
 npm run dev                    # Run all apps + API via Turborepo
 npm run build                  # Build all packages
 npm run test                   # Run all tests
+npm run test:e2e --workspace=packages/api # Run Playwright E2E tests
+npx playwright test --config=apps/invitation/playwright.config.ts # Run Playwright UI tests
 npm run lint                   # Lint all packages
 
 # Per-package
@@ -304,8 +344,9 @@ NEXT_PUBLIC_CDN_URL=http://localhost:4000
 - **Test files**: Co-located with source (`*.test.ts`, `*.property.test.ts`)
 - **Coverage target**: 80% for business logic
 - **Run**: `npm run test` or `npx turbo test --filter=@wedding/api`
-- **DO NOT** add tests unless explicitly asked
+- **DO NOT** add unit/property-based tests unless explicitly asked. However, E2E check and E2E test updates are mandatory for new features.
 - **DO NOT** use `--watch` mode in commands (use `--run` for single execution)
+- **E2E Testing Rule**: Every time a new feature is added or a new capability is implemented, you MUST perform an E2E check (`npm run test:e2e --workspace=packages/api`) and write/update E2E tests for it. If the improvement/feature is a minor text change, documentation update, or styling fix that does not need testing, you may skip it.
 
 ---
 
@@ -343,8 +384,12 @@ CI/CD via GitHub Actions:
 6. **Update README.md** — After adding/changing features, update the relevant README section.
 7. **Follow existing patterns** — Look at similar files before creating new ones.
 8. **Use Zod for validation** — All input validation uses Zod schemas from `@wedding/shared`.
-9. **Scope WebSocket broadcasts to event rooms** — Never broadcast globally.
-10. **Handle offline gracefully** — Scanner features must work without network.
+9. **Use standard validation helper** — Use the `validate(data, schema, reply)` helper in all Fastify routes to ensure consistent error handling and type safety.
+10. **Authenticated Request Pattern** — In protected routes, use `request.user!` to access the authenticated context. The `FastifyRequest` is augmented with `user?: AuthUser`, and the `onRequest` auth hook ensures it exists.
+11. **Scope WebSocket broadcasts to event rooms** — Never broadcast globally.
+12. **Handle offline gracefully** — Scanner features must work without network.
+13. **Frontend Component & Library Consistency** — When building new pages, sections, or form fields in the frontend, first inspect `apps/*/src/components/ui/` to see what shadcn/UI components exist (e.g., `Button`, `Input`, `Label`, `Textarea`, `Dialog`). Always import and use these shared components rather than fallback HTML tags (`<button>`, `<input>`, `<textarea>`, etc.). If a shadcn component does not exist but fits the standard, create the shadcn-compliant component in the workspace's UI folder following existing patterns, then use it consistently. Check `package.json` for installed packages (e.g. framer-motion, lucide-react) to prevent writing custom implementations or installing redundant packages.
+14. **Mandatory E2E Check** — Every time a new feature is added or a new capability is implemented, always write/update E2E tests and run them (`npm run test:e2e --workspace=packages/api`). If the improvement or feature doesn't need the E2E test (e.g. documentation, minor text adjustments, or formatting changes), you may skip the test.
 
 ### MUST NOT DO
 
@@ -390,34 +435,41 @@ CI/CD via GitHub Actions:
 
 ## Demo Credentials (Local Development)
 
-| Role    | Email              | Password      |
-| ------- | ------------------ | ------------- |
-| Client  | `admin@demo.com`   | `password123` |
-| Scanner | `scanner@demo.com` | `password123` |
+| Role    | Email              | Password      | Tenant / Scope |
+| ------- | ------------------ | ------------- | -------------- |
+| Admin   | `admin@demo.com`   | `password123` | System Admin   |
+| Client  | `client@demo.com`  | `password123` | Wedding Demo   |
 
-**Tenant**: Wedding Demo (`1a0db76b-1e72-4f7e-8015-6b05d2f3fc7c`)
-**Event**: Romeo & Juliet (`c3268c2d-fae0-4284-ad70-249ef6a62682`, slug: `romeo-juliet`)
+**Tenant (Wedding Demo)**: Wedding Demo
+**Event (Romeo & Juliet)**: Romeo & Juliet (slug: `romeo-juliet`)
 
 ---
 
 ## File Reference Quick Links
 
-| What                     | Where                                            |
-| ------------------------ | ------------------------------------------------ |
-| Database schema          | `packages/db/prisma/schema.prisma`               |
-| API entry point          | `packages/api/src/index.ts`                      |
-| API routes               | `packages/api/src/routes/*.ts`                   |
-| Shared types             | `packages/shared/src/types/`                     |
-| Zod schemas              | `packages/shared/src/types/validation.ts`        |
-| Error codes              | `packages/shared/src/types/errors.ts`            |
-| WebSocket server         | `packages/realtime/src/index.ts`                 |
-| WS auth middleware       | `packages/realtime/src/middleware/auth.ts`       |
-| Scanner auth             | `apps/scanner/src/lib/auth.ts`                   |
-| Scanner offline queue    | `apps/scanner/src/lib/offline-queue.ts`          |
-| Dashboard socket hook    | `apps/dashboard/src/hooks/use-socket.ts`         |
-| Production config        | `packages/api/src/config/production.ts`          |
-| Redis config             | `packages/api/src/config/redis.ts`               |
-| CORS middleware          | `packages/api/src/middleware/cors.middleware.ts` |
-| CI/CD workflows          | `.github/workflows/`                             |
-| Deploy config (API)      | `packages/api/railway.toml`                      |
-| Deploy config (Frontend) | `apps/*/vercel.json`                             |
+| What                          | Where                                             |
+| ----------------------------- | ------------------------------------------------- |
+| Database schema               | `packages/db/prisma/schema.prisma`                |
+| API entry point               | `packages/api/src/index.ts`                       |
+| API routes                    | `packages/api/src/routes/*.ts`                    |
+| Shared types                  | `packages/shared/src/types/`                      |
+| Zod schemas                   | `packages/shared/src/types/validation.ts`         |
+| Error codes                   | `packages/shared/src/types/errors.ts`             |
+| WebSocket server              | `packages/realtime/src/index.ts`                  |
+| WS auth middleware            | `packages/realtime/src/middleware/auth.ts`        |
+| Playwright E2E Config         | `packages/api/playwright.config.ts`               |
+| Playwright E2E Tests          | `packages/api/tests/e2e/`                         |
+| Playwright UI Config          | `apps/invitation/playwright.config.ts`            |
+| Playwright UI Tests           | `apps/invitation/tests/`                          |
+| Scanner auth                  | `apps/scanner/src/lib/auth.ts`                    |
+| Scanner offline queue         | `apps/scanner/src/lib/offline-queue.ts`           |
+| Dashboard socket hook         | `apps/dashboard/src/hooks/use-socket.ts`          |
+| Dashboard table state hook    | `apps/dashboard/src/hooks/use-table-state.ts`     |
+| Dashboard DataTable component | `apps/dashboard/src/components/ui/data-table.tsx` |
+| Production config             | `packages/api/src/config/production.ts`           |
+| Redis config                  | `packages/api/src/config/redis.ts`                |
+| CORS middleware               | `packages/api/src/middleware/cors.middleware.ts`  |
+| CI/CD workflows               | `.github/workflows/`                              |
+| Deploy config (API)           | `packages/api/railway.toml`                       |
+| Deploy config (Frontend)      | `apps/*/vercel.json`                              |
+| Design system                 | `.agents/summary/design-system.md`                |

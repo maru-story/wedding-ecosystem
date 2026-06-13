@@ -1,0 +1,7 @@
+# CODEOWNERS for Wedding Ecosystem
+# Automatically request review from core maintainers for changes.
+
+*       @maintainers
+/apps/  @frontend-team
+/packages/api/ @backend-team
+/packages/db/  @database-team

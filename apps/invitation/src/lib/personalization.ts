@@ -49,9 +49,5 @@ export function buildInvitationUrl(eventSlug: string, guestSlug: string): string
  * @returns true if personalization data is consistent
  */
 export function validatePersonalization(data: InvitationPageData): boolean {
-  return (
-    data.guest.name.length > 0 &&
-    data.guest.slug.length > 0 &&
-    data.event.slug.length > 0
-  );
+  return data.guest.name.length > 0 && data.guest.slug.length > 0 && data.event.slug.length > 0;
 }

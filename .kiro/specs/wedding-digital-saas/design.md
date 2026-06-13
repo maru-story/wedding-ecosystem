@@ -118,16 +118,17 @@ graph LR
 
 **Sub-Components**:
 
-| Sub-Component | Tanggung Jawab |
-|---|---|
-| Guest Management Module | CRUD tamu, import bulk, assign QR code otomatis |
-| RSVP Tracking Dashboard | Real-time monitoring konfirmasi kehadiran |
-| QR Code Generator | Generate unique QR per tamu secara otomatis saat tamu ditambahkan |
-| CMS Editor | Kelola konten setiap section undangan (All-In) |
-| Analytics Dashboard | Statistik tamu, RSVP rate, check-in rate |
-| Theme & Settings | Konfigurasi tema, warna, dan pengaturan event |
+| Sub-Component           | Tanggung Jawab                                                    |
+| ----------------------- | ----------------------------------------------------------------- |
+| Guest Management Module | CRUD tamu, import bulk, assign QR code otomatis                   |
+| RSVP Tracking Dashboard | Real-time monitoring konfirmasi kehadiran                         |
+| QR Code Generator       | Generate unique QR per tamu secara otomatis saat tamu ditambahkan |
+| CMS Editor              | Kelola konten setiap section undangan (All-In)                    |
+| Analytics Dashboard     | Statistik tamu, RSVP rate, check-in rate                          |
+| Theme & Settings        | Konfigurasi tema, warna, dan pengaturan event                     |
 
 **Responsibilities**:
+
 - Autentikasi dan otorisasi client/WO
 - Manajemen data tamu (tambah, edit, hapus, import CSV)
 - Auto-generate QR code unik saat tamu baru ditambahkan
@@ -144,25 +145,26 @@ graph LR
 
 **Sub-Components (Sections berdasarkan referensi)**:
 
-| Section | Deskripsi |
-|---|---|
-| Cover / Opening | Animasi loading, nama mempelai, tombol "Lihat Undangan" dengan nama tamu |
-| Pengantin (Bride & Groom) | Ilustrasi dan info kedua mempelai |
-| Our Story | Timeline cerita perjalanan cinta (chapters) |
-| Doa / Ayat | Kutipan ayat suci atau doa |
-| Bride & Groom Detail | Nama lengkap, orang tua, link Instagram |
-| Countdown | Hitung mundur ke hari-H + tombol "Tambah ke Kalender" |
-| Akad & Resepsi | Detail waktu, tempat, dan link Google Maps |
-| Konfirmasi Kehadiran (RSVP) | Form konfirmasi: nama, pilihan acara, jumlah tamu |
-| Attire / Dress Code | Panduan pakaian dan color palette |
-| Photo Gallery | Galeri foto prewedding dengan carousel/lightbox |
-| Video | Video prewedding atau cinematic |
-| Wedding Gift | Info rekening/transfer untuk kado digital |
-| Pesan & Ucapan | Form kirim ucapan + tampilan ucapan dari tamu lain |
-| Penutup / Closing | Foto penutup dan terima kasih |
-| Background Music | Audio player dengan kontrol play/pause |
+| Section                     | Deskripsi                                                                |
+| --------------------------- | ------------------------------------------------------------------------ |
+| Cover / Opening             | Animasi loading, nama mempelai, tombol "Lihat Undangan" dengan nama tamu |
+| Pengantin (Bride & Groom)   | Ilustrasi dan info kedua mempelai                                        |
+| Our Story                   | Timeline cerita perjalanan cinta (chapters)                              |
+| Doa / Ayat                  | Kutipan ayat suci atau doa                                               |
+| Bride & Groom Detail        | Nama lengkap, orang tua, link Instagram                                  |
+| Countdown                   | Hitung mundur ke hari-H + tombol "Tambah ke Kalender"                    |
+| Akad & Resepsi              | Detail waktu, tempat, dan link Google Maps                               |
+| Konfirmasi Kehadiran (RSVP) | Form konfirmasi: nama, pilihan acara, jumlah tamu                        |
+| Attire / Dress Code         | Panduan pakaian dan color palette                                        |
+| Photo Gallery               | Galeri foto prewedding dengan carousel/lightbox                          |
+| Video                       | Video prewedding atau cinematic                                          |
+| Wedding Gift                | Info rekening/transfer untuk kado digital                                |
+| Pesan & Ucapan              | Form kirim ucapan + tampilan ucapan dari tamu lain                       |
+| Penutup / Closing           | Foto penutup dan terima kasih                                            |
+| Background Music            | Audio player dengan kontrol play/pause                                   |
 
 **Responsibilities**:
+
 - Render undangan berdasarkan slug event + guest ID
 - Personalisasi nama tamu di cover
 - Menampilkan section sesuai konfigurasi CMS (modul aktif/nonaktif)
@@ -179,17 +181,18 @@ graph LR
 
 **Sub-Components**:
 
-| Sub-Component | Deskripsi |
-|---|---|
-| QR Scanner Camera | Komponen kamera untuk scan QR code (< 2 detik) |
-| Usher Screen | Tampilan status verifikasi: Valid (Hijau), Invalid (Merah), Duplicate (Kuning) |
-| Guest Info Display | Menampilkan nama tamu saat verifikasi berhasil |
-| Manual Check-in | Search bar untuk cari tamu manual + tombol check-in |
-| Go-Show Registration | Form tambah tamu walk-in yang belum terdaftar |
-| Queue Lane Settings | Konfigurasi jalur antrian (hingga 2 scanner device) |
-| Real-time Sync | Sinkronisasi data check-in ke dashboard secara real-time |
+| Sub-Component        | Deskripsi                                                                      |
+| -------------------- | ------------------------------------------------------------------------------ |
+| QR Scanner Camera    | Komponen kamera untuk scan QR code (< 2 detik)                                 |
+| Usher Screen         | Tampilan status verifikasi: Valid (Hijau), Invalid (Merah), Duplicate (Kuning) |
+| Guest Info Display   | Menampilkan nama tamu saat verifikasi berhasil                                 |
+| Manual Check-in      | Search bar untuk cari tamu manual + tombol check-in                            |
+| Go-Show Registration | Form tambah tamu walk-in yang belum terdaftar                                  |
+| Queue Lane Settings  | Konfigurasi jalur antrian (hingga 2 scanner device)                            |
+| Real-time Sync       | Sinkronisasi data check-in ke dashboard secara real-time                       |
 
 **Responsibilities**:
+
 - Scan QR code dengan response time < 2 detik
 - Tampilkan status verifikasi dengan color-coded feedback
 - Tampilkan nama tamu saat scan berhasil
@@ -207,16 +210,16 @@ graph LR
 
 **Sub-Components**:
 
-| Service | Tanggung Jawab |
-|---|---|
-| Auth Service | Login, register, JWT token, role-based access (Admin, Client, WO, Scanner) |
-| Event Service | CRUD event pernikahan, konfigurasi event |
-| Guest Service | CRUD tamu, bulk import, assign QR, RSVP processing |
-| QR Service | Generate QR code unik, validasi QR saat scan |
-| CMS Service | CRUD konten per section, upload media, template management |
-| Check-in Service | Proses check-in, validasi duplikat, Go-Show registration |
-| Real-time Service | WebSocket server untuk push update ke dashboard & scanner |
-| Notification Service | Kirim undangan via WhatsApp/Email dengan link personalisasi |
+| Service              | Tanggung Jawab                                                             |
+| -------------------- | -------------------------------------------------------------------------- |
+| Auth Service         | Login, register, JWT token, role-based access (Admin, Client, WO, Scanner) |
+| Event Service        | CRUD event pernikahan, konfigurasi event                                   |
+| Guest Service        | CRUD tamu, bulk import, assign QR, RSVP processing                         |
+| QR Service           | Generate QR code unik, validasi QR saat scan                               |
+| CMS Service          | CRUD konten per section, upload media, template management                 |
+| Check-in Service     | Proses check-in, validasi duplikat, Go-Show registration                   |
+| Real-time Service    | WebSocket server untuk push update ke dashboard & scanner                  |
+| Notification Service | Kirim undangan via WhatsApp/Email dengan link personalisasi                |
 
 ---
 
@@ -225,6 +228,7 @@ graph LR
 **Purpose**: Menjamin sinkronisasi data real-time antara Scanner System dan Dashboard menggunakan WebSocket.
 
 **Responsibilities**:
+
 - Broadcast event check-in ke semua connected dashboard clients
 - Broadcast RSVP update ke dashboard
 - Manage WebSocket connections per event (room-based)
@@ -294,22 +298,15 @@ sequenceDiagram
 
     S->>CAM: Activate camera
     CAM-->>S: QR code detected (payload)
-    S->>API: POST /check-in (qr_payload)
+    S->>API: POST /checkin/scan (qr_payload)
     API->>CACHE: Check duplicate (guest_id)
-    
+
     alt Already Checked-in
         CACHE-->>API: Duplicate found
-        API-->>S: 409 Duplicate (Yellow status)
-        S-->>S: Display "DUPLICATE" (Yellow)
-    else Valid QR
-        CACHE-->>API: Not found
-        API->>DB: Validate QR + Get guest info
-        DB-->>API: Guest data (valid)
-        API->>DB: Mark as checked-in
-        API->>CACHE: Set checked-in flag
-        API-->>S: 200 OK (guest_name, Green status)
+        API->>DB: Increment scan_count
+        API-->>S: 200 OK (guest_name, Green status, scan_count)
         S-->>S: Display "VALID - [Nama]" (Green)
-        API->>WS: Broadcast "guest_checked_in"
+        API->>WS: Broadcast "guest_checked_in" with scan_count
         WS-->>D: Real-time check-in update
     else Invalid QR
         DB-->>API: Not found / invalid
@@ -443,7 +440,6 @@ erDiagram
         uuid id PK
         uuid guest_id FK
         string qr_payload "encrypted unique token"
-        string qr_image_url
         boolean is_active
         timestamp generated_at
     }
@@ -497,22 +493,22 @@ erDiagram
 
 Setiap section memiliki struktur `content` JSON yang berbeda sesuai tipe:
 
-| Section Type | Content Structure |
-|---|---|
-| `cover` | `{ title, subtitle, background_image, opening_text }` |
-| `bride_groom` | `{ bride: { name, parent_info, photo, instagram }, groom: { ... } }` |
-| `story` | `{ chapters: [{ title, description, image, date }] }` |
-| `verse` | `{ text, source, background_image }` |
-| `countdown` | `{ target_date, calendar_link }` |
+| Section Type   | Content Structure                                                             |
+| -------------- | ----------------------------------------------------------------------------- | ---------- |
+| `cover`        | `{ title, subtitle, background_image, opening_text }`                         |
+| `bride_groom`  | `{ bride: { name, parent_info, photo, instagram }, groom: { ... } }`          |
+| `story`        | `{ chapters: [{ title, description, image, date }] }`                         |
+| `verse`        | `{ text, source, background_image }`                                          |
+| `countdown`    | `{ target_date, calendar_link }`                                              |
 | `akad_resepsi` | `{ akad: { date, time_start, time_end }, resepsi: { ... }, venue, maps_url }` |
-| `rsvp` | `{ options: ["akad", "resepsi", "both", "decline"], max_plus_one }` |
-| `attire` | `{ description, outfit_image, color_palette: [hex_colors] }` |
-| `gallery` | `{ photos: [{ url, caption, order }] }` |
-| `video` | `{ video_url, thumbnail_url, type: "youtube|upload" }` |
-| `gift` | `{ accounts: [{ bank, account_number, account_name }], description }` |
-| `messages` | `{ is_enabled, placeholder_text }` |
-| `closing` | `{ text, image, thank_you_message }` |
-| `music` | `{ audio_url, autoplay, title }` |
+| `rsvp`         | `{ options: ["akad", "resepsi", "both", "decline"], max_plus_one }`           |
+| `attire`       | `{ description, outfit_image, color_palette: [hex_colors] }`                  |
+| `gallery`      | `{ photos: [{ url, caption, order }] }`                                       |
+| `video`        | `{ video_url, thumbnail_url, type: "youtube                                   | upload" }` |
+| `gift`         | `{ accounts: [{ bank, account_number, account_name }], description }`         |
+| `messages`     | `{ is_enabled, placeholder_text }`                                            |
+| `closing`      | `{ text, image, thank_you_message }`                                          |
+| `music`        | `{ audio_url, autoplay, title }`                                              |
 
 ### Model Detail: Theme Configuration
 
@@ -531,7 +527,7 @@ EVENT_CONFIG.theme_config = {
     font_family: "Poppins",        // Body text
     font_heading: "Playfair Display" // Headings
   },
-  
+
   // Invitation Theme (terpisah dari dashboard)
   // Default: Classic Sage & Gold (Option A)
   // Client bisa mengkustomisasi melalui CMS Dashboard
@@ -549,6 +545,7 @@ EVENT_CONFIG.theme_config = {
 ```
 
 **Catatan Penting:**
+
 - Dashboard theme bersifat **dinamis** — client dapat mengganti color palette kapan saja melalui menu Theme & Settings.
 - Saat client ingin eksplorasi warna baru, sistem menyediakan link referensi ke [ColorHunt](https://colorhunt.co) sebagai inspirasi palette.
 - Font **Playfair Display** (heading) + **Poppins** (body) digunakan konsisten di kedua aplikasi (Dashboard & Invitation).
@@ -607,6 +604,7 @@ EVENT_CONFIG.theme_config = {
 **Test Runner**: Vitest 3.2
 
 **Key Properties**:
+
 - QR code uniqueness: Untuk setiap N guest yang di-generate QR, semua QR payload harus unik
 - Check-in idempotency: Check-in yang sama berkali-kali hanya menghasilkan 1 record
 - RSVP consistency: Guest count pada RSVP tidak boleh melebihi max_plus_one + 1
@@ -623,14 +621,14 @@ EVENT_CONFIG.theme_config = {
 
 ## Performance Considerations
 
-| Aspek | Target | Strategi |
-|---|---|---|
-| QR Scan Response | < 2 detik | Redis cache untuk lookup, indexed QR payload |
-| Invitation Load Time | < 3 detik (mobile 3G) | SSG/SSR, lazy loading images, CDN |
-| Dashboard Real-time | < 500ms latency | WebSocket + Redis pub/sub |
-| Concurrent Scanners | 0-2 devices simultan, max 20% overhead (min baseline 50ms) | Atomic Redis operations, optimistic locking |
-| Guest Capacity | 500-2000 per event | Pagination, efficient queries, caching |
-| Media Storage | Unlimited photos/video | Cloud storage + CDN, image optimization |
+| Aspek                | Target                                                     | Strategi                                     |
+| -------------------- | ---------------------------------------------------------- | -------------------------------------------- |
+| QR Scan Response     | < 2 detik                                                  | Redis cache untuk lookup, indexed QR payload |
+| Invitation Load Time | < 3 detik (mobile 3G)                                      | SSG/SSR, lazy loading images, CDN            |
+| Dashboard Real-time  | < 500ms latency                                            | WebSocket + Redis pub/sub                    |
+| Concurrent Scanners  | 0-2 devices simultan, max 20% overhead (min baseline 50ms) | Atomic Redis operations, optimistic locking  |
+| Guest Capacity       | 500-2000 per event                                         | Pagination, efficient queries, caching       |
+| Media Storage        | Unlimited photos/video                                     | Cloud storage + CDN, image optimization      |
 
 ### Caching Strategy
 
@@ -641,26 +639,26 @@ EVENT_CONFIG.theme_config = {
 
 ## Security Considerations
 
-| Aspek | Implementasi |
-|---|---|
-| Multi-tenant Isolation | Row-level security, tenant_id pada setiap query |
-| Authentication | JWT token dengan refresh token rotation |
-| Authorization | Role-based: Admin (scoped access), Client, WO, Scanner (scan + manual check-in) |
-| QR Code Security | Encrypted payload (AES-256), one-time validation token |
-| API Rate Limiting | Per-tenant rate limit untuk mencegah abuse |
-| Data Privacy | Encrypt PII (phone, email) at rest |
-| CORS | Strict origin policy per application |
-| Input Validation | Server-side validation pada semua endpoint |
-| File Upload | Virus scan, file type validation, size limits |
+| Aspek                  | Implementasi                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| Multi-tenant Isolation | Row-level security, tenant_id pada setiap query                                 |
+| Authentication         | JWT token dengan refresh token rotation                                         |
+| Authorization          | Role-based: Admin (scoped access), Client, WO, Scanner (scan + manual check-in) |
+| QR Code Security       | Encrypted payload (AES-256), one-time validation token                          |
+| API Rate Limiting      | Per-tenant rate limit untuk mencegah abuse                                      |
+| Data Privacy           | Encrypt PII (phone, email) at rest                                              |
+| CORS                   | Strict origin policy per application                                            |
+| Input Validation       | Server-side validation pada semua endpoint                                      |
+| File Upload            | Virus scan, file type validation, size limits                                   |
 
 ### Role-Based Access Control
 
-| Role | Dashboard | CMS | Scanner | Guest Data |
-|---|---|---|---|---|
-| Admin (Platform) | Scoped Access (same visibility restrictions as other roles) | Scoped Access | Scoped Access | Scoped per assignment |
-| Client | Own Event | Own Event | View Only | Own Event |
-| WO | Assigned Events | Assigned Events | Full Access | Assigned Events |
-| Scanner Operator | - | - | QR Scan + Manual Check-in (both mandatory) | Read Only |
+| Role             | Dashboard                                                   | CMS             | Scanner                                    | Guest Data            |
+| ---------------- | ----------------------------------------------------------- | --------------- | ------------------------------------------ | --------------------- |
+| Admin (Platform) | Scoped Access (same visibility restrictions as other roles) | Scoped Access   | Scoped Access                              | Scoped per assignment |
+| Client           | Own Event                                                   | Own Event       | View Only                                  | Own Event             |
+| WO               | Assigned Events                                             | Assigned Events | Full Access                                | Assigned Events       |
+| Scanner Operator | -                                                           | -               | QR Scan + Manual Check-in (both mandatory) | Read Only             |
 
 **Catatan**: Admin tidak memiliki akses unrestricted ke semua data. Visibilitas data Admin dibatasi sesuai scope yang di-assign, sama seperti role lainnya.
 
@@ -668,187 +666,187 @@ EVENT_CONFIG.theme_config = {
 
 ### Frontend Dependencies
 
-| Dependency | Version | Purpose | Used By |
-|---|---|---|---|
-| Next.js | 16.2.0 | Framework utama (React 19.2) | All 3 Apps |
-| React / React-DOM | 19.2.0 | UI library | All 3 Apps |
-| TailwindCSS | 4.1.7 | Styling & responsive design | All 3 Apps |
-| shadcn/ui | latest | Component library (copy-paste, fully customizable) | All 3 Apps |
-| Motion (formerly Framer Motion) | 12.17.0 | Animasi scroll undangan | Invitation App |
-| html5-qrcode | 2.3.8 | QR code scanning library | Scanner App |
-| Socket.io Client | 4.8.3 | WebSocket real-time | Dashboard & Scanner |
-| @tanstack/react-query | 5.89.0 | Data fetching & caching | All 3 Apps |
-| React Hook Form | 7.62.0 | Form handling (RSVP, CMS) | Dashboard & Invitation |
-| Zod | 3.25.3 | Schema validation | All 3 Apps |
+| Dependency                      | Version | Purpose                                            | Used By                |
+| ------------------------------- | ------- | -------------------------------------------------- | ---------------------- |
+| Next.js                         | 16.2.0  | Framework utama (React 19.2)                       | All 3 Apps             |
+| React / React-DOM               | 19.2.0  | UI library                                         | All 3 Apps             |
+| TailwindCSS                     | 4.1.7   | Styling & responsive design                        | All 3 Apps             |
+| shadcn/ui                       | latest  | Component library (copy-paste, fully customizable) | All 3 Apps             |
+| Motion (formerly Framer Motion) | 12.17.0 | Animasi scroll undangan                            | Invitation App         |
+| html5-qrcode                    | 2.3.8   | QR code scanning library                           | Scanner App            |
+| Socket.io Client                | 4.8.3   | WebSocket real-time                                | Dashboard & Scanner    |
+| @tanstack/react-query           | 5.89.0  | Data fetching & caching                            | All 3 Apps             |
+| React Hook Form                 | 7.62.0  | Form handling (RSVP, CMS)                          | Dashboard & Invitation |
+| Zod                             | 3.25.3  | Schema validation                                  | All 3 Apps             |
 
 ### Backend Dependencies
 
-| Dependency | Version | Purpose |
-|---|---|---|
-| Node.js | 20+ | Runtime |
-| Fastify | 5.3.2 | API server |
-| PostgreSQL | latest | Primary database |
-| Prisma | 7.7.0 | Database ORM |
-| ioredis | 5.6.0 | Redis client (caching & pub/sub) |
-| Socket.io | 4.8.3 | WebSocket server |
-| qrcode (npm) | latest | QR code generation |
-| Sharp | 0.34.1 | Image processing & optimization |
-| Multer | 1.4.5-lts.2 | File upload handling |
-| jsonwebtoken | 9.0.2 | JWT authentication |
-| bcrypt | 6.0.0 | Password hashing |
-| Zod | 3.25.3 | Input validation |
+| Dependency   | Version     | Purpose                          |
+| ------------ | ----------- | -------------------------------- |
+| Node.js      | 20+         | Runtime                          |
+| Fastify      | 5.3.2       | API server                       |
+| PostgreSQL   | latest      | Primary database                 |
+| Prisma       | 7.7.0       | Database ORM                     |
+| ioredis      | 5.6.0       | Redis client (caching & pub/sub) |
+| Socket.io    | 4.8.3       | WebSocket server                 |
+| qrcode (npm) | latest      | QR code generation               |
+| Sharp        | 0.34.1      | Image processing & optimization  |
+| Multer       | 1.4.5-lts.2 | File upload handling             |
+| jsonwebtoken | 9.0.2       | JWT authentication               |
+| bcrypt       | 6.0.0       | Password hashing                 |
+| Zod          | 3.25.3      | Input validation                 |
 
 ### Testing Dependencies
 
-| Dependency | Version | Purpose |
-|---|---|---|
-| Vitest | 3.2.4 | Unit & integration testing |
-| fast-check | 4.2.0 | Property-based testing |
-| TypeScript | 5.9.3 | Type checking |
+| Dependency | Version | Purpose                    |
+| ---------- | ------- | -------------------------- |
+| Vitest     | 3.2.4   | Unit & integration testing |
+| fast-check | 4.2.0   | Property-based testing     |
+| TypeScript | 5.9.3   | Type checking              |
 
 ### Infrastructure
 
-| Service | Purpose |
-|---|---|
+| Service                        | Purpose                |
+| ------------------------------ | ---------------------- |
 | Cloud Hosting (Vercel/AWS/GCP) | Application deployment |
-| Cloud Storage (S3/GCS) | Media file storage |
-| CDN (CloudFront/Cloudflare) | Static asset delivery |
-| Managed PostgreSQL | Database hosting |
-| Redis Cloud / ElastiCache | Cache & pub/sub |
-| Domain & SSL | HTTPS untuk semua apps |
+| Cloud Storage (S3/GCS)         | Media file storage     |
+| CDN (CloudFront/Cloudflare)    | Static asset delivery  |
+| Managed PostgreSQL             | Database hosting       |
+| Redis Cloud / ElastiCache      | Cache & pub/sub        |
+| Domain & SSL                   | HTTPS untuk semua apps |
 
 ## Correctness Properties
 
-*A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
+_A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees._
 
 ### Property 1: Tenant Data Isolation
 
-*For any* tenant T and any database query Q executed in the context of tenant T, all returned results SHALL only contain records where tenant_id equals T, and any attempt to access resources belonging to a different tenant SHALL be rejected.
+_For any_ tenant T and any database query Q executed in the context of tenant T, all returned results SHALL only contain records where tenant_id equals T, and any attempt to access resources belonging to a different tenant SHALL be rejected.
 
 **Validates: Requirements 1.2, 1.3**
 
 ### Property 2: Event Data Isolation Within Tenant
 
-*For any* two events E1 and E2 within the same tenant, querying guests, check-ins, or RSVP data for event E1 SHALL never return records belonging to event E2.
+_For any_ two events E1 and E2 within the same tenant, querying guests, check-ins, or RSVP data for event E1 SHALL never return records belonging to event E2.
 
 **Validates: Requirement 1.4**
 
 ### Property 3: Role-Based Data Access
 
-*For any* user with a specific role (Admin, Client, WO, Scanner Operator), the system SHALL only return data that the role is authorized to access — Admin sees only scoped data per assignment, Client sees only own events, WO sees only assigned events, Scanner Operator can perform both QR scan and manual check-in operations (both capabilities mandatory).
+_For any_ user with a specific role (Admin, Client, WO, Scanner Operator), the system SHALL only return data that the role is authorized to access — Admin sees only scoped data per assignment, Client sees only own events, WO sees only assigned events, Scanner Operator can perform both QR scan and manual check-in operations (both capabilities mandatory).
 
 **Validates: Requirements 2.6, 2.7, 2.8**
 
 ### Property 4: QR Code Uniqueness
 
-*For any* N guests added to an event (individually or via bulk import), all generated QR code payloads SHALL be unique — no two guests within the same event or across events SHALL share the same QR payload.
+_For any_ N guests added to an event (individually or via bulk import), all generated QR code payloads SHALL be unique — no two guests within the same event or across events SHALL share the same QR payload.
 
 **Validates: Requirements 3.1, 3.3, 3.6**
 
 ### Property 5: QR Code Encryption
 
-*For any* generated QR code, the payload SHALL be encrypted using AES-256 such that the raw guest_id and event_id are not readable from the payload without decryption.
+_For any_ generated QR code, the payload SHALL be encrypted using AES-256 such that the raw guest_id and event_id are not readable from the payload without decryption.
 
 **Validates: Requirements 3.5, 13.1**
 
 ### Property 6: RSVP Guest Count Validation
 
-*For any* RSVP submission with a guest_count value, the system SHALL accept the submission only if guest_count is less than or equal to (plus_one_count + 1), and SHALL reject submissions that exceed this limit.
+_For any_ RSVP submission with a guest_count value, the system SHALL accept the submission only if guest_count is less than or equal to (plus_one_count + 1), and SHALL reject submissions that exceed this limit.
 
 **Validates: Requirements 4.3, 4.4**
 
 ### Property 7: Active Section Rendering
 
-*For any* event configuration with a set of sections marked active/inactive, the Invitation App SHALL render only the sections marked as active, and the rendered sections SHALL appear in the order defined by sort_order.
+_For any_ event configuration with a set of sections marked active/inactive, the Invitation App SHALL render only the sections marked as active, and the rendered sections SHALL appear in the order defined by sort_order.
 
 **Validates: Requirements 5.3, 6.3**
 
 ### Property 8: Section Sort Order Uniqueness
 
-*For any* event with N active sections, all sort_order values SHALL be unique and form a valid sequential ordering without gaps or duplicates.
+_For any_ event with N active sections, all sort_order values SHALL be unique and form a valid sequential ordering without gaps or duplicates.
 
 **Validates: Requirement 5.9**
 
 ### Property 9: Invitation Personalization
 
-*For any* guest with a valid invitation URL, opening the URL SHALL render the invitation with the guest's name displayed on the cover section, matching the guest record in the database.
+_For any_ guest with a valid invitation URL, opening the URL SHALL render the invitation with the guest's name displayed on the cover section, matching the guest record in the database.
 
 **Validates: Requirements 6.1, 14.2**
 
 ### Property 10: Scanner Verification Status Mapping
 
-*For any* QR code scan attempt, the Scanner System SHALL return exactly one of three statuses: GREEN (valid QR, not yet checked-in) with guest name, RED (invalid/not found QR, or valid format but fails event-specific validation such as belonging to a different event), or YELLOW (already checked-in) with guest name — and the status SHALL correctly correspond to the actual state of the QR code and guest record.
+_For any_ QR code scan attempt, the Scanner System SHALL return exactly one of two statuses: GREEN (valid QR check-in or subsequent scan-bypass) with guest name and incremented scan_count, or RED (invalid/not found QR, or valid format but fails event-specific validation such as belonging to a different event) — and the status SHALL correctly correspond to the actual state of the QR code and guest record.
 
 **Validates: Requirements 7.2, 7.3, 7.4**
 
 ### Property 11: Check-in Idempotency
 
-*For any* guest, regardless of how many check-in attempts are made (via QR scan, manual, or concurrent scanners), the system SHALL maintain exactly one check-in record per guest.
+_For any_ guest, regardless of how many check-in attempts are made (via QR scan, manual, or concurrent scanners), the system SHALL maintain exactly one check-in record per guest.
 
 **Validates: Requirements 7.5, 7.7**
 
 ### Property 12: Scanner Device Limit
 
-*For any* event, the number of active scanner devices SHALL never exceed the configured max_scanner_devices (default: 2).
+_For any_ event, the number of active scanner devices SHALL never exceed the configured max_scanner_devices (default: 2).
 
 **Validates: Requirement 7.6**
 
 ### Property 13: Go-Show Guest Tracking
 
-*For any* Go-Show guest registration, the created guest record SHALL have type="go_show" AND the associated check-in record SHALL have method="go_show" AND the guest SHALL be immediately marked as checked-in.
+_For any_ Go-Show guest registration, the created guest record SHALL have type="go_show" AND the associated check-in record SHALL have method="go_show" AND the guest SHALL be immediately marked as checked-in.
 
 **Validates: Requirements 8.4, 8.5**
 
 ### Property 14: WebSocket Room Isolation
 
-*For any* WebSocket event broadcast for event E, only clients connected to event E's room SHALL receive the message — clients connected to other event rooms SHALL not receive it.
+_For any_ WebSocket event broadcast for event E, only clients connected to event E's room SHALL receive the message — clients connected to other event rooms SHALL not receive it.
 
 **Validates: Requirement 9.3**
 
 ### Property 15: Offline Sync Completeness
 
-*For any* set of check-in records stored in the offline queue during connection loss, all records SHALL be successfully synced to the server when connectivity is detected (regardless of whether a restoration event occurred), with no data loss. When local storage reaches capacity (2000 records), the system SHALL continue scanning with overflow handling without stopping operations.
+_For any_ set of check-in records stored in the offline queue during connection loss, all records SHALL be successfully synced to the server when connectivity is detected (regardless of whether a restoration event occurred), with no data loss. When local storage reaches capacity (2000 records), the system SHALL continue scanning with overflow handling without stopping operations.
 
 **Validates: Requirements 9.5, 10.2, 10.3**
 
 ### Property 16: Real-time Data Consistency
 
-*For any* point in time, the dashboard's displayed total_checked_in count SHALL equal the actual count of check-in records in the database for that event.
+_For any_ point in time, the dashboard's displayed total_checked_in count SHALL equal the actual count of check-in records in the database for that event.
 
 **Validates: Requirement 9.7**
 
 ### Property 17: PII Encryption at Rest
 
-*For any* guest record containing phone or email data, the stored values in the database SHALL be encrypted using symmetric encryption such that plaintext values are never stored directly in storage.
+_For any_ guest record containing phone or email data, the stored values in the database SHALL be encrypted using symmetric encryption such that plaintext values are never stored directly in storage.
 
 **Validates: Requirement 13.2**
 
 ### Property 18: Server-Side Input Validation
 
-*For any* API request with invalid input (malformed data, missing required fields, out-of-range values, empty fields, or partial/ambiguous inputs), the Backend API SHALL reject the request with an appropriate error response before processing. Ambiguous inputs (such as empty color fields or partial hex values) SHALL be treated as invalid.
+_For any_ API request with invalid input (malformed data, missing required fields, out-of-range values, empty fields, or partial/ambiguous inputs), the Backend API SHALL reject the request with an appropriate error response before processing. Ambiguous inputs (such as empty color fields or partial hex values) SHALL be treated as invalid.
 
 **Validates: Requirements 13.5, 13.6**
 
 ### Property 19: Cross-Tenant Access Rejection
 
-*For any* request attempting to access resources belonging to a different tenant, the Backend API SHALL return 403 Forbidden regardless of whether the request contains a valid tenant_id or not, without revealing information about the resource's existence.
+_For any_ request attempting to access resources belonging to a different tenant, the Backend API SHALL return 403 Forbidden regardless of whether the request contains a valid tenant_id or not, without revealing information about the resource's existence.
 
 **Validates: Requirement 1.3**
 
 ### Property 20: Invitation Sending Contact Completeness
 
-*For any* guest, invitation sending SHALL only be enabled when both phone number AND email address are present. If either is missing, all sending channels SHALL be disabled.
+_For any_ guest, invitation sending SHALL only be enabled when both phone number AND email address are present. If either is missing, all sending channels SHALL be disabled.
 
 **Validates: Requirement 14.5**
 
 ### Property 21: Theme Application Resilience
 
-*For any* newly created event, if default theme application fails due to system error, the event SHALL still be created successfully without styling, allowing manual theme configuration later.
+_For any_ newly created event, if default theme application fails due to system error, the event SHALL still be created successfully without styling, allowing manual theme configuration later.
 
 **Validates: Requirement 11.7**
 
 ### Property 22: File Upload Explicit Validation
 
-*For any* file upload, the system SHALL explicitly validate file size (max 10MB) and format (JPEG, PNG, WebP for images; MP4, WebM for video) before processing, rejecting files that fail with specific error reasons.
+_For any_ file upload, the system SHALL explicitly validate file size (max 10MB) and format (JPEG, PNG, WebP for images; MP4, WebM for video) before processing, rejecting files that fail with specific error reasons.
 
 **Validates: Requirements 13.8, 13.9**

@@ -21,12 +21,20 @@ describe('loginSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects invalid email format', () => {
+  it('rejects invalid format (neither email nor username)', () => {
     const result = loginSchema.safeParse({
-      email: 'not-an-email',
+      email: 'not!valid',
       password: 'password123',
     });
     expect(result.success).toBe(false);
+  });
+
+  it('accepts valid username format', () => {
+    const result = loginSchema.safeParse({
+      email: 'superadmin',
+      password: 'password123',
+    });
+    expect(result.success).toBe(true);
   });
 
   it('rejects empty password', () => {

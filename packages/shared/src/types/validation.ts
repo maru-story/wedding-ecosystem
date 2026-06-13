@@ -1,6 +1,7 @@
 // Zod validation schemas for server-side input validation (Req 13.5)
 
 import { z } from 'zod';
+import { normalizePhoneNumber, isValidPhoneNumber } from '../utils/phone';
 
 import {
   AttendanceType,
@@ -29,7 +30,7 @@ export const MAX_SENDER_NAME_LENGTH = 100;
 export const MAX_CSV_ROWS = 2000;
 
 /** Maximum guests per page (Req 3.9) */
-export const GUESTS_PER_PAGE = 50;
+export const GUESTS_PER_PAGE = 20;
 
 /** Maximum search results for manual check-in (Req 8.1) */
 export const MAX_SEARCH_RESULTS = 10;
@@ -54,11 +55,25 @@ const emailSchema = z
   .max(MAX_TEXT_LENGTH, { message: `Email maksimal ${MAX_TEXT_LENGTH} karakter` });
 
 const phoneSchema = z
-  .string()
-  .regex(/^\+?[0-9\s\-()]{7,20}$/, {
-    message: 'Format nomor telepon tidak valid',
+  .custom<any>((val) => val === undefined || val === null || typeof val === 'string')
+  .transform((val): string => {
+    if (val === undefined || val === null) return '';
+    return String(val);
   })
-  .max(20, { message: 'Nomor telepon maksimal 20 karakter' });
+  .refine(
+    (val) => {
+      if (val === '') return true;
+      return isValidPhoneNumber(normalizePhoneNumber(val));
+    },
+    {
+      message:
+        'Format nomor telepon tidak valid. Harus berupa nomor seluler Indonesia yang valid (contoh: 08xxxxxxxxxx atau +628xxxxxxxxxx).',
+    }
+  )
+  .transform((val) => {
+    if (val === '') return '';
+    return normalizePhoneNumber(val);
+  });
 
 const nameSchema = z
   .string()
@@ -108,12 +123,53 @@ export const createUserSchema = z.object({
 
 /** Login input */
 export const loginSchema = z.object({
-  email: emailSchema,
+  email: z
+    .string()
+    .min(1, { message: 'Email atau username tidak boleh kosong' })
+    .max(MAX_TEXT_LENGTH, { message: `Email atau username maksimal ${MAX_TEXT_LENGTH} karakter` })
+    .refine(
+      (val) => {
+        const isEmail = z.string().email().safeParse(val).success;
+        const isUsername = /^[a-zA-Z0-9_.-]+$/.test(val) && val.length >= 3;
+        return isEmail || isUsername;
+      },
+      {
+        message: 'Format email atau username tidak valid',
+      }
+    ),
   password: z
     .string()
     .min(1, { message: 'Password tidak boleh kosong' })
     .max(128, { message: 'Password maksimal 128 karakter' }),
 });
+
+/** Update Profile input */
+export const updateProfileSchema = z.object({
+  name: nameSchema,
+  email: emailSchema,
+  username: z
+    .string()
+    .max(100, { message: 'Username maksimal 100 karakter' })
+    .refine((val) => !val || (/^[a-zA-Z0-9_.-]+$/.test(val) && val.length >= 3), {
+      message:
+        'Username minimal 3 karakter dan hanya boleh berisi huruf, angka, titik, underscore, atau dash',
+    })
+    .optional()
+    .nullable(),
+});
+
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
+/** Change Password input */
+export const changePasswordSchema = z.object({
+  current_password: z.string().min(1, { message: 'Password saat ini tidak boleh kosong' }),
+  new_password: z
+    .string()
+    .min(8, { message: 'Password baru minimal 8 karakter' })
+    .max(128, { message: 'Password baru maksimal 128 karakter' }),
+});
+
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
 /** Event creation input */
 export const createEventSchema = z.object({
@@ -139,14 +195,16 @@ export const createEventSchema = z.object({
   status: z.nativeEnum(EventStatus).optional().default(EventStatus.DRAFT),
 });
 
+/** Event update input */
+export const updateEventSchema = createEventSchema.partial();
+
 /** Guest creation input (Req 3.1) */
 export const createGuestSchema = z.object({
   name: nameSchema,
   group: z.nativeEnum(GuestGroup, {
     errorMap: () => ({ message: 'Grup tamu tidak valid (family, friend, colleague, vip)' }),
   }),
-  phone: phoneSchema.optional().or(z.literal('')),
-  email: emailSchema.optional().or(z.literal('')),
+  phone: phoneSchema,
   plus_one_count: z
     .number()
     .int({ message: 'Jumlah plus one harus bilangan bulat' })
@@ -256,10 +314,13 @@ export const registerScannerSchema = z.object({
     .string()
     .min(1, { message: 'Nama device tidak boleh kosong' })
     .max(MAX_TEXT_LENGTH, { message: `Nama device maksimal ${MAX_TEXT_LENGTH} karakter` }),
-  lane: z.nativeEnum(ScannerLane, {
-    errorMap: () => ({ message: 'Lane tidak valid (lane_1 atau lane_2)' }),
-  }),
+  lane: z
+    .nativeEnum(ScannerLane, {
+      errorMap: () => ({ message: 'Lane tidak valid (lane_1 atau lane_2)' }),
+    })
+    .optional(),
   event_id: z.string().uuid({ message: 'ID event tidak valid' }),
+  device_id: z.string().uuid({ message: 'ID device tidak valid' }).optional(),
 });
 
 /** Theme update input (Req 11.1, 11.6) */
@@ -281,8 +342,8 @@ export const updateInvitationThemeSchema = z.object({
 
 /** Pagination input */
 export const paginationSchema = z.object({
-  page: z.number().int().min(1, { message: 'Halaman minimal 1' }).optional().default(1),
-  per_page: z
+  page: z.coerce.number().int().min(1, { message: 'Halaman minimal 1' }).optional().default(1),
+  per_page: z.coerce
     .number()
     .int()
     .min(1, { message: 'Item per halaman minimal 1' })
@@ -310,3 +371,11 @@ export type RegisterScannerInput = z.infer<typeof registerScannerSchema>;
 export type UpdateDashboardThemeInput = z.infer<typeof updateDashboardThemeSchema>;
 export type UpdateInvitationThemeInput = z.infer<typeof updateInvitationThemeSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
+export type UpdateEventInput = z.infer<typeof updateEventSchema>;
+
+export const bulkDeleteGuestsSchema = z.object({
+  ids: z
+    .array(z.string().uuid({ message: 'ID tamu tidak valid' }))
+    .min(1, 'Pilih minimal 1 tamu untuk dihapus'),
+});
+export type BulkDeleteGuestsInput = z.infer<typeof bulkDeleteGuestsSchema>;

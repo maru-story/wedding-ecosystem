@@ -12,3 +12,4 @@ export { GiftSection } from './gift-section';
 export { MessagesSection } from './messages-section';
 export { ClosingSection } from './closing-section';
 export { MusicPlayer } from './music-player';
+export { QrTicket } from './qr-ticket';

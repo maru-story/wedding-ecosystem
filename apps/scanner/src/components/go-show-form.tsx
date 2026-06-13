@@ -18,7 +18,13 @@ interface GoShowFormProps {
   initialName?: string;
 }
 
-export function GoShowForm({ onSubmit, onCancel, isLoading, error, initialName = '' }: GoShowFormProps) {
+export function GoShowForm({
+  onSubmit,
+  onCancel,
+  isLoading,
+  error,
+  initialName = '',
+}: GoShowFormProps) {
   const [nama, setNama] = useState(initialName);
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -36,17 +42,15 @@ export function GoShowForm({ onSubmit, onCancel, isLoading, error, initialName =
   };
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <h3 className="text-lg font-semibold text-gray-900">Tambah Tamu Go-Show</h3>
-      <p className="mt-1 text-sm text-gray-500">
-        Daftarkan tamu walk-in yang belum terdaftar
-      </p>
+    <div className="border-border/40 bg-card rounded-xl border p-5 shadow-sm">
+      <h3 className="font-heading text-charcoal text-lg font-bold">Tambah Tamu Go-Show</h3>
+      <p className="text-charcoal/60 mt-1 text-sm">Daftarkan tamu walk-in yang belum terdaftar</p>
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         {/* Nama field */}
         <div>
-          <label htmlFor="go-show-nama" className="block text-sm font-medium text-gray-700">
-            Nama Tamu <span className="text-red-500">*</span>
+          <label htmlFor="go-show-nama" className="text-charcoal/80 block text-sm font-medium">
+            Nama Tamu <span className="text-danger">*</span>
           </label>
           <input
             id="go-show-nama"
@@ -57,7 +61,7 @@ export function GoShowForm({ onSubmit, onCancel, isLoading, error, initialName =
               setValidationError(null);
             }}
             placeholder="Masukkan nama tamu"
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 text-base text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            className="border-border/60 text-charcoal placeholder-charcoal/40 focus:border-sage focus:ring-sage/20 mt-1 block w-full rounded-xl border bg-white px-4 py-3 text-base transition-colors focus:ring-2 focus:outline-none"
             disabled={isLoading}
             autoFocus
             aria-required="true"
@@ -65,7 +69,7 @@ export function GoShowForm({ onSubmit, onCancel, isLoading, error, initialName =
             aria-describedby={validationError ? 'go-show-error' : undefined}
           />
           {validationError && (
-            <p id="go-show-error" className="mt-1.5 text-sm text-red-600" role="alert">
+            <p id="go-show-error" className="text-danger mt-1.5 text-sm" role="alert">
               {validationError}
             </p>
           )}
@@ -73,7 +77,10 @@ export function GoShowForm({ onSubmit, onCancel, isLoading, error, initialName =
 
         {/* Server error */}
         {error && (
-          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
+          <div
+            className="bg-danger/10 border-danger/20 text-danger rounded-lg border p-3 text-sm"
+            role="alert"
+          >
             {error}
           </div>
         )}
@@ -84,14 +91,14 @@ export function GoShowForm({ onSubmit, onCancel, isLoading, error, initialName =
             type="button"
             onClick={onCancel}
             disabled={isLoading}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="border-border/60 text-charcoal hover:bg-blush/40 flex-1 rounded-xl border bg-white px-4 py-3 text-sm font-medium transition-colors disabled:opacity-50"
           >
             Batal
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="flex-1 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="bg-sage hover:bg-sage/90 flex-1 rounded-xl px-4 py-3 text-sm font-medium text-white transition-colors disabled:opacity-50"
           >
             {isLoading ? 'Mendaftarkan...' : 'Daftarkan'}
           </button>

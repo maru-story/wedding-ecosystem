@@ -5,7 +5,7 @@
  * Must include <html> and <body> tags since it replaces the root layout.
  */
 export default function GlobalError({
-  error,
+  error: _error,
   reset,
 }: {
   error: Error & { digest?: string };
@@ -37,7 +37,7 @@ export default function GlobalError({
             </p>
             <button
               onClick={reset}
-              className="mt-6 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              className="bg-primary mt-6 rounded-lg px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
             >
               Muat Ulang
             </button>

@@ -7,84 +7,101 @@
 ```
 apps/
 ├── dashboard/        → Client/WO management UI (port 3000)
-│   └── src/app/      → App Router: login, guests, cms, theme, rsvp, notifications
+│   └── src/app/      → App Router: login, guests, cms, rsvp, send-invitation
 ├── invitation/       → Guest-facing invitation (port 3001, mobile-first, SSR)
-│   └── src/app/[eventSlug]/ → Dynamic route, 14 CMS sections rendered
+│   ├── src/app/[eventSlug]/ → Dynamic route, 14 CMS sections rendered
+│   └── tests/        → Playwright UI smoke tests (mobile viewport)
 └── scanner/          → QR check-in PWA (port 3002, offline-first)
     └── src/lib/      → IndexedDB queue, sync-manager, service worker
 
 packages/
 ├── api/              → Fastify REST + WebSocket server (port 4000)
-│   └── src/
-│       ├── routes/      → Thin HTTP adapters (auth, guests, events, checkin, rsvp, cms, scanner, messages, notifications, invitations, health)
-│       ├── services/    → Business logic (11 services; no direct Prisma calls)
-│       ├── repositories/ → Data-access layer — Prisma adapters, all queries tenant-scoped (guest, checkin)
-│       ├── middleware/  → CORS, rate-limit, RBAC, tenant-isolation, encryption, input-validation
-│       └── plugins/     → audit-logger, response-cache, security-headers
+│   ├── src/
+│   │   ├── routes/      → Feature subfolders with thin HTTP adapters (guests/, health/, etc.)
+│   │   ├── services/    → Feature subfolders with business logic (auth/, guest/, checkin/, etc.)
+│   │   ├── repositories/ → Feature subfolders with Prisma adapters (guest/, admin.repository.ts)
+│   │   ├── middleware/  → Feature subfolders (rbac/, tenant-isolation/, encryption/, etc.)
+│   │   └── plugins/     → Feature subfolders (audit-logger/, response-cache/, etc.)
+│   └── tests/e2e/    → Playwright REST API & Socket.io real-time E2E tests
 ├── db/               → Prisma 7 schema (12 models, 10 enums), migrations, client factory
 ├── shared/           → Zod schemas, TypeScript interfaces, enums, error codes, sanitization
-└── realtime/         → Socket.io 4.8 server, room-based per event, JWT auth middleware
+└── realtime/         → Socket.io 4.8 server, feature subfolders (stats/, middleware/auth/, etc.)
 ```
 
 ## Key Entry Points
 
-| Task | Start Here |
-|------|-----------|
-| Add API endpoint | `packages/api/src/routes/` (thin adapter) → `services/` (business logic) → `repositories/` (data access) |
-| Add database model | `packages/db/prisma/schema.prisma` → run `prisma migrate dev` |
-| Add shared type/validation | `packages/shared/src/types/` (enums, interfaces, validation) |
-| Add invitation section | `apps/invitation/src/components/sections/` + register in `section-rendering.ts` |
-| Add dashboard page | `apps/dashboard/src/app/(dashboard)/` (App Router) |
-| Modify real-time events | `packages/realtime/src/index.ts` (broadcast functions) |
-| Scanner offline logic | `apps/scanner/src/lib/` (indexed-db, offline-queue, sync-manager) |
+| Task                       | Start Here                                                                                                                             |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Add API endpoint           | `packages/api/src/routes/{feature}/` (thin adapter) → `services/{feature}/` (business logic) → `repositories/{feature}/` (data access) |
+| Add database model         | `packages/db/prisma/schema.prisma` → run `prisma migrate dev`                                                                          |
+| Add shared type/validation | `packages/shared/src/types/` (enums, interfaces, validation)                                                                           |
+| Add invitation section     | `apps/invitation/src/components/sections/` + register in `section-rendering.ts`                                                        |
+| Add dashboard page         | `apps/dashboard/src/app/(dashboard)/` (App Router)                                                                                     |
+| Modify real-time events    | `packages/realtime/src/index.ts` (broadcast functions)                                                                                 |
+| Scanner offline logic      | `apps/scanner/src/lib/` (indexed-db, offline-queue, sync-manager)                                                                      |
 
 ## Patterns That Deviate From Defaults
 
-| Pattern | Detail |
-|---------|--------|
-| Multi-tenant isolation | Every query scoped by `tenant_id` via middleware — not optional, not per-route |
-| PII encryption at rest | Guest phone/email encrypted before DB write, decrypted in service layer (`middleware/encryption.ts`) |
-| Denormalized `tenant_id` on Guest | Guest has both `event_id` and `tenant_id` for query performance (avoids JOIN) |
-| Pinned dependency versions | No `^` or `~` in app packages — exact versions only |
-| Single server for REST + WebSocket | Fastify and Socket.io share the same process on port 4000 |
-| Service Worker in `public/` | Scanner's `sw.js` is hand-written (not generated by next-pwa) |
-| TailwindCSS 4 (CSS-first) | No `tailwind.config.ts` — uses CSS `@import` and `@theme` directives |
-| UI language: Bahasa Indonesia | All user-facing text in Indonesian; code/comments in English |
+| Pattern                            | Detail                                                                                                                                         |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Local Grouping**                 | Source files and their tests are grouped in feature subfolders (e.g., `services/auth/auth.service.ts` + `services/auth/auth.service.test.ts`). |
+| Multi-tenant isolation             | Every query scoped by `tenant_id` via middleware — not optional, not per-route                                                                 |
+| PII encryption at rest             | Guest phone encrypted before DB write, decrypted in service layer (`middleware/encryption/`)                                                   |
+| Denormalized `tenant_id` on Guest  | Guest has both `event_id` and `tenant_id` for query performance (avoids JOIN)                                                                  |
+| Pinned dependency versions         | No `^` or `~` in app packages — exact versions only                                                                                            |
+| Single server for REST + WebSocket | Fastify and Socket.io share the same process on port 4000                                                                                      |
+| Service Worker in `public/`        | Scanner's `sw.js` is hand-written (not generated by next-pwa)                                                                                  |
+| TailwindCSS 4 (CSS-first)          | No `tailwind.config.ts` — uses CSS `@import` and `@theme` directives                                                                           |
+| UI language: Bahasa Indonesia      | All user-facing text in Indonesian; code/comments in English                                                                                   |
 
 ## Config & Tooling Discovery
 
-| File | What It Controls |
-|------|-----------------|
-| `turbo.json` | Build pipeline: `build` → `dev`, `lint`, `test` tasks with caching |
-| `.eslintrc.json` | TS recommended + prettier, warns on `no-console` and `no-explicit-any` |
-| `.prettierrc` | Single quotes, 100 width, trailing commas (es5), LF line endings |
-| `.husky/pre-commit` | Runs `scripts/detect-secrets.sh` — blocks commits with potential secrets |
-| `railway.toml` | Backend deploy config: nixpacks build, health check at `/health`, blue-green |
-| `apps/*/vercel.json` | Per-app Vercel config with security headers |
-| `packages/db/prisma/schema.prisma` | Database schema source of truth |
-| `.github/workflows/ci.yml` | Tests + lint + security audit + type-check gate |
-| `.github/workflows/deploy-backend.yml` | Railway blue-green deploy with auto-rollback |
-| `.github/workflows/deploy-frontend.yml` | Vercel deploy per changed app (detects via git diff) |
+| File                                    | What It Controls                                                             |
+| --------------------------------------- | ---------------------------------------------------------------------------- |
+| `turbo.json`                            | Build pipeline: `build` → `dev`, `lint`, `test` tasks with caching           |
+| `.eslintrc.json`                        | TS recommended + prettier, warns on `no-console` and `no-explicit-any`       |
+| `.prettierrc`                           | Single quotes, 100 width, trailing commas (es5), LF line endings             |
+| `.husky/pre-commit`                     | Runs `scripts/detect-secrets.sh` — blocks commits with potential secrets     |
+| `railway.toml`                          | Backend deploy config: nixpacks build, health check at `/health`, blue-green |
+| `apps/*/vercel.json`                    | Per-app Vercel config with security headers                                  |
+| `packages/db/prisma/schema.prisma`      | Database schema source of truth                                              |
+| `.github/workflows/ci.yml`              | Tests + lint + security audit + type-check gate                              |
+| `.github/workflows/deploy-backend.yml`  | Railway blue-green deploy with auto-rollback                                 |
+| `.github/workflows/deploy-frontend.yml` | Vercel deploy per changed app (detects via git diff)                         |
 
 ## Domain Rules (Must Not Violate)
 
 1. **Tenant isolation** — Every DB query scoped by `tenant_id`. Never expose cross-tenant data.
-2. **Duplicate check-in prevention** — Second scan returns YELLOW warning, does not create new record.
+2. **Duplicate check-in bypass & counter** — Multiple scans are allowed; subsequent scans increment the `scan_count` counter on the check-in record and return a success status (GREEN).
 3. **Max 2 scanner devices per event** — Enforced in `ScannerDeviceService`.
 4. **Offline sync: server wins** — Conflict resolution uses server timestamp.
 5. **QR payload encrypted** — Contains `guest_id + event_id`, encrypted with app secret.
 6. **14 CMS sections** — Fixed set of section types (cover through music). Toggleable and reorderable, not user-creatable.
-7. **Guest capacity: 500 per event** — Enforced in `EventConfig.max_guests`.
+7. **Guest capacity: 2000 per event** — Enforced in `EventConfig.max_guests` and `guest.service.ts`.
+8. **UI Component Consistency** — Frontend pages must strictly use the unified shadcn/UI library components. Raw HTML input/form elements are forbidden if a shadcn alternative exists (or can be easily instantiated).
+9. **Admin deletion block** — Users with the `admin` role cannot be deleted to prevent human error in production. Also, admin users cannot delete their own accounts.
+
+### Unified Auth Context (Mandatory — July 2026)
+
+The `AuthUser` interface is exclusively defined in `@wedding/shared`. Frontend apps must re-export this type rather than defining local versions. The interface includes mandatory `name` and `email` properties to ensure consistent profile display across the ecosystem.
 
 ## Testing
 
-- ~1149 tests across all packages (Vitest + fast-check property-based)
+- ~1218 tests across all packages (Vitest + fast-check property-based)
+- Playwright E2E integration tests for REST API & Socket.io WebSocket server under `packages/api/tests/e2e/`
+- Playwright UI smoke tests for the invitation web app under `apps/invitation/tests/` (uses Mobile Chrome viewport)
 - Property-based tests cover: QR validation, RSVP invariants, duplicate detection, tenant isolation, offline sync, room isolation
-- Run: `npm run test` (all) or `npx turbo test --filter=@wedding/{package}`
+- Run: `npm run test` (all), `npm run test:e2e --workspace=packages/api` (E2E tests), `npx playwright test --config=apps/invitation/playwright.config.ts` (invitation UI tests), or `npx turbo test --filter=@wedding/{package}`
+
+### E2E Testing Requirement
+
+- **Mandatory E2E Check**: Every time a new feature is added or a new capability is implemented, you MUST write/update E2E tests and perform an E2E check (`npm run test:e2e --workspace=packages/api`).
+- **Exemption**: If the improvement or feature does not impact system behaviors, user flows, or integration points and explicitly does not need E2E testing (e.g., purely documentation updates, minor text adjustments, or simple formatting changes), E2E test additions/runs may be skipped.
 
 ## Detailed Documentation
 
 For deeper information, see `.agents/summary/`:
+
 - `index.md` — Documentation navigation guide
 - `architecture.md` — System design and patterns
 - `components.md` — Component responsibilities and locations
@@ -92,8 +109,10 @@ For deeper information, see `.agents/summary/`:
 - `data_models.md` — Database schema details
 - `workflows.md` — End-to-end flow diagrams
 - `dependencies.md` — Library versions and rationale
+- `design-system.md` — Dashboard design system and tokens
 
 ## Custom Instructions
+
 <!-- This section is for human and agent-maintained operational knowledge.
      Add repo-specific conventions, gotchas, and workflow rules here.
      This section is preserved exactly as-is when re-running codebase-summary. -->
@@ -106,6 +125,8 @@ After **every** code change — no matter how small — the agent MUST:
    - `AGENTS.md` and `GEMINI.md` (directory maps, entry points, gotchas)
    - `.agents/summary/*.md` (architecture, components, interfaces, testing, review_notes)
    - `README.md` (feature list, API reference sections)
+   - `.kiro/steering/*.md` (documentation, product, structure, tech)
+   - `docs/*`
    - `packages/shared/src/types/` (if types/enums changed)
    - Postman collection (if an API endpoint was added, removed, or its shape changed)
 
@@ -116,35 +137,57 @@ After **every** code change — no matter how small — the agent MUST:
 
 3. **Present the audit to the user** in a table like this before touching anything:
 
-   | File | Status | What needs changing | Reason |
-   |------|--------|--------------------|---------| 
-   | `AGENTS.md` | 🔴 Must | Add `repositories/` to directory map | New layer was added |
-   | `interfaces.md` | 🔴 Must | Add `DELETE /guests/:id` | Endpoint was missing |
-   | `README.md` | ✅ None | — | High-level, unaffected |
+   | File            | Status  | What needs changing                  | Reason                 |
+   | --------------- | ------- | ------------------------------------ | ---------------------- |
+   | `AGENTS.md`     | 🔴 Must | Add `repositories/` to directory map | New layer was added    |
+   | `interfaces.md` | 🔴 Must | Add `DELETE /guests/:id`             | Endpoint was missing   |
+   | `README.md`     | ✅ None | —                                    | High-level, unaffected |
 
-4. **Ask the user explicitly**: *"Do you want me to update these files? (you can say yes to all, or list which ones to skip)"*
+4. **Ask the user explicitly**: _"Do you want me to update these files? (you can say yes to all, or list which ones to skip)"_
 
 5. **Only update files the user approves.** Never silently edit documentation or config files without this step.
 
-**Skip the audit only when**: the change is a pure refactor with no observable API, schema, or architectural difference (e.g., renaming a local variable, fixing a typo in a code comment).
+### Frontend Component & Library Consistency Protocol (Mandatory — May 2026)
+
+When adding or updating UI elements or introducing new pages:
+
+1. **Audit Available Components**: Always check `apps/{app}/src/components/ui/` to see if a shadcn or custom UI wrapper exists (e.g., `Label`, `Input`, `Button`, `Textarea`, `Card`).
+2. **Mandatory Reuse**: Use these UI components. Do not fallback to raw HTML controls (like `<textarea>` or `<button>`) unless they are custom-styled structural containers distinct from design-system components.
+3. **Extend, Don't Duplicate**: If a standard shadcn component is missing (e.g. `textarea`), construct it in the workspace's UI directory to match the layout/design guidelines, then import and use it.
+4. **Third-Party Libraries**: Inspect `package.json` before implementing custom solutions for motion/animation (e.g. `motion` or `framer-motion`) or iconography (e.g. `lucide-react`) to ensure ecosystem consistency.
 
 ---
+
+### Local Grouping Pattern (Mandatory — July 2026)
+
+Source files and their corresponding tests must be grouped into feature subfolders. This applies to `services/`, `routes/`, `middleware/`, `plugins/`, `config/`, and `realtime/src/`.
+
+- **Good**: `services/auth/auth.service.ts` and `services/auth/auth.service.test.ts`.
+- **Bad**: `services/auth.service.ts` and `services/auth.service.test.ts` sitting in the root of `services/`.
+
+### Zero-Cast Repository Policy (Mandatory — July 2026)
+
+Repositories must use explicit Prisma types (e.g., `Prisma.GuestWhereInput`, `Prisma.GuestUpdateInput`) to ensure type safety. The use of `as any` or `as unknown` when interacting with Prisma models is strictly forbidden.
+
+### Validation Helper Pattern (Mandatory — July 2026)
+
+All route handlers must use the `validate(data, schema, reply)` helper from `middleware/validate.ts`. This ensures consistent error reporting using the shared `ErrorCode.VALIDATION_FAILED`.
 
 ### Repository Pattern (Guest domain — June 2026)
 
 The `Guest` domain has been migrated to a **3-layer architecture**: thin route → service → repository.
 
-- **Routes** (`routes/guests.ts`) must NOT call Prisma directly. They delegate entirely to `GuestService` and `GuestImportService`.
-- **Services** (`guest.service.ts`, `guest-import.service.ts`) contain all business logic: slug generation, QR encryption, deduplication. No Prisma imports.
-- **Repository** (`repositories/guest.repository.ts`) is the only layer that talks to Prisma. Every method receives `tenant_id` and must include it in the `where` clause — no exceptions.
-- The repository implements the `GuestRepository` interface defined at the top of `guest.service.ts`. Mock that interface in service tests; mock `PrismaClient` in repository tests.
+- **Routes** (`routes/guests/guests.ts`) must NOT call Prisma directly. They delegate entirely to `GuestService` and `GuestImportService`.
+- **Services** (`guest/guest.service.ts`, `guest-import/guest-import.service.ts`) contain all business logic: slug generation, QR encryption, deduplication. No Prisma imports.
+- **Repository** (`repositories/guest/guest.repository.ts`) is the only layer that talks to Prisma. Every method receives `tenant_id` and must include it in the `where` clause — no exceptions.
+- The repository implements the `GuestRepository` interface defined at the top of `guest/guest.service.ts`. Mock that interface in service tests; mock `PrismaClient` in repository tests.
 
 ### Critical Gotchas
 
-| Gotcha | Detail |
-|--------|--------|
-| **CSV import headers** | `GuestImportService` expects Bahasa Indonesia column names: `nama`, `grup`, `telepon`, `email`. English names (`name`, `group`) will silently skip rows. |
-| **QR payload format** | Encrypted as `iv:ciphertext` (AES-256-CBC). Requires `AES_ENCRYPTION_KEY` env var (32 bytes). Missing key → runtime crash on QR generation. |
-| **`DELETE /guests/:id`** | Exists in the route file and is tenant-scoped. Was missing from Postman collection until June 2026 — now present. |
-| **`searchGuestsByName`** | Minimum 2 characters enforced in the route. Below that, the route returns 400, not an empty array. |
-| **PrismaClient import** | Always import `PrismaClient` from `@wedding/db`, never from `@prisma/client` directly — the latter is not exported from the package root. |
+| Gotcha                   | Detail                                                                                                                                                         |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CSV import headers**   | `GuestImportService` expects Bahasa Indonesia column names: `nama`, `grup`, `telepon`, `jumlah_tamu`. English names (`name`, `group`) will silently skip rows. |
+| **QR payload format**    | Encrypted as `iv:ciphertext` (AES-256-CBC). Requires `AES_ENCRYPTION_KEY` env var (32 bytes). Missing key → runtime crash on QR generation.                    |
+| **`DELETE /guests/:id`** | Exists in the route file and is tenant-scoped. Was missing from Postman collection until June 2026 — now present.                                              |
+| **`searchGuestsByName`** | Minimum 2 characters enforced in the route. Below that, the route returns 400, not an empty array.                                                             |
+| **PrismaClient import**  | Always import `PrismaClient` from `@wedding/db`, never from `@prisma/client` directly — the latter is not exported from the package root.                      |

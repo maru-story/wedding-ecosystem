@@ -1,112 +1,91 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { apiFetch, ApiError } from '@/lib/api';
+import QRCode from 'react-qr-code';
+import { ApiError } from '@/lib/api';
+import { useGuestQr } from '@/hooks/queries';
 import type { GuestListItem } from '../page';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface QrCodeModalProps {
   guest: GuestListItem;
   onClose: () => void;
 }
 
-interface GuestQrData {
-  qr_image_url: string | null;
-  qr_payload: string;
-  is_active: boolean;
-}
-
 export function QrCodeModal({ guest, onClose }: QrCodeModalProps) {
-  const [qrData, setQrData] = useState<GuestQrData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { data: qrData, isLoading, error } = useGuestQr(guest.id);
 
-  useEffect(() => {
-    async function fetchQrCode() {
-      try {
-        const data = await apiFetch<GuestQrData>(`/guests/${guest.id}/qr`);
-        setQrData(data);
-      } catch (err) {
-        if (err instanceof ApiError) {
-          const errData = err.data as { message?: string };
-          setError(errData.message || 'Gagal memuat QR code');
-        } else {
-          setError('Terjadi kesalahan saat memuat QR code');
-        }
-      } finally {
-        setIsLoading(false);
-      }
+  let errorMessage = '';
+  if (error) {
+    if (error instanceof ApiError) {
+      const errData = error.data as { error?: { message?: string }; message?: string };
+      errorMessage = errData.error?.message || errData.message || 'Gagal memuat QR code';
+    } else {
+      errorMessage = 'Terjadi kesalahan saat memuat QR code';
     }
-
-    fetchQrCode();
-  }, [guest.id]);
+  }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
       }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="qr-modal-title"
     >
-      <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 id="qr-modal-title" className="font-heading text-lg font-bold">
-            QR Code
-          </h2>
-          <button
-            onClick={onClose}
-            className="rounded p-1 text-gray-400 hover:text-gray-600"
-            aria-label="Tutup"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+      <DialogContent className="bg-card border-border/40 p-6 shadow-xl sm:max-w-md">
+        <DialogHeader className="mb-4">
+          <DialogTitle id="qr-modal-title" className="font-heading text-xl font-bold">
+            QR Code Tamu
+          </DialogTitle>
+          <DialogDescription className="sr-only">QR Code untuk tamu {guest.name}</DialogDescription>
+        </DialogHeader>
 
         <div className="mb-4 text-center">
-          <p className="text-lg font-medium text-gray-900">{guest.name}</p>
-          <p className="text-sm text-gray-500 capitalize">{guest.group}</p>
+          <p className="text-foreground text-lg font-medium">{guest.name}</p>
+          <p className="text-muted-foreground text-sm capitalize">{guest.group}</p>
         </div>
 
         {isLoading && (
           <div className="flex items-center justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
           </div>
         )}
 
-        {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
-            {error}
+        {errorMessage && (
+          <div className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-center text-sm font-semibold">
+            {errorMessage}
           </div>
         )}
 
-        {!isLoading && !error && qrData && (
+        {!isLoading && !errorMessage && qrData && (
           <div className="text-center">
-            {qrData.qr_image_url ? (
-              <div className="mx-auto inline-block rounded-lg border-2 border-gray-200 p-4">
-                <img
-                  src={qrData.qr_image_url}
-                  alt={`QR Code untuk ${guest.name}`}
-                  className="h-48 w-48"
+            {qrData.qr_payload ? (
+              <div className="border-border mx-auto inline-block rounded-lg border bg-white p-4">
+                <QRCode
+                  value={qrData.qr_payload}
+                  size={192}
+                  style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
+                  viewBox="0 0 192 192"
                 />
               </div>
             ) : (
-              <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
-                <p className="text-xs text-gray-500">QR Code tersedia</p>
+              <div className="border-border bg-muted/20 mx-auto flex h-48 w-48 items-center justify-center rounded-lg border border-dashed">
+                <p className="text-muted-foreground text-xs">QR Code belum tersedia</p>
               </div>
             )}
             <div className="mt-4">
               <span
-                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${qrData.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${
+                  qrData.is_active
+                    ? 'bg-success/15 text-success'
+                    : 'bg-destructive/10 text-destructive'
+                }`}
               >
                 {qrData.is_active ? 'Aktif' : 'Nonaktif'}
               </span>
@@ -114,15 +93,16 @@ export function QrCodeModal({ guest, onClose }: QrCodeModalProps) {
           </div>
         )}
 
-        <div className="mt-5 flex justify-center">
-          <button
+        <div className="mt-5 flex justify-end gap-2">
+          <Button
             onClick={onClose}
-            className="rounded-lg border border-gray-300 px-6 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            variant="outline"
+            className="border-border/60 text-muted-foreground hover:text-foreground"
           >
             Tutup
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

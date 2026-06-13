@@ -41,7 +41,10 @@ function calculateTimeLeft(targetDate: string): TimeLeft {
 function generateIcsContent(targetDate: string): string {
   const date = new Date(targetDate);
   const formatDate = (d: Date) =>
-    d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    d
+      .toISOString()
+      .replace(/[-:]/g, '')
+      .replace(/\.\d{3}/, '');
 
   const endDate = new Date(date.getTime() + 3 * 60 * 60 * 1000); // 3 hours duration
 
@@ -76,7 +79,7 @@ function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-[var(--color-primary)]/10">
-        <span className="font-heading text-2xl font-bold text-[var(--color-primary)]">
+        <span className="font-heading text-2xl font-bold text-[var(--color-primary)] tabular-nums">
           {String(value).padStart(2, '0')}
         </span>
       </div>
@@ -114,7 +117,7 @@ export function CountdownSection({ content, sortOrder }: CountdownSectionProps) 
 
   return (
     <SectionWrapper sectionType="countdown" sortOrder={sortOrder}>
-      <h2 className="mb-8 text-center font-heading text-2xl font-bold text-[var(--color-primary)]">
+      <h2 className="font-heading mb-8 text-center text-2xl font-bold text-balance text-[var(--color-primary)]">
         Hitung Mundur
       </h2>
 

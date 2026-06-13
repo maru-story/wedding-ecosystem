@@ -16,6 +16,7 @@ import {
   MessagesSection,
   ClosingSection,
   MusicPlayer,
+  QrTicket,
 } from '@/components/sections';
 import type { InvitationPageData, SectionData } from '@/lib/api';
 import { getActiveSectionsForRendering } from '@/lib/section-rendering';
@@ -34,25 +35,27 @@ export function InvitationView({ data }: InvitationViewProps) {
 
   // Find cover section content
   const coverSection = sections.find((s) => s.section_type === 'cover' && s.is_active);
-  const coverContent = coverSection?.content as {
-    title?: string;
-    subtitle?: string;
-    background_image?: string;
-    opening_text?: string;
-  } | undefined;
+  const coverContent = coverSection?.content as
+    | {
+        title?: string;
+        subtitle?: string;
+        background_image?: string;
+        opening_text?: string;
+      }
+    | undefined;
 
   // Filter active sections sorted by sort_order (excluding cover which is handled separately)
   const activeSections = getActiveSectionsForRendering(sections);
 
   // Check if music section is active
-  const musicSection = sections.find(
-    (s) => s.section_type === 'music' && s.is_active
-  );
-  const musicContent = musicSection?.content as {
-    audio_url?: string;
-    autoplay?: boolean;
-    title?: string;
-  } | undefined;
+  const musicSection = sections.find((s) => s.section_type === 'music' && s.is_active);
+  const musicContent = musicSection?.content as
+    | {
+        audio_url?: string;
+        autoplay?: boolean;
+        title?: string;
+      }
+    | undefined;
 
   return (
     <ThemeProvider theme={theme}>
@@ -62,13 +65,14 @@ export function InvitationView({ data }: InvitationViewProps) {
         groomName={event.groom_name}
         guestName={guest.name}
         eventDate={event.event_date}
+        qrPayload={guest.qr_payload}
         coverContent={coverContent}
       />
 
       {/* Main invitation content */}
       <main className="min-h-screen bg-[var(--color-background)]">
         {activeSections.map((section) => (
-          <SectionRenderer key={section.id} section={section} />
+          <SectionRenderer key={section.id} section={section} guest={guest} event={event} />
         ))}
       </main>
 
@@ -80,6 +84,9 @@ export function InvitationView({ data }: InvitationViewProps) {
           title={musicContent.title}
         />
       )}
+
+      {/* Floating QR Entry Ticket */}
+      <QrTicket guest={guest} />
     </ThemeProvider>
   );
 }
@@ -87,7 +94,15 @@ export function InvitationView({ data }: InvitationViewProps) {
 /**
  * Renders the appropriate component for each section type.
  */
-function SectionRenderer({ section }: { section: SectionData }) {
+function SectionRenderer({
+  section,
+  guest,
+  event,
+}: {
+  section: SectionData;
+  guest: InvitationPageData['guest'];
+  event: InvitationPageData['event'];
+}) {
   const content = section.content as Record<string, unknown>;
 
   switch (section.section_type) {
@@ -131,6 +146,9 @@ function SectionRenderer({ section }: { section: SectionData }) {
         <RsvpSection
           content={content as Parameters<typeof RsvpSection>[0]['content']}
           sortOrder={section.sort_order}
+          guestId={guest.id}
+          eventId={event.id}
+          plusOneCount={guest.plus_one_count}
         />
       );
     case 'attire':
@@ -166,6 +184,8 @@ function SectionRenderer({ section }: { section: SectionData }) {
         <MessagesSection
           content={content as Parameters<typeof MessagesSection>[0]['content']}
           sortOrder={section.sort_order}
+          eventId={event.id}
+          guestId={guest.id}
         />
       );
     case 'closing':

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import type { SectionType } from '@/lib/cms';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import { CoverForm } from './forms/cover-form';
 import { BrideGroomForm } from './forms/bride-groom-form';
 import { StoryForm } from './forms/story-form';
@@ -17,14 +19,35 @@ import { MessagesForm } from './forms/messages-form';
 import { ClosingForm } from './forms/closing-form';
 import { MusicForm } from './forms/music-form';
 
+interface EventData {
+  id?: string;
+  bride_name?: string | null;
+  groom_name?: string | null;
+  event_date?: string | null;
+  akad_start?: string | null;
+  akad_end?: string | null;
+  resepsi_start?: string | null;
+  resepsi_end?: string | null;
+  venue_name?: string | null;
+  venue_address?: string | null;
+  venue_maps_url?: string | null;
+}
+
 interface SectionEditorFormProps {
   sectionType: SectionType;
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => Promise<void>;
   saving: boolean;
+  event?: EventData | null;
 }
 
-export function SectionEditorForm({ sectionType, content, onSave, saving }: SectionEditorFormProps) {
+export function SectionEditorForm({
+  sectionType,
+  content,
+  onSave,
+  saving,
+  event,
+}: SectionEditorFormProps) {
   const [formData, setFormData] = useState<Record<string, unknown>>(content);
 
   const handleChange = (newData: Record<string, unknown>) => {
@@ -41,35 +64,39 @@ export function SectionEditorForm({ sectionType, content, onSave, saving }: Sect
 
     switch (sectionType) {
       case 'cover':
-        return <CoverForm {...props} />;
+        return <CoverForm {...props} event={event} />;
       case 'bride_groom':
-        return <BrideGroomForm {...props} />;
+        return <BrideGroomForm {...props} event={event} />;
       case 'story':
-        return <StoryForm {...props} />;
+        return <StoryForm {...props} event={event} />;
       case 'verse':
-        return <VerseForm {...props} />;
+        return <VerseForm {...props} event={event} />;
       case 'countdown':
-        return <CountdownForm {...props} />;
+        return <CountdownForm {...props} event={event} />;
       case 'akad_resepsi':
-        return <AkadResepsiForm {...props} />;
+        return <AkadResepsiForm {...props} event={event} />;
       case 'rsvp':
         return <RsvpForm {...props} />;
       case 'attire':
-        return <AttireForm {...props} />;
+        return <AttireForm {...props} event={event} />;
       case 'gallery':
-        return <GalleryForm {...props} />;
+        return <GalleryForm {...props} event={event} />;
       case 'video':
-        return <VideoForm {...props} />;
+        return <VideoForm {...props} event={event} />;
       case 'gift':
         return <GiftForm {...props} />;
       case 'messages':
         return <MessagesForm {...props} />;
       case 'closing':
-        return <ClosingForm {...props} />;
+        return <ClosingForm {...props} event={event} />;
       case 'music':
-        return <MusicForm {...props} />;
+        return <MusicForm {...props} event={event} />;
       default:
-        return <p className="text-sm text-gray-500">Form editor belum tersedia untuk tipe section ini.</p>;
+        return (
+          <p className="text-sm text-gray-500">
+            Form editor belum tersedia untuk tipe section ini.
+          </p>
+        );
     }
   };
 
@@ -79,20 +106,16 @@ export function SectionEditorForm({ sectionType, content, onSave, saving }: Sect
 
       {/* Save button */}
       <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
-        <button
-          type="submit"
-          disabled={saving}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button type="submit" disabled={saving} className="gap-2 font-medium">
           {saving ? (
             <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               Menyimpan...
             </>
           ) : (
             'Simpan Perubahan'
           )}
-        </button>
+        </Button>
       </div>
     </form>
   );

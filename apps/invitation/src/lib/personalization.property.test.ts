@@ -42,17 +42,15 @@ const arbEvent: fc.Arbitrary<EventData> = fc.record({
   slug: arbSlug,
   bride_name: arbName,
   groom_name: arbName,
-  event_date: fc
-    .integer({ min: 2024, max: 2030 })
-    .chain((year) =>
-      fc.integer({ min: 1, max: 12 }).chain((month) =>
-        fc.integer({ min: 1, max: 28 }).map((day) => {
-          const m = String(month).padStart(2, '0');
-          const d = String(day).padStart(2, '0');
-          return `${year}-${m}-${d}`;
-        })
-      )
-    ),
+  event_date: fc.integer({ min: 2024, max: 2030 }).chain((year) =>
+    fc.integer({ min: 1, max: 12 }).chain((month) =>
+      fc.integer({ min: 1, max: 28 }).map((day) => {
+        const m = String(month).padStart(2, '0');
+        const d = String(day).padStart(2, '0');
+        return `${year}-${m}-${d}`;
+      })
+    )
+  ),
   venue_name: arbName,
   venue_address: fc.string({ minLength: 1, maxLength: 200 }),
   venue_maps_url: fc.webUrl(),
@@ -68,11 +66,21 @@ const arbInvitationPageData: fc.Arbitrary<InvitationPageData> = fc.record({
   event: arbEvent,
   guest: arbGuest,
   theme: fc.record({
-    primary_color: fc.array(fc.constantFrom(...'0123456789abcdef'.split('')), { minLength: 6, maxLength: 6 }).map((chars) => `#${chars.join('')}`),
-    secondary_color: fc.array(fc.constantFrom(...'0123456789abcdef'.split('')), { minLength: 6, maxLength: 6 }).map((chars) => `#${chars.join('')}`),
-    accent_color: fc.array(fc.constantFrom(...'0123456789abcdef'.split('')), { minLength: 6, maxLength: 6 }).map((chars) => `#${chars.join('')}`),
-    background_color: fc.array(fc.constantFrom(...'0123456789abcdef'.split('')), { minLength: 6, maxLength: 6 }).map((chars) => `#${chars.join('')}`),
-    text_color: fc.array(fc.constantFrom(...'0123456789abcdef'.split('')), { minLength: 6, maxLength: 6 }).map((chars) => `#${chars.join('')}`),
+    primary_color: fc
+      .array(fc.constantFrom(...'0123456789abcdef'.split('')), { minLength: 6, maxLength: 6 })
+      .map((chars) => `#${chars.join('')}`),
+    secondary_color: fc
+      .array(fc.constantFrom(...'0123456789abcdef'.split('')), { minLength: 6, maxLength: 6 })
+      .map((chars) => `#${chars.join('')}`),
+    accent_color: fc
+      .array(fc.constantFrom(...'0123456789abcdef'.split('')), { minLength: 6, maxLength: 6 })
+      .map((chars) => `#${chars.join('')}`),
+    background_color: fc
+      .array(fc.constantFrom(...'0123456789abcdef'.split('')), { minLength: 6, maxLength: 6 })
+      .map((chars) => `#${chars.join('')}`),
+    text_color: fc
+      .array(fc.constantFrom(...'0123456789abcdef'.split('')), { minLength: 6, maxLength: 6 })
+      .map((chars) => `#${chars.join('')}`),
     font_family: fc.constant('Poppins'),
     font_heading: fc.constant('Playfair Display'),
     template_id: fc.uuid(),

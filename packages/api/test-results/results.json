@@ -1,0 +1,2803 @@
+{
+  "config": {
+    "configFile": "/home/mochrafi/wedding-ecosystem/packages/api/playwright.config.ts",
+    "rootDir": "/home/mochrafi/wedding-ecosystem/packages/api/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/mochrafi/wedding-ecosystem/packages/api/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/mochrafi/wedding-ecosystem/packages/api/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "admin-enhancements.spec.ts",
+      "file": "admin-enhancements.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Admin Enhancements E2E",
+          "file": "admin-enhancements.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should support user deactivation/blocking and admin creation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 528,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:46.238Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "85f47ff833527f582354-bad07b9246b01661d28d",
+              "file": "admin-enhancements.spec.ts",
+              "line": 66,
+              "column": 7
+            },
+            {
+              "title": "should support tenant and user deletion with safety protections",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 99,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:46.966Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "85f47ff833527f582354-7e51f3bbf412b3c9820e",
+              "file": "admin-enhancements.spec.ts",
+              "line": 185,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "auth.spec.ts",
+      "file": "auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Auth API E2E",
+          "file": "auth.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should fail login with incorrect credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 20,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:47.114Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-840d3126dc47da4cde55",
+              "file": "auth.spec.ts",
+              "line": 4,
+              "column": 7
+            },
+            {
+              "title": "should return validation error for invalid login payload",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:47.144Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-7b1961cfd326edf432cb",
+              "file": "auth.spec.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "should login successfully with email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 136,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:47.165Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-4e8359ecb8ecbf9dbf2d",
+              "file": "auth.spec.ts",
+              "line": 32,
+              "column": 7
+            },
+            {
+              "title": "should login successfully with username",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 119,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:47.311Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-f6901b250bcfc7491e5c",
+              "file": "auth.spec.ts",
+              "line": 46,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "checkin.spec.ts",
+      "file": "checkin.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Check-in API E2E",
+          "file": "checkin.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should support QR scan check-in and handle duplicates correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 117,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:47.441Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "aa38a869995c4c08644d-8b1288b96a5185c0c778",
+              "file": "checkin.spec.ts",
+              "line": 4,
+              "column": 7
+            },
+            {
+              "title": "should register a Go-Show (walk-in) guest and check them in",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 80,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:47.566Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "aa38a869995c4c08644d-f9573b51a40c64c3337a",
+              "file": "checkin.spec.ts",
+              "line": 50,
+              "column": 7
+            },
+            {
+              "title": "should check in a guest manually using guest_id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 99,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:47.656Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "aa38a869995c4c08644d-09105c5214f8c61c45e5",
+              "file": "checkin.spec.ts",
+              "line": 66,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "cms-reorder.spec.ts",
+      "file": "cms-reorder.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "CMS Reordering API E2E",
+          "file": "cms-reorder.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should successfully initialize default sections and reorder them without unique constraint issues",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 173,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:47.765Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "835dc8a43c50c6145f7d-7831c139514e8a1c98fa",
+              "file": "cms-reorder.spec.ts",
+              "line": 4,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "dashboard-improvements.spec.ts",
+      "file": "dashboard-improvements.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Dashboard Improvements E2E",
+          "file": "dashboard-improvements.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Guest List: Should have perPage selector and correct capacity indicator",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3523,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:47.950Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2110e5c2da4b2399416a-6fb45d0e7f402a50daa2",
+              "file": "dashboard-improvements.spec.ts",
+              "line": 45,
+              "column": 7
+            },
+            {
+              "title": "Send Invitation: Should have pagination and perPage selector",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1842,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:51.547Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2110e5c2da4b2399416a-a4488e3f652cb5887463",
+              "file": "dashboard-improvements.spec.ts",
+              "line": 103,
+              "column": 7
+            },
+            {
+              "title": "Dashboard Homepage: Should display stats cards, tabs, and interactive charts",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 835,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:53.404Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2110e5c2da4b2399416a-afc869fc49c9f4f0d617",
+              "file": "dashboard-improvements.spec.ts",
+              "line": 143,
+              "column": 7
+            },
+            {
+              "title": "RSVP Tracking: Should display table, pagination, search, group, and status filters",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2800,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "GUEST CREATED: {\"id\":\"61823a68-fed1-40fc-bb4f-a6ee4e36d90d\",\"event_id\":\"d68bf5b2-d6d7-4a07-81e1-69427a926975\",\"tenant_id\":\"e64e8436-805f-450a-ba59-1e70a8e61888\",\"name\":\"RSVP Guest Test\",\"slug\":\"rsvp-guest-test\",\"phone\":\"+6281234567890\",\"group\":\"family\",\"type\":\"invited\",\"plus_one_count\":1,\"invitation_url\":\"/event-a-cbd7e5d7?to=rsvp-guest-test\",\"delivery_status\":\"not_sent\",\"created_at\":\"2026-06-10T07:35:54.687Z\",\"qr_code\":{\"id\":\"faaf3cac-bf0b-4888-8f15-b77db131ebe7\",\"guest_id\":\"61823a68-fed1-40fc-bb4f-a6ee4e36d90d\",\"qr_payload\":\"95d1413ff63b0d6322b81c3a84816fa0:988f5885b5c1e178a48dca9489916dead618d6535d3cce7867db9cc8195cf9a568b167cd46d07127487589b8313833e04d8965bbb0de59ff1955d33434958a73404253fd57ee899dec4a181e8eed0d55e39a8462f4b0d249378fa2b7652db868a3304054c50130446773c47546bc23f2588580068a61e0e1b9b28c2933e89b3e\",\"is_active\":true,\"generated_at\":\"2026-06-10T07:35:54.690Z\"}}\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] warning: WebSocket connection to 'ws://localhost:4005/socket.io/?EIO=4&transport=websocket' failed: WebSocket is closed before the connection is established.\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:54.252Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2110e5c2da4b2399416a-3b386f10e6a421ca1338",
+              "file": "dashboard-improvements.spec.ts",
+              "line": 172,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "guests-ui.spec.ts",
+      "file": "guests-ui.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Guests UI E2E",
+          "file": "guests-ui.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should support full Guest CRUD and CSV Import lifecycle in UI",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5045,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/login -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/47fe1b7cd6e6ed85-s.p.0~mcdl10zdfb3.woff2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/8e6fa89aa22d24ec-s.p.0uvzar8hswo3p.woff2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/e2334d715941921e-s.p.12skym0rqknxy.woff2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_login_page_tsx_1029yp_._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/_0t9dsjp._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/47fe1b7cd6e6ed85-s.p.0~mcdl10zdfb3.woff2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/8e6fa89aa22d24ec-s.p.0uvzar8hswo3p.woff2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/e2334d715941921e-s.p.12skym0rqknxy.woff2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/guests -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_layout_tsx_1029yp_._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0z6i.yj._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_build_polyfills_object-assign_06548tv.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/_08htrr_._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_0p66fzd._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_12cbayt._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_guests_page_tsx_11-0zvj._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_framer-motion_dist_es_10zhgje._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_motion-dom_dist_es_0n_wqqr._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_01wxcp4._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/events/current -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] POST http://localhost:4005/guests -> 201\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] PUT http://localhost:4005/guests/0a6caa50-4280-47de-ab55-a97af1ce18c2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] POST http://localhost:4005/guests/import -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] DELETE http://localhost:4005/guests/0a6caa50-4280-47de-ab55-a97af1ce18c2 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] POST http://localhost:4005/guests/bulk-delete -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:35:57.073Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "157603d52494d4114bcf-ae16634c34db5b810810",
+              "file": "guests-ui.spec.ts",
+              "line": 4,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "guests.spec.ts",
+      "file": "guests.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Guests API E2E",
+          "file": "guests.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should support full Guest CRUD lifecycle",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 135,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:02.139Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b78f0832a2fa283dbca0-ad8af303e1de277aaaca",
+              "file": "guests.spec.ts",
+              "line": 4,
+              "column": 7
+            },
+            {
+              "title": "should enforce strict tenant isolation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 164,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:02.286Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b78f0832a2fa283dbca0-89446f378d6f9c49bc22",
+              "file": "guests.spec.ts",
+              "line": 54,
+              "column": 7
+            },
+            {
+              "title": "should enforce search query constraint of minimum 3 characters",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 86,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:02.460Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b78f0832a2fa283dbca0-6445f4fc4d3aa260dd78",
+              "file": "guests.spec.ts",
+              "line": 82,
+              "column": 7
+            },
+            {
+              "title": "should import guests from CSV correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 109,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:02.557Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b78f0832a2fa283dbca0-5754440df7fcbc4f6f60",
+              "file": "guests.spec.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "should bulk delete multiple guests",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 128,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:02.677Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b78f0832a2fa283dbca0-016af35db8c04a946a8e",
+              "file": "guests.spec.ts",
+              "line": 118,
+              "column": 7
+            },
+            {
+              "title": "should enforce tenant isolation during bulk delete",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 209,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:02.815Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b78f0832a2fa283dbca0-14b7b1322b7ccee5a310",
+              "file": "guests.spec.ts",
+              "line": 150,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "media-upload.spec.ts",
+      "file": "media-upload.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Media Upload API E2E",
+          "file": "media-upload.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should upload image successfully and organize path based on slugs and section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 87,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:03.041Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "101b3c7918c4b3dc4348-699936d4eda4a0e60002",
+              "file": "media-upload.spec.ts",
+              "line": 4,
+              "column": 7
+            },
+            {
+              "title": "should fail upload with unsupported file type",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 70,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:03.139Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "101b3c7918c4b3dc4348-0047b6353bf4053a3cda",
+              "file": "media-upload.spec.ts",
+              "line": 35,
+              "column": 7
+            },
+            {
+              "title": "should fail if event does not belong to tenant",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 130,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:03.218Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "101b3c7918c4b3dc4348-d8b07db538fe303bad68",
+              "file": "media-upload.spec.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "should fail if no file is provided",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 70,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:03.359Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "101b3c7918c4b3dc4348-bfd02592e8367163e9c9",
+              "file": "media-upload.spec.ts",
+              "line": 69,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "onboarding-ui.spec.ts",
+      "file": "onboarding-ui.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Onboarding UI E2E",
+          "file": "onboarding-ui.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should redirect new tenant to onboarding, complete it, and transition to dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2615,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/login\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/47fe1b7cd6e6ed85-s.p.0~mcdl10zdfb3.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/8e6fa89aa22d24ec-s.p.0uvzar8hswo3p.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/e2334d715941921e-s.p.12skym0rqknxy.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0t9dsjp._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_login_page_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/47fe1b7cd6e6ed85-s.p.0~mcdl10zdfb3.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/8e6fa89aa22d24ec-s.p.0uvzar8hswo3p.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/e2334d715941921e-s.p.12skym0rqknxy.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_layout_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0z6i.yj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0fz24_n._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_page_tsx_11-0zvj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0glv7_0._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] error: Failed to load resource: the server responded with a status of 404 (Not Found)\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/events/current\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] error: Failed to load resource: the server responded with a status of 404 (Not Found)\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/events/current/stats\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/onboarding?_rsc=9OR5ru9e7KcMZYPD\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_react-hook-form_dist_index_esm_mjs_06an-fx._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0p66fzd._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_12cbayt._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_onboarding_page_tsx_11-0zvj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0gygh8p._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_075x_p4._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_react-hook-form_dist_index_esm_mjs_06an-fx._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0p66fzd._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_12cbayt._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_075x_p4._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0gygh8p._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_onboarding_page_tsx_11-0zvj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] POST http://localhost:4005/events\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/events/current\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/?_rsc=kIn0FPthdPoQq1q3\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/?_rsc=kIn0FPthdPoQq1q3\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/events/current/stats\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/47fe1b7cd6e6ed85-s.p.0~mcdl10zdfb3.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/8e6fa89aa22d24ec-s.p.0uvzar8hswo3p.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/e2334d715941921e-s.p.12skym0rqknxy.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/onboarding\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0z6i.yj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_layout_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_react-hook-form_dist_index_esm_mjs_06an-fx._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0p66fzd._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_12cbayt._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_075x_p4._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0gygh8p._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_onboarding_page_tsx_11-0zvj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/events/current\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/?_rsc=kIn0FPthdPoQq1q3\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0fz24_n._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0glv7_0._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_page_tsx_11-0zvj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0fz24_n._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0glv7_0._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_page_tsx_11-0zvj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/events/current/stats\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:03.443Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6b84ab0f0ff6206cefca-632a174639f1a4743944",
+              "file": "onboarding-ui.spec.ts",
+              "line": 83,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "quota.spec.ts",
+      "file": "quota.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Quota and Guest Limit E2E",
+          "file": "quota.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should restrict guest capacity limits and allow admin to update them",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 148,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:06.077Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ce52a8413e9c9553c297-e41194a5c54a1286e02b",
+              "file": "quota.spec.ts",
+              "line": 9,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "realtime.spec.ts",
+      "file": "realtime.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Real-time Socket.io API E2E",
+          "file": "realtime.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should broadcast check-in updates to event rooms",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 120,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:06.263Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f9e2d0c80f3a45ae9766-feefe7b307aee3678b00",
+              "file": "realtime.spec.ts",
+              "line": 5,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "scanner.spec.ts",
+      "file": "scanner.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Scanner API E2E",
+          "file": "scanner.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should enforce maximum of 2 active scanner devices per event",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 150,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:06.396Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b2073bc353b71da2b6f2-43d559558275f18c1865",
+              "file": "scanner.spec.ts",
+              "line": 4,
+              "column": 7
+            },
+            {
+              "title": "should allow reactivating and reusing an existing device without increasing active count",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 138,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:06.562Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b2073bc353b71da2b6f2-bbbe6665eda876a30cb5",
+              "file": "scanner.spec.ts",
+              "line": 62,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "send-invitation-ui.spec.ts",
+      "file": "send-invitation-ui.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Send Invitation UI E2E",
+          "file": "send-invitation-ui.spec.ts",
+          "line": 6,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should support template modification and single guest sending workflow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1878,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/login\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/47fe1b7cd6e6ed85-s.p.0~mcdl10zdfb3.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/8e6fa89aa22d24ec-s.p.0uvzar8hswo3p.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/e2334d715941921e-s.p.12skym0rqknxy.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_login_page_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0t9dsjp._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/47fe1b7cd6e6ed85-s.p.0~mcdl10zdfb3.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/8e6fa89aa22d24ec-s.p.0uvzar8hswo3p.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/e2334d715941921e-s.p.12skym0rqknxy.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/send-invitation\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_layout_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0z6i.yj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0avfgm~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0p66fzd._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_12cbayt._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_send-invitation_page_tsx_11-0zvj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_framer-motion_dist_es_10zhgje._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_motion-dom_dist_es_0n_wqqr._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_136v_kp._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/events/current\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/invitation-deliveries/message-template\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/guests?include=delivery_status&page=1&per_page=20\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] PUT http://localhost:4005/invitation-deliveries/message-template\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/invitation-deliveries/message-template\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] POST http://localhost:4005/invitation-deliveries/send\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/guests?include=delivery_status&page=1&per_page=20\n"
+                        },
+                        {
+                          "text": "[E2E TEST LOG] DB GUEST STATUS IS: sent\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "Expect \"poll toContainEqual\"",
+                          "duration": 116
+                        }
+                      ],
+                      "startTime": "2026-06-10T07:36:06.712Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c8f81f414b84c7fe5efe-8ff9f9e3b984f0c809b1",
+              "file": "send-invitation-ui.spec.ts",
+              "line": 7,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "settings-ui.spec.ts",
+      "file": "settings-ui.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Settings UI E2E",
+          "file": "settings-ui.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should allow user to update event settings successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1195,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/login\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/47fe1b7cd6e6ed85-s.p.0~mcdl10zdfb3.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/8e6fa89aa22d24ec-s.p.0uvzar8hswo3p.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/e2334d715941921e-s.p.12skym0rqknxy.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0t9dsjp._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_login_page_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/47fe1b7cd6e6ed85-s.p.0~mcdl10zdfb3.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/8e6fa89aa22d24ec-s.p.0uvzar8hswo3p.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/e2334d715941921e-s.p.12skym0rqknxy.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/settings\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_layout_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0z6i.yj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_02bno82._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_react-hook-form_dist_index_esm_mjs_06an-fx._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0p66fzd._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_12cbayt._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_framer-motion_dist_es_10zhgje._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_settings_page_tsx_11-0zvj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_motion-dom_dist_es_0n_wqqr._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0ji0ib.._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/events/current\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] PUT http://localhost:4005/events/2802e19f-14b7-45b4-b1c0-3861fd469eab\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/events/current\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:08.611Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "839ef1c1e148fb97d175-3074a6c63e9cdfbd6bce",
+              "file": "settings-ui.spec.ts",
+              "line": 105,
+              "column": 7
+            },
+            {
+              "title": "should allow user to update account profile successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 984,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:09.822Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "839ef1c1e148fb97d175-34686ad9af591be2b115",
+              "file": "settings-ui.spec.ts",
+              "line": 166,
+              "column": 7
+            },
+            {
+              "title": "should allow user to change account password successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1036,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:10.823Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "839ef1c1e148fb97d175-20df1f0452874f0357af",
+              "file": "settings-ui.spec.ts",
+              "line": 217,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "wishes.spec.ts",
+      "file": "wishes.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Wishes API E2E",
+          "file": "wishes.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should support full Wish visibility toggle and delete lifecycle with admin access",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 271,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-10T07:36:11.872Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bd381a4cabe9f439296b-173cdbbcd6409efd59b2",
+              "file": "wishes.spec.ts",
+              "line": 4,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-06-10T07:35:37.262Z",
+    "duration": 35131.818,
+    "expected": 35,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -3,22 +3,82 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 /**
- * Production-ready Prisma client configuration for Supabase PostgreSQL.
+ * Database configuration and Prisma client factory for Supabase PostgreSQL.
  *
- * Features:
- * - Connection pooling via pg Pool (application-level) + Supabase PgBouncer (infra-level)
- * - SSL mode verify-full for production
- * - Query timeout of 30 seconds
- * - Pool size: (CPU cores × 2) + 1, minimum 10
+ * Connection pooling uses Supabase's built-in PgBouncer (port 6543)
+ * in combination with the `pg` Pool managed by PrismaPg adapter.
+ *
+ * Pool size formula: (CPU cores × 2) + 1, minimum 10 connections.
+ * SSL mode: verify-full for all production connections.
+ * Query timeout: 30 seconds.
  *
  * Requirements: 4.1, 4.2, 4.5, 4.8
  */
 
-// --- Pool Size Calculation ---
+// --- Types ---
+
+export interface DatabaseUrls {
+  /** Direct connection URL (port 5432) - for migrations and schema changes */
+  directUrl: string;
+  /** Pooled connection URL (port 6543 via PgBouncer) - for application queries */
+  pooledUrl: string;
+}
+
+export interface SSLConfig {
+  /** SSL mode for database connections */
+  mode: 'verify-full' | 'verify-ca' | 'require' | 'prefer' | 'disable';
+  /** Whether to reject unauthorized certificates */
+  rejectUnauthorized: boolean;
+}
+
+export interface PrismaPoolOptions {
+  /** Maximum pool connections */
+  max: number;
+  /** Minimum idle connections */
+  min: number;
+  /** Time (ms) a client can sit idle before being closed */
+  idleTimeoutMillis: number;
+  /** Time (ms) to wait for a connection from the pool */
+  connectionTimeoutMillis: number;
+  /** Statement timeout in milliseconds (30s) */
+  statementTimeout: number;
+}
+
+export interface DatabaseConfig {
+  /** Connection pool size */
+  poolSize: number;
+  /** Query timeout in milliseconds */
+  queryTimeout: number;
+  /** Idle connection timeout in milliseconds */
+  idleTimeout: number;
+  /** Connection timeout in milliseconds */
+  connectionTimeout: number;
+  /** SSL configuration */
+  ssl: SSLConfig;
+  /** Database URLs */
+  urls: DatabaseUrls;
+}
+
+export interface PoolConfig {
+  /** Maximum number of connections in the pool */
+  max: number;
+  /** Minimum number of idle connections to maintain */
+  min: number;
+  /** Time (ms) a client can sit idle before being closed */
+  idleTimeoutMillis: number;
+  /** Time (ms) to wait for a connection from the pool */
+  connectionTimeoutMillis: number;
+  /** Statement timeout (ms) applied to each query */
+  statementTimeout: number;
+  /** SSL configuration for pool connections */
+  ssl: SSLConfig;
+}
+
+// --- Configuration Logic ---
 
 /**
- * Calculates optimal connection pool size.
- * Formula: (CPU cores × 2) + 1, minimum 10 connections.
+ * Calculates optimal connection pool size based on available CPU cores.
+ * Formula: (CPU cores × 2) + 1, with a minimum of 10 connections.
  */
 export function calculatePoolSize(cpuCores?: number): number {
   const cores = cpuCores ?? os.cpus().length;
@@ -26,31 +86,41 @@ export function calculatePoolSize(cpuCores?: number): number {
   return Math.max(calculated, 10);
 }
 
-// --- SSL Configuration ---
+/**
+ * Resolves database connection URLs from environment variables.
+ * Supabase provides two connection modes:
+ * - Direct (port 5432): Used for migrations, schema changes
+ * - Pooled via PgBouncer (port 6543): Used for application queries
+ */
+export function getDatabaseUrls(): DatabaseUrls {
+  const directUrl = process.env.DATABASE_URL;
+  const pooledUrl = process.env.DATABASE_POOLED_URL ?? process.env.DATABASE_URL;
 
-function getSSLOptions(): { rejectUnauthorized: boolean } | false {
-  const isProduction = process.env.NODE_ENV === 'production';
-  if (!isProduction) {
-    // In development, allow connections without strict SSL
-    return false;
+  if (!directUrl) {
+    throw new Error(
+      'DATABASE_URL environment variable is required. ' +
+        'Set it to the Supabase direct connection string (port 5432).'
+    );
   }
-  // Production: verify-full mode
-  return { rejectUnauthorized: true };
+
+  return {
+    directUrl,
+    pooledUrl: pooledUrl || directUrl,
+  };
 }
 
-// --- Connection Pool Configuration ---
+/**
+ * Returns SSL configuration for production database connections.
+ * Uses verify-full mode which validates both the server certificate
+ * and that the server hostname matches the certificate.
+ */
+export function getSSLConfig(): SSLConfig {
+  const isProduction = process.env.NODE_ENV === 'production';
 
-export interface PrismaPoolOptions {
-  /** Maximum pool connections */
-  max: number;
-  /** Minimum idle connections */
-  min: number;
-  /** Idle timeout in milliseconds */
-  idleTimeoutMillis: number;
-  /** Connection timeout in milliseconds */
-  connectionTimeoutMillis: number;
-  /** Statement timeout in milliseconds (30s) */
-  statementTimeout: number;
+  return {
+    mode: isProduction ? 'verify-full' : 'prefer',
+    rejectUnauthorized: isProduction,
+  };
 }
 
 /**
@@ -67,6 +137,43 @@ export function getPoolOptions(): PrismaPoolOptions {
   };
 }
 
+/**
+ * Returns connection pool configuration for the `pg` driver.
+ * Used when creating the PrismaClient with the pg adapter.
+ */
+export function getPoolConfig(): PoolConfig {
+  const poolSize = calculatePoolSize();
+  const ssl = getSSLConfig();
+
+  return {
+    max: poolSize,
+    min: Math.min(2, poolSize),
+    idleTimeoutMillis: 60_000,
+    connectionTimeoutMillis: 10_000,
+    statementTimeout: 30_000,
+    ssl,
+  };
+}
+
+/**
+ * Returns the complete database configuration.
+ * Combines pool sizing, timeouts, SSL, and connection URLs.
+ */
+export function getDatabaseConfig(): DatabaseConfig {
+  const poolSize = calculatePoolSize();
+  const ssl = getSSLConfig();
+  const urls = getDatabaseUrls();
+
+  return {
+    poolSize,
+    queryTimeout: 30_000,
+    idleTimeout: 60_000,
+    connectionTimeout: 10_000,
+    ssl,
+    urls,
+  };
+}
+
 // --- Prisma Client Factory ---
 
 /**
@@ -77,16 +184,10 @@ export function getPoolOptions(): PrismaPoolOptions {
  * - Optimized pool size based on CPU cores
  */
 export function createProductionPrismaClient(): PrismaClient {
-  // Use pooled URL for application queries (PgBouncer on port 6543)
-  // Fall back to DATABASE_URL for development
-  const connectionString = process.env.DATABASE_POOLED_URL ?? process.env.DATABASE_URL;
-
-  if (!connectionString) {
-    throw new Error('DATABASE_URL or DATABASE_POOLED_URL environment variable is required.');
-  }
-
+  const urls = getDatabaseUrls();
+  const connectionString = urls.pooledUrl;
   const poolOptions = getPoolOptions();
-  const ssl = getSSLOptions();
+  const ssl = getSSLConfig();
 
   // Pass PoolConfig to PrismaPg — it creates and manages the Pool internally
   const adapter = new PrismaPg({
@@ -96,7 +197,12 @@ export function createProductionPrismaClient(): PrismaClient {
     idleTimeoutMillis: poolOptions.idleTimeoutMillis,
     connectionTimeoutMillis: poolOptions.connectionTimeoutMillis,
     statement_timeout: poolOptions.statementTimeout,
-    ...(ssl !== false && { ssl }),
+    // For PrismaPg adapter, ssl field shape depends on the pg driver
+    ...(ssl.rejectUnauthorized && {
+      ssl: {
+        rejectUnauthorized: ssl.rejectUnauthorized,
+      },
+    }),
   });
 
   const client = new PrismaClient({

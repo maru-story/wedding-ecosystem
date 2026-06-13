@@ -56,24 +56,35 @@ sequenceDiagram
 
 ### Layered Backend Architecture
 
+The backend follows a strict 4-layer architecture with cross-cutting plugins for performance and security.
+
 ```mermaid
 graph TB
-    Routes["Routes Layer<br/>(Thin HTTP adapters, request parsing, auth hook)"]
-    Middleware["Middleware Layer<br/>(Auth, CORS, Rate Limit, RBAC, Tenant Isolation)"]
-    Services["Service Layer<br/>(Business logic, slug/QR generation, PII encryption, deduplication)"]
+    Plugins["Plugin Layer<br/>(Bootstrap: Audit logger, response cache, security headers, rate-limiter, auth-decorator)"]
+    Routes["Routes Layer<br/>(Thin HTTP adapters, request parsing using AuthenticatedRequest)"]
+    Middleware["Middleware Layer<br/>(RBAC, Tenant Isolation, Encryption, Validation helper)"]
+    Services["Service Layer<br/>(Pure business logic, slug/QR generation, PII encryption, deduplication)"]
     Repositories["Repository Layer<br/>(Prisma adapters — all queries tenant-scoped via tenant_id)"]
-    Plugins["Plugin Layer<br/>(Audit logger, response cache, security headers)"]
     Data["Data Layer<br/>(Prisma ORM, Redis client)"]
 
+    Plugins --> Routes
     Routes --> Middleware
     Middleware --> Services
     Services --> Repositories
     Repositories --> Data
-    Plugins -.->|cross-cutting| Routes
-    Plugins -.->|cross-cutting| Services
 ```
 
-**Domain coverage**: Guest and CheckIn domains use the full Route → Service → Repository stack. Other domains (CMS, RSVP, Events) still call Prisma from the service layer directly — migration is ongoing.
+**Domain coverage**: All core domains (Guest, Check-in, RSVP, CMS, Events, Admin) have been migrated to the full **Route → Service → Repository** stack. Direct Prisma calls from services are deprecated.
+
+**Request Lifecycle**:
+
+1.  **Bootstrap**: Plugins register global hooks (logger, rate-limit).
+2.  **Context**: `auth` plugin decorates request with `user` and `tenant_id`.
+3.  **Unified Auth**: The `AuthUser` interface in `@wedding/shared` is the single source of truth for user profile data (id, tenant_id, role, email, name).
+4.  **Entry**: Routes use `AuthenticatedRequest` to access type-safe user context.
+5.  **Enforcement**: Middleware applies RBAC and validates input against Zod schemas.
+6.  **Logic**: Services execute business rules without database awareness.
+7.  **Persistence**: Repositories interact with Prisma using explicit types (Zero-Cast policy).
 
 ### Frontend Architecture (per app)
 
@@ -183,6 +194,9 @@ graph TB
     end
 ```
 
+> [!NOTE]
+> **Production 2-Role System**: For the MVP in production, the RBAC model is simplified to **Admin** and **Client** roles. The **WO** and **Scanner Operator** roles are preserved in the TypeScript type definitions for backward compatibility, but they are denied access to all specific system features (except `ALL_ROLES`). The **Client** role now has full scanner access (QR scan verification and device registration).
+
 ## Deployment Architecture
 
 ```mermaid
@@ -216,12 +230,12 @@ graph TB
 
 ## Key Design Decisions
 
-| Decision | Rationale |
-|----------|-----------|
-| Single Redis instance (cache + pub/sub) | ≤500 guests, pub/sub traffic negligible |
-| Single API instance (no clustering) | 500 guests won't saturate single Fastify process |
-| No staging environment | Validation via Vercel previews + CI pipeline |
-| Room-based WebSocket | Data isolation per event without Redis adapter overhead |
-| Prisma over raw SQL | Type-safe queries, schema-first migrations |
-| Next.js App Router | RSC for invitation performance, shared layout patterns |
-| PWA for Scanner | Offline-first requirement for venue reliability |
+| Decision                                | Rationale                                               |
+| --------------------------------------- | ------------------------------------------------------- |
+| Single Redis instance (cache + pub/sub) | ≤500 guests, pub/sub traffic negligible                 |
+| Single API instance (no clustering)     | 500 guests won't saturate single Fastify process        |
+| No staging environment                  | Validation via Vercel previews + CI pipeline            |
+| Room-based WebSocket                    | Data isolation per event without Redis adapter overhead |
+| Prisma over raw SQL                     | Type-safe queries, schema-first migrations              |
+| Next.js App Router                      | RSC for invitation performance, shared layout patterns  |
+| PWA for Scanner                         | Offline-first requirement for venue reliability         |

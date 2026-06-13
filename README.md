@@ -8,6 +8,7 @@ Platform multi-tenant untuk manajemen undangan pernikahan digital, menargetkan p
 
 - [Arsitektur](#arsitektur)
 - [Spesifikasi Aplikasi](#spesifikasi-aplikasi)
+- [Peran & Hak Akses](#peran--hak-akses)
 - [Tech Stack](#tech-stack)
 - [Prerequisites](#prerequisites)
 - [Setup Local Development](#setup-local-development)
@@ -54,16 +55,16 @@ Platform multi-tenant untuk manajemen undangan pernikahan digital, menargetkan p
 
 Aplikasi web responsif untuk mengelola seluruh aspek undangan pernikahan.
 
-| Fitur            | Deskripsi                                                   |
-| ---------------- | ----------------------------------------------------------- |
-| Manajemen Tamu   | CRUD tamu, import CSV (max 2000), filter per grup           |
-| QR Code          | Generate otomatis per tamu, payload terenkripsi             |
-| RSVP Tracking    | Monitor konfirmasi kehadiran real-time                      |
-| Check-in Monitor | Dashboard real-time via WebSocket                           |
-| CMS Undangan     | 14 section yang bisa diaktifkan/dinonaktifkan dan diurutkan |
-| Theme System     | 5 preset warna, kustomisasi hex                             |
-| Notifikasi       | Kirim undangan batch (max 500)                              |
-| Multi-tenant     | Data terisolasi per client                                  |
+| Fitur            | Deskripsi                                                      |
+| ---------------- | -------------------------------------------------------------- |
+| Manajemen Tamu   | CRUD tamu, bulk delete, import CSV (max 2000), filter per grup |
+| QR Code          | Generate otomatis per tamu, payload terenkripsi                |
+| RSVP Tracking    | Monitor konfirmasi kehadiran real-time                         |
+| Check-in Monitor | Dashboard real-time via WebSocket                              |
+| CMS Undangan     | 14 section yang bisa diaktifkan/dinonaktifkan dan diurutkan    |
+| Theme System     | 5 preset warna, kustomisasi hex                                |
+| Notifikasi       | Kirim undangan batch (max 500)                                 |
+| Multi-tenant     | Data terisolasi per client                                     |
 
 **User Roles**: Admin, Client, WO (Wedding Organizer)
 
@@ -91,63 +92,139 @@ Progressive Web App (PWA) untuk verifikasi kehadiran tamu di venue.
 | Manual Check-in     | Cari nama tamu, check-in tanpa QR                     |
 | Go-Show             | Daftarkan tamu walk-in di hari-H                      |
 | Offline-first       | Service worker + IndexedDB, sync otomatis saat online |
-| Duplicate Detection | Scan kedua menampilkan warning (YELLOW)               |
+| Duplicate Detection | Scan kedua diperbolehkan dan menambah jumlah scan     |
 | Real-time Sync      | WebSocket untuk koordinasi antar scanner device       |
 | Max 2 Device        | Maksimal 2 scanner per event (Lane 1 & Lane 2)        |
 | Auth Flow           | Login → Pilih Event → Register Device → Scan          |
 
 **Verification Status**:
 
-- 🟢 GREEN — Check-in berhasil
+- 🟢 GREEN — Check-in/scan berhasil (menyertakan jumlah scan)
 - 🔴 RED — QR tidak valid
-- 🟡 YELLOW — Tamu sudah check-in sebelumnya
 
 ### 4. Backend API (`packages/api`)
 
-Single Fastify server yang menangani REST API dan WebSocket.
+Single Fastify server handling REST API and WebSocket. Uses a 4-layer architecture: Plugins → Routes → Middleware → Services → Repositories.
 
 | Fitur             | Deskripsi                                                     |
 | ----------------- | ------------------------------------------------------------- |
-| Authentication    | JWT (15 min access + 7 hari refresh), bcrypt, account lockout |
-| Tenant Isolation  | Setiap query di-filter berdasarkan `tenant_id`                |
-| Rate Limiting     | 100 req/menit per tenant (Redis-backed)                       |
-| CORS              | Per-app origin validation                                     |
-| WebSocket Auth    | JWT validation on handshake, room-based authorization         |
-| Health Check      | PostgreSQL, Redis, WebSocket status monitoring                |
-| Graceful Shutdown | SIGTERM/SIGINT handlers, drain connections                    |
-| Audit Logger      | Auto-log sensitive operations (login, export, bulk)           |
-| Response Cache    | Redis-backed, auto-invalidation on write                      |
-| Security Headers  | HSTS, X-Frame-Options, CSP-ready                              |
+| Authentication    | JWT via `@wedding/shared` utility, account lockout (Req 2.4)  |
+| Tenant Isolation  | Strict filtering by `tenant_id` at service & repository level |
+| Rate Limiting     | 100 req/menit per tenant (Redis-backed with in-memory fallbk) |
+| CORS              | Per-app origin validation via modular plugin                  |
+| WebSocket Auth    | Shared JWT logic, room-based authorization (Assigned Event)   |
+| Health Check      | Deep monitoring of PostgreSQL, Redis, WebSocket health        |
+| Graceful Shutdown | Managed lifecycle plugin for clean SIGTERM handling           |
+| Audit Logger      | Automated logging for high-value operations                   |
+| Response Cache    | Pattern-based Redis caching with auto-invalidation            |
+| Security Headers  | Production-ready HSTS, X-Frame-Options, CSP                   |
 
 ### 5. Shared Package (`packages/shared`)
 
-| Fitur            | Deskripsi                                      |
-| ---------------- | ---------------------------------------------- |
-| Zod Schemas      | Validasi input yang dipakai frontend & backend |
-| TypeScript Types | Interfaces, enums, error codes                 |
-| Sanitization     | HTML sanitize untuk user-generated content     |
-| Constants        | Rate limits, error codes, API response types   |
+| Fitur            | Deskripsi                                           |
+| ---------------- | --------------------------------------------------- |
+| Zod Schemas      | Centralized validation for frontend & backend       |
+| TypeScript Types | Shared interfaces, enums, and RBAC roles            |
+| Auth Utility     | Type-safe JWT verification (Single Source of Truth) |
+| Sanitization     | HTML sanitize for user-generated content            |
 
 ### 6. Database (`packages/db`)
 
-| Fitur           | Deskripsi                       |
-| --------------- | ------------------------------- |
-| Prisma ORM      | Schema-first, type-safe queries |
-| Connection Pool | CPU cores × 2 + 1, minimum 10   |
-| SSL             | verify-full di production       |
-| Query Timeout   | 30 detik                        |
-| Multi-tenant    | `tenant_id` di setiap tabel     |
+| Fitur           | Deskripsi                                      |
+| --------------- | ---------------------------------------------- |
+| Prisma ORM      | Schema-first, type-safe queries (v7.7)         |
+| Unified Config  | Centralized pooling & SSL logic for all apps   |
+| Connection Pool | CPU-optimized formula: (cores × 2) + 1, min 10 |
+| SSL             | verify-full enforced for production safety     |
+| Multi-tenant    | RLS-ready with `tenant_id` on all user-data    |
 
 ### 7. Realtime (`packages/realtime`)
 
 | Fitur              | Deskripsi                                                    |
 | ------------------ | ------------------------------------------------------------ |
-| Socket.io          | Room-based per event                                         |
+| Socket.io          | Room-based isolation per event room                          |
 | Events             | guest_checked_in, rsvp_updated, go_show_added, stats_updated |
-| Auth Middleware    | JWT validation on WebSocket handshake                        |
-| Room Authorization | Tenant-scoped room access                                    |
-| Redis Adapter      | Ready untuk horizontal scaling                               |
-| Graceful Shutdown  | Notify clients, drain connections                            |
+| Shared Auth        | Standardized JWT verification via `@wedding/shared`          |
+| Room Authorization | Tenant-scoped access check for event rooms                   |
+| Redis Adapter      | Cluster-ready via shared pub/sub                             |
+
+## Peran & Hak Akses (Roles & Permissions)
+
+Sistem ini menggunakan **Role-Based Access Control (RBAC)** untuk membatasi akses fitur dan data berdasarkan peran masing-masing pengguna. Dilengkapi dengan isolasi _multi-tenant_ di tingkat basis data, setiap pengguna (selain Admin Global) hanya dapat mengakses data yang berhak mereka lihat.
+
+Berikut adalah spesifikasi lengkap hak akses untuk masing-masing peran (_role_):
+
+### 1. Admin (Global Administrator)
+
+- **Deskripsi**: Administrator platform yang memiliki kendali penuh secara global terhadap seluruh ekosistem aplikasi.
+- **Lingkup Kerja (Scope)**: Global (Lintas seluruh tenant dan seluruh data sistem).
+- **Dapat Melakukan (Allowed)**:
+  - Melakukan pendaftaran, edit, dan penghapusan tenant baru (_Multi-Tenant Management_).
+  - Melakukan CRUD penuh terhadap seluruh resource database (User, Tenant, Event, Tamu, dsb.).
+  - Mengakses dashboard global dan memantau status kesehatan sistem secara menyeluruh.
+  - Mengonfigurasi pengaturan sistem global dan mengelola lisensi client.
+- **Tidak Dapat Melakukan (Restricted)**:
+  - — (Tidak ada batasan hak akses / Super User).
+
+### 2. Client (Wedding Owner / Penyelenggara)
+
+- **Deskripsi**: Akun pemilik/penyelenggara pernikahan yang menyewa tenant pada platform.
+- **Lingkup Kerja (Scope)**: Tenant Milik Sendiri (Hanya dapat mengakses data dalam tenant mereka sendiri).
+- **Dapat Melakukan (Allowed)**:
+  - Membuat, memperbarui, dan menghapus event pernikahan di dalam tenant milik sendiri.
+  - Mengelola daftar tamu secara penuh (CRUD tamu, bulk delete, generate otomatis QR Code, ekspor data, dan import bulk via CSV).
+  - Mengonfigurasi CMS Undangan (mengaktifkan/menonaktifkan dan menyusun ulang urutan 14 section undangan).
+  - Memilih preset warna tema undangan dan melakukan kustomisasi warna hex.
+  - Mengirimkan broadcast notifikasi undangan secara massal (batch max 500 tamu).
+  - Memantau real-time RSVP (kehadiran & pax) dan melihat statistik check-in tamu di hari-H secara real-time via WebSocket.
+- **Tidak Dapat Melakukan (Restricted)**:
+  - Mengakses, melihat, atau memodifikasi data dari tenant/client lain (_strict multi-tenant isolation_).
+  - Membuat tenant baru atau mengelola akun Admin lainnya.
+  - Mendaftarkan scanner device melebihi batas kuota (maksimal 2 device aktif per event).
+
+### 3. WO (Wedding Organizer)
+
+- **Deskripsi**: Peran operasional pihak ketiga yang ditugaskan oleh Client untuk membantu jalannya acara pernikahan.
+- **Lingkup Kerja (Scope)**: Event yang Ditugaskan (_Assigned Events_).
+- **Dapat Melakukan (Allowed)**:
+  - Mengelola daftar tamu untuk event yang ditugaskan kepadanya (tambah tamu, update info RSVP, dsb.).
+  - Memantau jalannya check-in tamu secara real-time di hari-H melalui dashboard WO.
+  - Melihat statistik kehadiran, ringkasan RSVP, dan laporan Check-in tamu.
+- **Tidak Dapat Melakukan (Restricted)**:
+  - Membuat event pernikahan baru atau menghapus event yang sudah ada.
+  - Mengonfigurasi CMS Undangan atau merubah pengaturan tema/desain undangan.
+  - Mengirimkan broadcast notifikasi undangan massal.
+  - Mengakses data event atau data tamu dari client/tenant lain yang tidak ditugaskan kepadanya.
+
+### 4. Scanner Operator (Petugas Venue)
+
+- **Deskripsi**: Operator di lokasi acara (hari-H) yang bertugas melakukan verifikasi kehadiran fisik tamu di pintu masuk.
+- **Lingkup Kerja (Scope)**: Satu Event Spesifik pada Hari-H (_Assigned Active Event_).
+- **Dapat Melakukan (Allowed)**:
+  - Melakukan verifikasi QR Code tamu menggunakan kamera device (respon cepat < 2 detik).
+  - Melakukan check-in manual dengan mencari nama tamu (minimal 3 karakter) jika tamu tidak membawa QR Code.
+  - Mendaftarkan tamu dadakan (_Go-Show_) langsung di lokasi acara (hari-H) tanpa generate QR Code, dan langsung tercatat sebagai checked-in.
+  - Menyimpan data scan secara lokal di IndexedDB saat offline, dan melakukan sinkronisasi otomatis (_automatic sync_) ke server ketika koneksi pulih (dengan aturan _Server Wins_ jika terjadi konflik).
+  - Mendaftarkan device scanner (maksimal 2 device aktif per event untuk menghindari antrean ganda di gerbang yang sama).
+- **Tidak Dapat Melakukan (Restricted)**:
+  - Mengubah informasi tamu yang sudah terdaftar sebelumnya (selain mencatat status check-in).
+  - Menghapus tamu dari daftar.
+  - Mengedit konfigurasi CMS Undangan, detail acara, maupun tema undangan.
+  - Melakukan broadcast pengiriman undangan.
+
+### 5. Tamu (Guest)
+
+- **Deskripsi**: Penerima undangan digital pernikahan.
+- **Lingkup Kerja (Scope)**: Halaman Undangan Publik yang Dipersonalisasi via URL (`/{event-slug}?to={guest-slug}`).
+- **Dapat Melakukan (Allowed)**:
+  - Mengakses halaman undangan digital yang menampilkan sapaan nama mereka secara personal di bagian cover.
+  - Mengisi formulir RSVP (konfirmasi kehadiran pada Akad, Resepsi, Keduanya, atau Tidak Hadir beserta jumlah pax).
+  - Mengirimkan ucapan selamat, doa restu, atau pesan (_wishes/messages_) kepada kedua mempelai.
+  - Melihat 14 section informasi pernikahan (kisah cinta, galeri foto, video prewedding, info dress code, koordinat peta venue, hitung mundur acara, dan info amplop digital/kado).
+- **Tidak Dapat Melakukan (Restricted)**:
+  - Mengakses halaman dashboard admin ataupun dashboard WO (memerlukan autentikasi JWT).
+  - Mengakses aplikasi scanner check-in tamu.
+  - Melihat data tamu lain atau pesan yang bersifat privat.
 
 ---
 
@@ -214,12 +291,28 @@ Buat juga `packages/db/.env`:
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/wedding_digital_saas?schema=public"
 ```
 
-### 3. Setup Database
+### 3. Setup Database & Redis (Docker Compose)
+
+Untuk kemudahan development, Anda dapat menjalankan database PostgreSQL dan cache Redis secara lokal menggunakan Docker Compose:
 
 ```bash
-# Buat database
-sudo -u postgres psql -c "CREATE DATABASE wedding_digital_saas;"
+# Jalankan PostgreSQL dan Redis di background
+docker compose up -d
+```
 
+Ini akan otomatis membuat database `wedding` pada port `5432` dengan user/password `postgres/postgrespassword`. Sesuaikan connection string di file `.env` Anda:
+`DATABASE_URL="postgresql://postgres:postgrespassword@localhost:5432/wedding?schema=public"`
+
+Jika Anda ingin menggunakan database PostgreSQL lokal yang diinstal secara manual tanpa Docker:
+
+```bash
+# Buat database manual
+sudo -u postgres psql -c "CREATE DATABASE wedding_digital_saas;"
+```
+
+Setelah database berjalan, jalankan migrasi dan generate Prisma client:
+
+```bash
 # Jalankan migrasi
 npx prisma migrate dev --schema=packages/db/prisma/schema.prisma
 
@@ -229,7 +322,7 @@ npx prisma generate --schema=packages/db/prisma/schema.prisma
 
 ### 4. Start Redis (opsional untuk development)
 
-Redis tidak wajib untuk development — sistem akan graceful degrade tanpa Redis (cache bypass, rate limit in-memory).
+Jika Anda tidak menggunakan Docker Compose, Anda bisa menjalankan Redis lokal secara manual. Redis tidak wajib untuk development — sistem akan graceful degrade tanpa Redis (cache bypass, rate limit in-memory).
 
 ```bash
 # Ubuntu/Debian
@@ -427,9 +520,8 @@ npx prisma migrate deploy
 4. **Scan QR**:
    - Arahkan kamera ke QR code tamu
    - Hasil muncul dalam < 2 detik:
-     - 🟢 GREEN: Check-in berhasil (nama + grup tamu)
+     - 🟢 GREEN: Check-in/scan berhasil (nama + grup + jumlah scan ke-N)
      - 🔴 RED: QR tidak valid
-     - 🟡 YELLOW: Sudah check-in sebelumnya (tampilkan waktu check-in pertama)
 5. **Manual Check-in**:
    - Cari nama tamu (min 3 karakter)
    - Tap "Check-in" pada hasil pencarian
@@ -452,8 +544,14 @@ npx prisma migrate deploy
 # Semua tests dari root
 npm run test
 
+# Playwright E2E integration tests (packages/api)
+npm run test:e2e --workspace=packages/api
+
+# Playwright UI smoke tests (apps/invitation - Mobile Chrome)
+npx playwright test --config=apps/invitation/playwright.config.ts
+
 # Per package
-npx turbo test --filter=@wedding/api        # ~843 tests
+npx turbo test --filter=@wedding/api        # ~924 tests
 npx turbo test --filter=@wedding/shared      # ~63 tests
 npx turbo test --filter=@wedding/realtime    # ~87 tests
 npx turbo test --filter=@wedding/dashboard   # ~81 tests
@@ -461,7 +559,7 @@ npx turbo test --filter=@wedding/invitation  # ~32 tests
 npx turbo test --filter=@wedding/scanner     # ~43 tests
 ```
 
-**Total: ~1149 tests** (unit + integration + property-based)
+**Total: ~1218 tests** (unit + integration + property-based)
 
 Property-based tests (fast-check) mencakup:
 
@@ -480,63 +578,30 @@ Property-based tests (fast-check) mencakup:
 wedding-ecosystem/
 ├── apps/
 │   ├── dashboard/          # Client & WO Dashboard (Next.js 16)
-│   │   ├── src/
-│   │   │   ├── app/        # App Router pages
-│   │   │   ├── components/ # UI components (shadcn/ui)
-│   │   │   ├── hooks/      # Custom hooks (useSocket, etc.)
-│   │   │   └── lib/        # API client, utilities
-│   │   ├── vercel.json     # Vercel deploy config
-│   │   └── next.config.js
 │   ├── invitation/         # Guest-facing invitation (Next.js 16)
-│   │   ├── src/
-│   │   │   ├── app/        # Dynamic route: /[slug]
-│   │   │   ├── components/ # Section components (14 sections)
-│   │   │   └── lib/        # API client, theme utils
-│   │   └── vercel.json
 │   └── scanner/            # Scanner PWA (Next.js 16)
-│       ├── src/
-│       │   ├── app/        # Scanner pages
-│       │   ├── components/ # QR scanner, auth, providers
-│       │   └── lib/        # Auth, offline queue, WebSocket
-│       ├── public/sw.js    # Service worker
-│       └── vercel.json
 ├── packages/
 │   ├── api/                # Backend API (Fastify 5)
 │   │   ├── src/
-│   │   │   ├── config/     # Production, database, Redis, logger
-│   │   │   ├── middleware/ # CORS, rate limit, tenant isolation, RBAC
-│   │   │   ├── plugins/    # Audit logger, response cache, security headers
-│   │   │   ├── routes/     # Auth, guests, events, checkin, RSVP, CMS, scanner
-│   │   │   └── services/   # Business logic layer
-│   │   └── railway.toml    # Railway deploy config
-│   ├── db/                 # Database (Prisma 7)
-│   │   ├── prisma/
-│   │   │   ├── schema.prisma
-│   │   │   └── migrations/
-│   │   └── src/            # Client factory, pool config
+│   │   │   ├── config/     # Grouped: database/, logger/, redis/, etc.
+│   │   │   ├── middleware/ # Grouped: cors/, rbac/, tenant-isolation/, etc.
+│   │   │   ├── plugins/    # Grouped: audit-logger/, rate-limiter/, etc.
+│   │   │   ├── routes/     # Grouped: guests/, health/, etc.
+│   │   │   ├── services/   # Grouped: auth/, guest/, checkin/, etc.
+│   │   │   └── repositories/ # Type-safe data access layer
+│   ├── db/                 # Database (Prisma 7.7 + PgAdapter)
+│   │   ├── src/            # Unified client factory & pool config
+│   │   └── prisma/         # Schema & Migrations
 │   ├── shared/             # Shared types & utilities
 │   │   └── src/
-│   │       ├── types/      # Enums, interfaces, Zod schemas
-│   │       └── utils/      # Sanitization, constants
+│   │       ├── types/      # auth/, enums/, interfaces/
+│   │       └── utils/      # auth/, sanitize/
 │   └── realtime/           # WebSocket server (Socket.io 4.8)
 │       └── src/
-│           ├── config/     # Production Socket.io config
-│           ├── middleware/ # JWT auth, room authorization
-│           ├── lifecycle/  # Graceful shutdown
-│           └── stats.ts    # Real-time stats aggregation
-├── .github/workflows/      # CI/CD pipelines
-│   ├── ci.yml              # Tests + security gate
-│   ├── deploy-backend.yml  # Blue-green Railway deploy
-│   ├── deploy-frontend.yml # Vercel deploy per app
-│   ├── smoke-test.yml      # Post-deploy verification
-│   └── secret-scanning.yml # Secret detection
-├── scripts/                # Utility scripts
-│   ├── setup-production-domain.sh
-│   ├── configure-cdn-cache.sh
-│   └── detect-secrets.sh
-├── .env.example            # Template environment variables
-├── package.json            # Monorepo root (npm workspaces)
-└── turbo.json              # Turborepo config
+│           ├── config/     # production/
+│           ├── middleware/ # auth/
+│           ├── lifecycle/  # graceful-shutdown/
+│           └── stats/      # stats.ts & stats.test.ts
 ```
 
 ---

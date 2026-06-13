@@ -3,17 +3,17 @@
  */
 export default function ManualCheckInLoading() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="sticky top-10 z-40 border-b border-gray-200 bg-white px-4 py-3">
+    <div className="bg-cream min-h-screen">
+      <header className="border-border/60 bg-card sticky top-10 z-40 border-b px-4 py-3">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-200" />
-          <div className="h-5 w-32 animate-pulse rounded bg-gray-200" />
+          <div className="bg-charcoal/10 h-9 w-9 animate-pulse rounded-lg" />
+          <div className="bg-charcoal/10 h-5 w-32 animate-pulse rounded" />
         </div>
       </header>
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
-          <p className="mt-3 text-sm text-gray-500">Memuat...</p>
+          <div className="border-sage mx-auto h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
+          <p className="text-charcoal/60 mt-3 text-sm">Memuat...</p>
         </div>
       </div>
     </div>

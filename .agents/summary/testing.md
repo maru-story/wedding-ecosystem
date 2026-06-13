@@ -2,29 +2,36 @@
 
 ## Overview
 
-- **Framework**: Vitest 3.2.4
+- **Unit/Integration Framework**: Vitest 3.2.4
+- **E2E Testing Framework**: Playwright 1.55.1 (API & Socket.io WebSocket)
 - **Property-Based Testing**: fast-check 4.8.0
-- **Total Tests**: ~1218 across all packages
+- **Total Tests**: ~1235 + 14 Playwright E2E cases across all packages
 - **Coverage Target**: 80% minimum for business logic
 
 ## Test Distribution
 
-| Package | Tests | Type |
-|---------|-------|------|
-| `@wedding/api` | ~912 | Unit + Integration + Property-based |
-| `@wedding/shared` | ~63 | Unit + Property-based |
-| `@wedding/realtime` | ~87 | Unit + Integration + Property-based |
-| `@wedding/dashboard` | ~81 | Unit + Property-based |
-| `@wedding/invitation` | ~32 | Unit + Property-based |
-| `@wedding/scanner` | ~43 | Unit + Property-based |
+| Package               | Tests         | Type                                                 |
+| --------------------- | ------------- | ---------------------------------------------------- |
+| `@wedding/api`        | ~924 + 14 E2E | Unit + Integration + Property-based + Playwright E2E |
+| `@wedding/shared`     | 80            | Unit + Property-based                                |
+| `@wedding/realtime`   | ~87           | Unit + Integration + Property-based                  |
+| `@wedding/dashboard`  | ~81           | Unit + Property-based                                |
+| `@wedding/invitation` | ~32 + 14 UI   | Unit + Property-based + Playwright UI Smoke Tests    |
+| `@wedding/scanner`    | ~43           | Unit + Property-based                                |
 
 ## Running Tests
 
 ```bash
-# All tests
+# All unit/integration tests
 npm run test
 
-# Per package
+# Playwright E2E tests (specifically for @wedding/api / @wedding/realtime)
+npm run test:e2e --workspace=packages/api
+
+# Playwright UI smoke tests for invitation application (mobile/desktop viewports)
+npx playwright test --config=apps/invitation/playwright.config.ts
+
+# Per package (unit tests)
 npx turbo test --filter=@wedding/api
 npx turbo test --filter=@wedding/shared
 npx turbo test --filter=@wedding/realtime
@@ -35,8 +42,8 @@ npx turbo test --filter=@wedding/scanner
 
 ## Test File Conventions
 
-- Test files co-located with source: `{name}.test.ts`
-- Property-based tests: `{name}.property.test.ts`
+- **Local Grouping**: Test files are co-located with their source in a feature subfolder: `src/{layer}/{feature}/{name}.test.ts`
+- Property-based tests: `src/{layer}/{feature}/{name}.property.test.ts`
 - Integration tests: `tests/integration/{name}.integration.test.ts`
 
 ## Patterns
@@ -92,7 +99,25 @@ it('should always scope queries by tenant_id', async () => {
 
 **Rule**: If a domain does **not** yet have a `*.repository.ts` file, use Level 1 only (mock in service test). Once migrated, add Level 2 tests.
 
-### 2. Factory Functions for Test Data
+### 2. Modular Mocking Pattern (@wedding/db)
+
+When testing routes or plugins that depend on database connections (e.g., `audit-logger`), mock the `@wedding/db` package to avoid `DATABASE_URL` requirements during unit testing:
+
+```typescript
+vi.mock('@wedding/db', () => ({
+  createProductionPrismaClient: vi.fn(() => ({
+    $connect: vi.fn().mockResolvedValue(undefined),
+    $disconnect: vi.fn().mockResolvedValue(undefined),
+    auditLog: {
+      create: vi.fn().mockResolvedValue({ id: 'log-1' }),
+    },
+  })),
+}));
+```
+
+Always ensure the mock path in `vi.mock` exactly matches the import path to avoid `mockReturnValue is not a function` errors.
+
+### 3. Factory Functions for Test Data
 
 Each test file defines factory functions with sensible defaults and override support:
 
@@ -119,10 +144,12 @@ import fc from 'fast-check';
 // Define arbitraries (random data generators)
 const arbGuestId = fc.uuid();
 const arbGuestGroup = fc.constantFrom(
-  GuestGroup.FAMILY, GuestGroup.FRIEND, GuestGroup.COLLEAGUE, GuestGroup.VIP
+  GuestGroup.FAMILY,
+  GuestGroup.FRIEND,
+  GuestGroup.COLLEAGUE,
+  GuestGroup.VIP
 );
-const arbGuestName = fc.string({ minLength: 1, maxLength: 50 })
-  .filter((s) => s.trim().length > 0);
+const arbGuestName = fc.string({ minLength: 1, maxLength: 50 }).filter((s) => s.trim().length > 0);
 
 // Property test
 it('should never create duplicate check-in records', () => {
@@ -183,7 +210,10 @@ function createMockReply() {
     statusCode: 200,
     sent: false,
     status: vi.fn().mockReturnThis(),
-    send: vi.fn().mockImplementation(() => { reply.sent = true; return reply; }),
+    send: vi.fn().mockImplementation(() => {
+      reply.sent = true;
+      return reply;
+    }),
     header: vi.fn().mockReturnThis(),
   };
   return reply;
@@ -205,25 +235,28 @@ function createClientSocket(port: number, token: string) {
 function waitForEvent(socket: Socket, event: string, timeout = 5000) {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('Timeout')), timeout);
-    socket.once(event, (data) => { clearTimeout(timer); resolve(data); });
+    socket.once(event, (data) => {
+      clearTimeout(timer);
+      resolve(data);
+    });
   });
 }
 ```
 
 ## Property-Based Test Coverage
 
-| Domain | Properties Verified |
-|--------|-------------------|
-| QR Validation | Encrypted payload always decryptable; invalid payloads always rejected; tampered payloads detected |
+| Domain               | Properties Verified                                                                                  |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| QR Validation        | Encrypted payload always decryptable; invalid payloads always rejected; tampered payloads detected   |
 | Check-in Idempotency | Multiple scans of same QR never create duplicate records; first returns VALID, rest return DUPLICATE |
-| RSVP Processing | Guest count never exceeds capacity; attendance type always valid; upsert is idempotent |
-| Tenant Isolation | Queries with wrong tenant_id always return empty/forbidden; cross-tenant data never leaks |
-| Offline Sync | All queued items eventually synced; server timestamp wins on conflict; no data loss |
-| Room Isolation | Events broadcast only to correct room; joining wrong room is rejected |
-| CMS Sort Order | Reordering always produces valid sequential sort_order; no gaps or duplicates |
-| Scanner Device | Max 2 devices enforced regardless of registration order; lane assignment is deterministic |
-| Go-Show | Go-show guests always get type=go_show and method=go_show; never assigned QR codes |
-| Notification | Bulk send respects max 500 limit; delivery status accurately tracked |
+| RSVP Processing      | Guest count never exceeds capacity; attendance type always valid; upsert is idempotent               |
+| Tenant Isolation     | Queries with wrong tenant_id always return empty/forbidden; cross-tenant data never leaks            |
+| Offline Sync         | All queued items eventually synced; server timestamp wins on conflict; no data loss                  |
+| Room Isolation       | Events broadcast only to correct room; joining wrong room is rejected                                |
+| CMS Sort Order       | Reordering always produces valid sequential sort_order; no gaps or duplicates                        |
+| Scanner Device       | Max 2 devices enforced regardless of registration order; lane assignment is deterministic            |
+| Go-Show              | Go-show guests always get type=go_show and method=go_show; never assigned QR codes                   |
+| Invitation Delivery  | Custom template compilation; delivery status tracking ('sent'); WhatsApp Web URL compilation         |
 
 ## Integration Test Patterns
 
@@ -242,6 +275,7 @@ graph LR
 ```
 
 Tests verify that:
+
 - State changes propagate correctly across services
 - Real-time broadcasts fire with correct payloads
 - Stats are accurately recalculated after each operation
@@ -249,16 +283,35 @@ Tests verify that:
 
 ## Vitest Configuration
 
-Each package has its own `vitest.config.ts`:
+Each package has its own `vitest.config.ts`. To isolate Vitest from Playwright E2E test files (which import `@playwright/test` and cause environment/compilation conflicts), Playwright tests are excluded from Vitest via the `exclude` configuration option:
 
 ```typescript
-import { defineConfig } from 'vitest/config';
+import { defineConfig, configDefaults } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    globals: false,        // Explicit imports (describe, it, expect)
-    environment: 'node',   // Node environment (backend packages)
+    globals: false, // Explicit imports (describe, it, expect)
+    environment: 'node', // Node environment (backend packages)
+    exclude: [...configDefaults.exclude, 'tests/e2e/**/*'], // Exclude Playwright tests
     // environment: 'jsdom' // For frontend packages
   },
 });
 ```
+
+## E2E Playwright Configuration
+
+Playwright is configured under `packages/api/playwright.config.ts`. It manages starting the backend server synchronously using the `webServer` config block, targets the dedicated test database, and runs the E2E specs in sequential mode to ensure database integrity during test state assertions.
+
+## E2E Playwright UI Configuration (Invitation App)
+
+Playwright is configured under `apps/invitation/playwright.config.ts` for running mobile-first UI smoke tests against the invitation web app. It targets the local Next.js dev server on port `3001` (reusing it if running), using a mobile Chrome viewport (iPhone 14) and desktop Chrome, saving screenshot results to `test-results/` for inspection.
+
+## E2E Testing Validation Rules
+
+Whenever a new feature is added or a new capability is introduced:
+
+1. **Mandatory E2E Check**: Write or update E2E tests under `packages/api/tests/e2e` to verify the user flows and backend integration. Run the suite sequentially:
+   ```bash
+   npm run test:e2e --workspace=packages/api
+   ```
+2. **Exemption Rule**: If the change is a minor improvement, styling fix, typo correction, or documentation update that does not introduce or alter any system/user flows or integration points, writing/executing E2E tests is not required.

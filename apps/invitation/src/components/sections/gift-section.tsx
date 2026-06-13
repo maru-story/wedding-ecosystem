@@ -34,7 +34,7 @@ function AccountCard({ account }: { account: GiftAccount }) {
   return (
     <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-background)] p-4 text-center shadow-sm">
       {account.bank && (
-        <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text)]/60">
+        <p className="text-xs font-medium tracking-wider text-[var(--color-text)]/60 uppercase">
           {account.bank}
         </p>
       )}
@@ -44,9 +44,7 @@ function AccountCard({ account }: { account: GiftAccount }) {
         </p>
       )}
       {account.account_name && (
-        <p className="mt-1 text-sm text-[var(--color-text)]/70">
-          a.n. {account.account_name}
-        </p>
+        <p className="mt-1 text-sm text-[var(--color-text)]/70">a.n. {account.account_name}</p>
       )}
       <button
         onClick={handleCopy}
@@ -54,14 +52,34 @@ function AccountCard({ account }: { account: GiftAccount }) {
       >
         {copied ? (
           <>
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <polyline points="20 6 9 17 4 12" />
             </svg>
             Tersalin
           </>
         ) : (
           <>
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
               <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
             </svg>
@@ -78,7 +96,7 @@ export function GiftSection({ content, sortOrder }: GiftSectionProps) {
 
   return (
     <SectionWrapper sectionType="gift" sortOrder={sortOrder}>
-      <h2 className="mb-4 text-center font-heading text-2xl font-bold text-[var(--color-primary)]">
+      <h2 className="font-heading mb-4 text-center text-2xl font-bold text-[var(--color-primary)]">
         Kado Digital
       </h2>
 

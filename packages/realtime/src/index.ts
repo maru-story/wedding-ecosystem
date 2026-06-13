@@ -1,21 +1,22 @@
 import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
+import type { AuthUser } from '@wedding/shared';
 
 // Re-export stats service
-export { StatsService, type StatsRepository, type StatsBroadcaster } from './stats';
+export { StatsService, type StatsRepository, type StatsBroadcaster } from './stats/stats';
 
 // Re-export auth middleware for WebSocket authentication
 export {
   createAuthMiddleware,
   authorizeRoomJoin,
   registerRoomAuthorization,
-} from './middleware/auth';
+} from './middleware/auth/auth';
 export type {
   SocketTokenPayload,
   AuthenticatedSocketData,
   EventAuthRepository,
   AuthMiddlewareConfig,
-} from './middleware/auth';
+} from './middleware/auth/auth';
 
 // --- Event Types ---
 
@@ -33,6 +34,7 @@ export interface GuestCheckedInPayload {
   guest_name: string;
   group: string;
   method: string;
+  scan_count: number;
   checked_in_at: string;
   event_id: string;
 }
@@ -71,6 +73,13 @@ export interface ConnectionInfo {
   connected_at: Date;
 }
 
+// --- Socket Data Type ---
+
+export interface SocketData {
+  eventId?: string;
+  user?: AuthUser;
+}
+
 // --- Room Utilities ---
 
 /**
@@ -97,7 +106,7 @@ export interface RealtimeServerOptions {
 
 export interface RealtimeServer {
   /** The underlying Socket.io server instance */
-  io: Server;
+  io: Server<any, any, any, SocketData>;
   /** Map of connected clients per event room */
   connections: Map<string, Set<string>>;
   /** Broadcast a check-in event to all clients in an event room */
@@ -125,7 +134,7 @@ export interface RealtimeServer {
 export function createRealtimeServer(options: RealtimeServerOptions = {}): RealtimeServer {
   const { cors, httpServer } = options;
 
-  const io = new Server(httpServer, {
+  const io = new Server<any, any, any, SocketData>(httpServer, {
     cors: cors ?? {
       origin: '*',
       credentials: true,
@@ -137,7 +146,7 @@ export function createRealtimeServer(options: RealtimeServerOptions = {}): Realt
   const connections = new Map<string, Set<string>>();
 
   // Handle new connections
-  io.on('connection', (socket: Socket) => {
+  io.on('connection', (socket: Socket<any, any, any, SocketData>) => {
     // Client joins an event room
     socket.on('join_event', (eventId: string) => {
       if (!eventId || typeof eventId !== 'string') {
@@ -193,7 +202,7 @@ export function createRealtimeServer(options: RealtimeServerOptions = {}): Realt
 
     // Handle disconnection
     socket.on('disconnect', () => {
-      const eventId = socket.data.eventId as string | undefined;
+      const eventId = socket.data.eventId;
       if (eventId) {
         const eventConnections = connections.get(eventId);
         if (eventConnections) {

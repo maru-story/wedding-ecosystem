@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import fc from 'fast-check';
 
 /**
@@ -34,7 +34,9 @@ function createInMemoryQueue() {
 
   return {
     getRecords: () => [...records],
-    addToQueue: async (checkIn: QueuedCheckIn): Promise<{ success: boolean; overflowWarning: boolean }> => {
+    addToQueue: async (
+      checkIn: QueuedCheckIn
+    ): Promise<{ success: boolean; overflowWarning: boolean }> => {
       const MAX_QUEUE_SIZE = 2000;
       if (records.length >= MAX_QUEUE_SIZE) {
         // Overflow handling: try to overwrite oldest synced records
@@ -71,7 +73,9 @@ function createInMemoryQueue() {
       records = records.filter((r) => !r.synced);
     },
     getQueueSize: async (): Promise<number> => records.length,
-    reset: () => { records = []; },
+    reset: () => {
+      records = [];
+    },
   };
 }
 
@@ -88,7 +92,9 @@ interface SyncResult {
 
 async function syncPendingCheckIns(
   queue: ReturnType<typeof createInMemoryQueue>,
-  fetchFn: (batch: QueuedCheckIn[]) => Promise<{ ok: boolean; status: number; synced?: number; duplicatesIgnored?: number }>,
+  fetchFn: (
+    batch: QueuedCheckIn[]
+  ) => Promise<{ ok: boolean; status: number; synced?: number; duplicatesIgnored?: number }>,
   timeoutMs: number = SYNC_TIMEOUT_MS
 ): Promise<SyncResult> {
   const result: SyncResult = { synced: 0, failed: 0, duplicatesIgnored: 0 };
@@ -187,37 +193,34 @@ describe('Property 15: Offline Sync Completeness', () => {
    */
   it('all pending records are synced in chronological order by checked_in_at', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        arbPendingRecords,
-        async (records) => {
-          queue.reset();
-          for (const record of records) {
-            await queue.addToQueue(record);
-          }
-
-          const batchesSent: QueuedCheckIn[][] = [];
-
-          const fetchFn = async (batch: QueuedCheckIn[]) => {
-            batchesSent.push(batch);
-            return { ok: true, status: 200, synced: batch.length, duplicatesIgnored: 0 };
-          };
-
-          await syncPendingCheckIns(queue, fetchFn);
-
-          // Flatten all batches to get the order records were sent
-          const sentRecords = batchesSent.flat();
-
-          // Verify chronological order
-          for (let i = 1; i < sentRecords.length; i++) {
-            const prev = new Date(sentRecords[i - 1].checkedInAt).getTime();
-            const curr = new Date(sentRecords[i].checkedInAt).getTime();
-            expect(curr).toBeGreaterThanOrEqual(prev);
-          }
-
-          // Verify all records were sent
-          expect(sentRecords.length).toBe(records.length);
+      fc.asyncProperty(arbPendingRecords, async (records) => {
+        queue.reset();
+        for (const record of records) {
+          await queue.addToQueue(record);
         }
-      ),
+
+        const batchesSent: QueuedCheckIn[][] = [];
+
+        const fetchFn = async (batch: QueuedCheckIn[]) => {
+          batchesSent.push(batch);
+          return { ok: true, status: 200, synced: batch.length, duplicatesIgnored: 0 };
+        };
+
+        await syncPendingCheckIns(queue, fetchFn);
+
+        // Flatten all batches to get the order records were sent
+        const sentRecords = batchesSent.flat();
+
+        // Verify chronological order
+        for (let i = 1; i < sentRecords.length; i++) {
+          const prev = new Date(sentRecords[i - 1].checkedInAt).getTime();
+          const curr = new Date(sentRecords[i].checkedInAt).getTime();
+          expect(curr).toBeGreaterThanOrEqual(prev);
+        }
+
+        // Verify all records were sent
+        expect(sentRecords.length).toBe(records.length);
+      }),
       { numRuns: 100 }
     );
   });
@@ -230,50 +233,47 @@ describe('Property 15: Offline Sync Completeness', () => {
    */
   it('queue stores up to 2000 records and overflow handling allows continued scanning', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        fc.integer({ min: 1, max: 50 }),
-        async (extraRecords) => {
-          queue.reset();
-          const baseTimestamp = Date.now();
+      fc.asyncProperty(fc.integer({ min: 1, max: 50 }), async (extraRecords) => {
+        queue.reset();
+        const baseTimestamp = Date.now();
 
-          // Fill queue to capacity (2000)
-          for (let i = 0; i < 2000; i++) {
-            const record: QueuedCheckIn = {
-              id: `record-${i}`,
-              guestId: `guest-${i}`,
-              qrPayload: `payload-${i}`,
-              method: 'qr_scan',
-              checkedInAt: new Date(baseTimestamp + i * 1000).toISOString(),
-              synced: false,
-              eventId: 'event-1',
-            };
-            await queue.addToQueue(record);
-          }
-
-          const sizeAtCapacity = await queue.getQueueSize();
-          expect(sizeAtCapacity).toBe(2000);
-
-          // Add more records beyond capacity — should still succeed (overflow handling)
-          for (let i = 0; i < extraRecords; i++) {
-            const record: QueuedCheckIn = {
-              id: `overflow-${i}`,
-              guestId: `guest-overflow-${i}`,
-              qrPayload: `payload-overflow-${i}`,
-              method: 'qr_scan',
-              checkedInAt: new Date(baseTimestamp + (2000 + i) * 1000).toISOString(),
-              synced: false,
-              eventId: 'event-1',
-            };
-            const result = await queue.addToQueue(record);
-            // Overflow handling: success is always true (scanning never stops)
-            expect(result.success).toBe(true);
-          }
-
-          // Queue size should remain at 2000 (overflow replaces old records)
-          const sizeAfterOverflow = await queue.getQueueSize();
-          expect(sizeAfterOverflow).toBe(2000);
+        // Fill queue to capacity (2000)
+        for (let i = 0; i < 2000; i++) {
+          const record: QueuedCheckIn = {
+            id: `record-${i}`,
+            guestId: `guest-${i}`,
+            qrPayload: `payload-${i}`,
+            method: 'qr_scan',
+            checkedInAt: new Date(baseTimestamp + i * 1000).toISOString(),
+            synced: false,
+            eventId: 'event-1',
+          };
+          await queue.addToQueue(record);
         }
-      ),
+
+        const sizeAtCapacity = await queue.getQueueSize();
+        expect(sizeAtCapacity).toBe(2000);
+
+        // Add more records beyond capacity — should still succeed (overflow handling)
+        for (let i = 0; i < extraRecords; i++) {
+          const record: QueuedCheckIn = {
+            id: `overflow-${i}`,
+            guestId: `guest-overflow-${i}`,
+            qrPayload: `payload-overflow-${i}`,
+            method: 'qr_scan',
+            checkedInAt: new Date(baseTimestamp + (2000 + i) * 1000).toISOString(),
+            synced: false,
+            eventId: 'event-1',
+          };
+          const result = await queue.addToQueue(record);
+          // Overflow handling: success is always true (scanning never stops)
+          expect(result.success).toBe(true);
+        }
+
+        // Queue size should remain at 2000 (overflow replaces old records)
+        const sizeAfterOverflow = await queue.getQueueSize();
+        expect(sizeAfterOverflow).toBe(2000);
+      }),
       { numRuns: 100 }
     );
   });
@@ -286,33 +286,30 @@ describe('Property 15: Offline Sync Completeness', () => {
    */
   it('after sync completes, no pending records remain in the queue', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        arbPendingRecords,
-        async (records) => {
-          queue.reset();
-          for (const record of records) {
-            await queue.addToQueue(record);
-          }
-
-          // Verify there are pending records before sync
-          const pendingBefore = await queue.getUnsyncedCheckIns();
-          expect(pendingBefore.length).toBe(records.length);
-
-          const fetchFn = async (batch: QueuedCheckIn[]) => {
-            return { ok: true, status: 200, synced: batch.length, duplicatesIgnored: 0 };
-          };
-
-          const result = await syncPendingCheckIns(queue, fetchFn);
-
-          // After sync, no pending records should remain
-          const pendingAfter = await queue.getUnsyncedCheckIns();
-          expect(pendingAfter.length).toBe(0);
-
-          // All records were synced
-          expect(result.synced).toBe(records.length);
-          expect(result.failed).toBe(0);
+      fc.asyncProperty(arbPendingRecords, async (records) => {
+        queue.reset();
+        for (const record of records) {
+          await queue.addToQueue(record);
         }
-      ),
+
+        // Verify there are pending records before sync
+        const pendingBefore = await queue.getUnsyncedCheckIns();
+        expect(pendingBefore.length).toBe(records.length);
+
+        const fetchFn = async (batch: QueuedCheckIn[]) => {
+          return { ok: true, status: 200, synced: batch.length, duplicatesIgnored: 0 };
+        };
+
+        const result = await syncPendingCheckIns(queue, fetchFn);
+
+        // After sync, no pending records should remain
+        const pendingAfter = await queue.getUnsyncedCheckIns();
+        expect(pendingAfter.length).toBe(0);
+
+        // All records were synced
+        expect(result.synced).toBe(records.length);
+        expect(result.failed).toBe(0);
+      }),
       { numRuns: 100 }
     );
   });
@@ -326,30 +323,27 @@ describe('Property 15: Offline Sync Completeness', () => {
    */
   it('idempotency: duplicate records are handled without error', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        arbPendingRecords,
-        async (records) => {
-          queue.reset();
-          for (const record of records) {
-            await queue.addToQueue(record);
-          }
-
-          // Server returns 409 (conflict/duplicate) for all batches
-          const fetchFn = async (batch: QueuedCheckIn[]) => {
-            return { ok: false, status: 409, synced: 0, duplicatesIgnored: batch.length };
-          };
-
-          const result = await syncPendingCheckIns(queue, fetchFn);
-
-          // All records should be treated as duplicates (no errors)
-          expect(result.duplicatesIgnored).toBe(records.length);
-          expect(result.failed).toBe(0);
-
-          // After sync, no pending records should remain (duplicates are marked synced)
-          const pendingAfter = await queue.getUnsyncedCheckIns();
-          expect(pendingAfter.length).toBe(0);
+      fc.asyncProperty(arbPendingRecords, async (records) => {
+        queue.reset();
+        for (const record of records) {
+          await queue.addToQueue(record);
         }
-      ),
+
+        // Server returns 409 (conflict/duplicate) for all batches
+        const fetchFn = async (batch: QueuedCheckIn[]) => {
+          return { ok: false, status: 409, synced: 0, duplicatesIgnored: batch.length };
+        };
+
+        const result = await syncPendingCheckIns(queue, fetchFn);
+
+        // All records should be treated as duplicates (no errors)
+        expect(result.duplicatesIgnored).toBe(records.length);
+        expect(result.failed).toBe(0);
+
+        // After sync, no pending records should remain (duplicates are marked synced)
+        const pendingAfter = await queue.getUnsyncedCheckIns();
+        expect(pendingAfter.length).toBe(0);
+      }),
       { numRuns: 100 }
     );
   });
@@ -363,46 +357,45 @@ describe('Property 15: Offline Sync Completeness', () => {
    */
   it('sync respects the 30-second timeout constraint', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        fc.integer({ min: 5, max: 30 }),
-        async (recordCount) => {
-          queue.reset();
-          const baseTimestamp = Date.now();
+      fc.asyncProperty(fc.integer({ min: 5, max: 30 }), async (recordCount) => {
+        queue.reset();
+        const baseTimestamp = Date.now();
 
-          for (let i = 0; i < recordCount; i++) {
-            const record: QueuedCheckIn = {
-              id: `timeout-${i}`,
-              guestId: `guest-${i}`,
-              qrPayload: `payload-${i}`,
-              method: 'qr_scan',
-              checkedInAt: new Date(baseTimestamp + i * 1000).toISOString(),
-              synced: false,
-              eventId: 'event-1',
-            };
-            await queue.addToQueue(record);
-          }
-
-          // Simulate a very short timeout (1ms) to force timeout behavior
-          const veryShortTimeout = 1;
-          let callCount = 0;
-
-          const fetchFn = async (batch: QueuedCheckIn[]) => {
-            callCount++;
-            // Simulate slow network — each call takes longer than timeout
-            await new Promise((resolve) => setTimeout(resolve, 10));
-            return { ok: true, status: 200, synced: batch.length, duplicatesIgnored: 0 };
+        for (let i = 0; i < recordCount; i++) {
+          const record: QueuedCheckIn = {
+            id: `timeout-${i}`,
+            guestId: `guest-${i}`,
+            qrPayload: `payload-${i}`,
+            method: 'qr_scan',
+            checkedInAt: new Date(baseTimestamp + i * 1000).toISOString(),
+            synced: false,
+            eventId: 'event-1',
           };
-
-          const result = await syncPendingCheckIns(queue, fetchFn, veryShortTimeout);
-
-          // The sync should complete without throwing (graceful handling)
-          // Total synced + failed should equal total records
-          expect(result.synced + result.failed + result.duplicatesIgnored).toBeLessThanOrEqual(recordCount);
-          // Some records should have failed due to timeout
-          // (first batch may succeed before timeout check on next iteration)
-          expect(result.failed + result.synced + result.duplicatesIgnored).toBeLessThanOrEqual(recordCount);
+          await queue.addToQueue(record);
         }
-      ),
+
+        // Simulate a very short timeout (1ms) to force timeout behavior
+        const veryShortTimeout = 1;
+
+        const fetchFn = async (batch: QueuedCheckIn[]) => {
+          // Simulate slow network — each call takes longer than timeout
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return { ok: true, status: 200, synced: batch.length, duplicatesIgnored: 0 };
+        };
+
+        const result = await syncPendingCheckIns(queue, fetchFn, veryShortTimeout);
+
+        // The sync should complete without throwing (graceful handling)
+        // Total synced + failed should equal total records
+        expect(result.synced + result.failed + result.duplicatesIgnored).toBeLessThanOrEqual(
+          recordCount
+        );
+        // Some records should have failed due to timeout
+        // (first batch may succeed before timeout check on next iteration)
+        expect(result.failed + result.synced + result.duplicatesIgnored).toBeLessThanOrEqual(
+          recordCount
+        );
+      }),
       { numRuns: 100 }
     );
   });

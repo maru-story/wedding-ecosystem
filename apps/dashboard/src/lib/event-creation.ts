@@ -8,7 +8,21 @@
  * tetap membuat event tanpa styling hingga client mengkonfigurasi theme secara manual.
  */
 
-import { DEFAULT_THEME, type ThemeColors } from './theme';
+export interface ThemeColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+  surface: string;
+  text: string;
+}
+
+export const DEFAULT_THEME: ThemeColors = {
+  primary: '#A8BBA3',
+  secondary: '#F7F4EA',
+  accent: '#B87C4C',
+  surface: '#EBD9D1',
+  text: '#2D3436',
+};
 
 export interface EventCreationInput {
   slug: string;

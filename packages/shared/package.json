@@ -10,13 +10,15 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "jsonwebtoken": "^9.0.3",
     "sanitize-html": "2.17.4",
     "zod": "3.25.3"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/sanitize-html": "2.16.1",
     "fast-check": "4.8.0",
     "typescript": "5.9.3",
-    "vitest": "3.2.4"
+    "vitest": "^4.1.8"
   }
 }

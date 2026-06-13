@@ -1,51 +1,42 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
 import { PrismaClient } from '@wedding/db';
 import type { RealtimeServer } from '@wedding/realtime';
-import { AttendanceType, ErrorCode } from '@wedding/shared';
-import { RsvpService, isRsvpError } from '../services/rsvp.service';
+import { z } from 'zod';
+import { ErrorCode, createRsvpSchema } from '@wedding/shared';
+import { RsvpService, isRsvpError } from '../services/rsvp/rsvp.service';
 import { PrismaRsvpRepository, RealtimeRsvpBroadcaster } from '../repositories';
+import { validate } from '../middleware/validate';
 
 interface RsvpRouteOptions extends FastifyPluginOptions {
   prisma: PrismaClient;
-  realtime: RealtimeServer | null;
+  realtime?: RealtimeServer | null;
+  getRealtimeServer?: () => RealtimeServer | null;
 }
 
 export async function rsvpRoutes(app: FastifyInstance, opts: RsvpRouteOptions) {
-  const { prisma, realtime } = opts;
+  const { prisma, realtime, getRealtimeServer } = opts;
 
   // Wire up service
   const repository = new PrismaRsvpRepository(prisma);
-  const broadcaster = new RealtimeRsvpBroadcaster(() => realtime);
+  const broadcaster = new RealtimeRsvpBroadcaster(getRealtimeServer || (() => realtime ?? null));
   const rsvpService = new RsvpService({ repository, broadcaster });
 
   // POST /rsvp - Submit or update RSVP (public route, no auth required)
-  app.post('/', async (request: FastifyRequest, reply) => {
-    const { guest_id, event_id, attendance, guest_count } = request.body as {
-      guest_id: string;
-      event_id: string;
-      attendance: string;
-      guest_count: number;
-    };
+  app.post('/', async (request, reply) => {
+    // Combine base RSVP schema with required public fields
+    const fullSchema = z
+      .object({
+        guest_id: z.string().uuid({ message: 'ID tamu tidak valid' }),
+        event_id: z.string().uuid({ message: 'ID event tidak valid' }),
+      })
+      .and(createRsvpSchema);
 
-    if (!guest_id || !event_id || !attendance) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: 'VAL_4001', message: 'guest_id, event_id, dan attendance diperlukan' },
-      });
-    }
+    const body = validate(request.body, fullSchema, reply);
+    if (!body) return reply;
 
-    // Validate attendance value
-    const validAttendance = ['akad', 'resepsi', 'both', 'decline'];
-    if (!validAttendance.includes(attendance)) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: 'VAL_4001', message: 'Pilihan kehadiran tidak valid' },
-      });
-    }
-
-    const result = await rsvpService.submitRsvp(guest_id, event_id, {
-      attendance: attendance as AttendanceType,
-      guest_count: guest_count ?? 1,
+    const result = await rsvpService.submitRsvp(body.guest_id, body.event_id, {
+      attendance: body.attendance,
+      guest_count: body.guest_count,
     });
 
     if (isRsvpError(result)) {
@@ -70,14 +61,19 @@ export async function rsvpRoutes(app: FastifyInstance, opts: RsvpRouteOptions) {
 
   // GET /rsvp/:guestId - Get RSVP status for a guest (public)
   app.get('/:guestId', async (request: FastifyRequest, reply) => {
-    const { guestId } = request.params as { guestId: string };
+    const paramsSchema = z.object({
+      guestId: z.string().uuid({ message: 'ID tamu tidak valid' }),
+    });
 
-    const rsvp = await repository.findRsvpByGuestId(guestId);
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return reply;
+
+    const rsvp = await repository.findRsvpByGuestId(params.guestId);
 
     if (!rsvp) {
       return reply.status(404).send({
         success: false,
-        error: { code: 'RSVP_4003', message: 'RSVP belum disubmit' },
+        error: { code: ErrorCode.NOT_FOUND, message: 'RSVP belum disubmit' },
       });
     }
 

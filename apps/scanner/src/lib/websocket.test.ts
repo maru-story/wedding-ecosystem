@@ -65,16 +65,19 @@ describe('WebSocket Manager', () => {
         auth: { token: authToken },
       });
 
-      expect(ioFn).toHaveBeenCalledWith(wsUrl, expect.objectContaining({
-        reconnection: true,
-        reconnectionAttempts: Infinity,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 30000,
-        randomizationFactor: 0.5,
-        timeout: 20000,
-        transports: ['websocket', 'polling'],
-        auth: { token: authToken },
-      }));
+      expect(ioFn).toHaveBeenCalledWith(
+        wsUrl,
+        expect.objectContaining({
+          reconnection: true,
+          reconnectionAttempts: Infinity,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 30000,
+          randomizationFactor: 0.5,
+          timeout: 20000,
+          transports: ['websocket', 'polling'],
+          auth: { token: authToken },
+        })
+      );
 
       expect(socket).toBeDefined();
     });
@@ -88,10 +91,13 @@ describe('WebSocket Manager', () => {
         randomizationFactor: 0.5,
       });
 
-      expect(io).toHaveBeenCalledWith(wsUrl, expect.objectContaining({
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 30000,
-      }));
+      expect(io).toHaveBeenCalledWith(
+        wsUrl,
+        expect.objectContaining({
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 30000,
+        })
+      );
     });
   });
 
@@ -165,23 +171,27 @@ describe('WebSocket Manager', () => {
       };
 
       // Simulate the event handler — adds guest as already checked-in
-      await cacheGuests([{
-        id: event.guestId,
-        name: event.guestName,
-        qrPayload: '', // Go-Show guests don't have QR codes
-        group: event.group,
-        checkedIn: true,
-        checkedInAt: event.checkedInAt,
-        eventId: event.eventId,
-      }]);
+      await cacheGuests([
+        {
+          id: event.guestId,
+          name: event.guestName,
+          qrPayload: '', // Go-Show guests don't have QR codes
+          group: event.group,
+          checkedIn: true,
+          checkedInAt: event.checkedInAt,
+          eventId: event.eventId,
+        },
+      ]);
 
-      expect(cacheGuests).toHaveBeenCalledWith([expect.objectContaining({
-        id: 'guest-goshow-1',
-        name: 'Walk-in Guest',
-        qrPayload: '',
-        checkedIn: true,
-        checkedInAt: '2024-01-15T11:00:00Z',
-      })]);
+      expect(cacheGuests).toHaveBeenCalledWith([
+        expect.objectContaining({
+          id: 'guest-goshow-1',
+          name: 'Walk-in Guest',
+          qrPayload: '',
+          checkedIn: true,
+          checkedInAt: '2024-01-15T11:00:00Z',
+        }),
+      ]);
     });
 
     it('should add new guest to local cache when guest_added event received', async () => {
@@ -194,22 +204,26 @@ describe('WebSocket Manager', () => {
       };
 
       // Simulate the event handler — adds guest as not checked-in
-      await cacheGuests([{
-        id: event.guestId,
-        name: event.guestName,
-        qrPayload: event.qrPayload,
-        group: event.group,
-        checkedIn: false,
-        eventId: event.eventId,
-      }]);
+      await cacheGuests([
+        {
+          id: event.guestId,
+          name: event.guestName,
+          qrPayload: event.qrPayload,
+          group: event.group,
+          checkedIn: false,
+          eventId: event.eventId,
+        },
+      ]);
 
-      expect(cacheGuests).toHaveBeenCalledWith([expect.objectContaining({
-        id: 'guest-new-1',
-        name: 'New Guest',
-        qrPayload: 'encrypted-qr-payload',
-        group: 'family',
-        checkedIn: false,
-      })]);
+      expect(cacheGuests).toHaveBeenCalledWith([
+        expect.objectContaining({
+          id: 'guest-new-1',
+          name: 'New Guest',
+          qrPayload: 'encrypted-qr-payload',
+          group: 'family',
+          checkedIn: false,
+        }),
+      ]);
     });
   });
 
@@ -234,7 +248,9 @@ describe('WebSocket Manager', () => {
     });
 
     it('should handle sync failure gracefully without throwing', async () => {
-      (syncPendingCheckIns as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'));
+      (syncPendingCheckIns as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+        new Error('Network error')
+      );
 
       // Should not throw
       await expect(
@@ -243,7 +259,9 @@ describe('WebSocket Manager', () => {
     });
 
     it('should handle cache refresh failure gracefully without throwing', async () => {
-      (refreshGuestCache as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'));
+      (refreshGuestCache as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+        new Error('Network error')
+      );
 
       // Should not throw
       await expect(
@@ -255,7 +273,15 @@ describe('WebSocket Manager', () => {
   describe('Connection state management', () => {
     it('should register all required event listeners', () => {
       // Verify the socket registers listeners for all required events
-      const requiredEvents = ['connect', 'disconnect', 'reconnect_attempt', 'reconnect', 'guest_checked_in', 'go_show_added', 'guest_added'];
+      const requiredEvents = [
+        'connect',
+        'disconnect',
+        'reconnect_attempt',
+        'reconnect',
+        'guest_checked_in',
+        'go_show_added',
+        'guest_added',
+      ];
 
       // Simulate registering all listeners
       for (const event of requiredEvents) {

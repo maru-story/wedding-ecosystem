@@ -6,8 +6,10 @@
  */
 
 import type { RealtimeServer } from '@wedding/realtime';
-import { GuestType } from '@wedding/shared';
-import type { CheckInBroadcaster, CheckInBroadcastPayload } from '../services/checkin.service';
+import type {
+  CheckInBroadcaster,
+  CheckInBroadcastPayload,
+} from '../services/checkin/checkin.service';
 
 export class RealtimeCheckInBroadcaster implements CheckInBroadcaster {
   constructor(private readonly getRealtimeServer: () => RealtimeServer | null) {}
@@ -22,6 +24,7 @@ export class RealtimeCheckInBroadcaster implements CheckInBroadcaster {
         guest_name: payload.guest_name,
         group: payload.guest_group,
         method: payload.method,
+        scan_count: payload.scan_count,
         checked_in_at: payload.checked_in_at.toISOString(),
         event_id: payload.event_id,
       });

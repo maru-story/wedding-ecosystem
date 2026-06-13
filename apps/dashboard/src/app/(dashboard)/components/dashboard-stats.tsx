@@ -1,45 +1,96 @@
-import { apiFetch } from '@/lib/api';
+'use client';
 
-interface EventStats {
-  total_guests: number;
-  total_rsvp: number;
-  total_checked_in: number;
-  total_go_show: number;
-}
+import { useDashboardStats } from '@/hooks/queries';
+import { Card, CardContent } from '@/components/ui/card';
+import { Users, Mail, CheckCircle2, UserPlus, ArrowUpRight } from 'lucide-react';
+import { StaggerContainer, StaggerItem } from '@/components/ui/motion-wrapper';
 
-async function getStats(): Promise<EventStats> {
-  try {
-    const stats = await apiFetch<EventStats>('/events/current/stats');
-    return stats;
-  } catch {
-    // Return defaults if API is not available yet
-    return {
-      total_guests: 0,
-      total_rsvp: 0,
-      total_checked_in: 0,
-      total_go_show: 0,
-    };
-  }
-}
+export function DashboardStats() {
+  const { data: stats, isLoading } = useDashboardStats();
 
-export async function DashboardStats() {
-  const stats = await getStats();
+  if (isLoading) return <StatsSkeletons />;
+
+  // Provide fallback values if error or no data
+  const safeStats = stats || {
+    total_guests: 0,
+    total_rsvp: 0,
+    total_checked_in: 0,
+    total_go_show: 0,
+  };
+
+  const cards = [
+    {
+      label: 'Total Tamu',
+      value: safeStats.total_guests,
+      icon: Users,
+      colorClass: 'bg-primary/10 text-primary border-primary/20',
+      description: 'Jumlah tamu terdaftar di sistem',
+    },
+    {
+      label: 'RSVP Masuk',
+      value: safeStats.total_rsvp,
+      icon: Mail,
+      colorClass: 'bg-ring/10 text-ring border-ring/20',
+      description: 'Tamu yang telah konfirmasi hadir',
+    },
+    {
+      label: 'Sudah Check-in',
+      value: safeStats.total_checked_in,
+      icon: CheckCircle2,
+      colorClass: 'bg-success/10 text-success border-success/20',
+      description: 'Tamu yang sudah memindai QR',
+    },
+    {
+      label: 'Go-Show (Walk-in)',
+      value: safeStats.total_go_show,
+      icon: UserPlus,
+      colorClass: 'bg-accent/20 text-accent-foreground border-accent/30',
+      description: 'Tamu go-show terdaftar on-site',
+    },
+  ];
 
   return (
-    <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <StatCard label="Total Tamu" value={stats.total_guests} />
-      <StatCard label="RSVP Masuk" value={stats.total_rsvp} />
-      <StatCard label="Check-in" value={stats.total_checked_in} />
-      <StatCard label="Go-Show" value={stats.total_go_show} />
-    </div>
+    <StaggerContainer className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {cards.map((card, index) => {
+        const Icon = card.icon;
+        return (
+          <StaggerItem key={index}>
+            <Card className="border-border/60 bg-card group relative h-full overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                      {card.label}
+                    </p>
+                    <p className="text-foreground text-3xl font-extrabold tracking-tight">
+                      {card.value.toLocaleString('id-ID')}
+                    </p>
+                  </div>
+                  <div
+                    className={`rounded-2xl p-3.5 ${card.colorClass} border transition-transform duration-300 group-hover:scale-110`}
+                  >
+                    <Icon className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="text-muted-foreground mt-4 flex items-center gap-1 text-xs">
+                  <ArrowUpRight className="text-ring/80 h-3.5 w-3.5" />
+                  <span>{card.description}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </StaggerItem>
+        );
+      })}
+    </StaggerContainer>
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatsSkeletons() {
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm">
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-primary">{value}</p>
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Card key={i} className="border-border/40 bg-card h-[120px] animate-pulse" />
+      ))}
     </div>
   );
 }

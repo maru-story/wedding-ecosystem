@@ -72,8 +72,22 @@ describe('Manual Check-in Logic', () => {
 
     it('should perform partial name match search', async () => {
       const mockGuests = [
-        { id: 'g1', name: 'Ahmad Fauzi', qrPayload: 'qr1', group: 'family', checkedIn: false, eventId: 'e1' },
-        { id: 'g2', name: 'Fauziah Nur', qrPayload: 'qr2', group: 'friend', checkedIn: false, eventId: 'e1' },
+        {
+          id: 'g1',
+          name: 'Ahmad Fauzi',
+          qrPayload: 'qr1',
+          group: 'family',
+          checkedIn: false,
+          eventId: 'e1',
+        },
+        {
+          id: 'g2',
+          name: 'Fauziah Nur',
+          qrPayload: 'qr2',
+          group: 'friend',
+          checkedIn: false,
+          eventId: 'e1',
+        },
       ];
 
       mockSearchCachedGuests.mockResolvedValue(mockGuests);
@@ -87,8 +101,23 @@ describe('Manual Check-in Logic', () => {
   describe('Check-in flow', () => {
     it('should distinguish between checked-in and not-checked-in guests', () => {
       const guests = [
-        { id: 'g1', name: 'Guest A', qrPayload: 'qr1', group: 'family', checkedIn: false, eventId: 'e1' },
-        { id: 'g2', name: 'Guest B', qrPayload: 'qr2', group: 'friend', checkedIn: true, checkedInAt: '2024-01-01T10:00:00Z', eventId: 'e1' },
+        {
+          id: 'g1',
+          name: 'Guest A',
+          qrPayload: 'qr1',
+          group: 'family',
+          checkedIn: false,
+          eventId: 'e1',
+        },
+        {
+          id: 'g2',
+          name: 'Guest B',
+          qrPayload: 'qr2',
+          group: 'friend',
+          checkedIn: true,
+          checkedInAt: '2024-01-01T10:00:00Z',
+          eventId: 'e1',
+        },
       ];
 
       const notCheckedIn = guests.filter((g) => !g.checkedIn);
@@ -162,11 +191,16 @@ describe('Manual Check-in Logic', () => {
     it('should map group codes to Indonesian labels', () => {
       const getGroupLabel = (group: string): string => {
         switch (group) {
-          case 'family': return 'Keluarga';
-          case 'friend': return 'Teman';
-          case 'colleague': return 'Rekan Kerja';
-          case 'vip': return 'VIP';
-          default: return group || '';
+          case 'family':
+            return 'Keluarga';
+          case 'friend':
+            return 'Teman';
+          case 'colleague':
+            return 'Rekan Kerja';
+          case 'vip':
+            return 'VIP';
+          default:
+            return group || '';
         }
       };
 

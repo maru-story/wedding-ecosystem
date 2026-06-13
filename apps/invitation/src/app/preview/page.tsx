@@ -95,17 +95,20 @@ const mockData: InvitationPageData = {
         chapters: [
           {
             title: 'Pertama Bertemu',
-            description: 'Kami pertama kali bertemu di acara reuni kampus pada tahun 2020. Saat itu kami tidak menyangka bahwa pertemuan singkat itu akan membawa kami ke hari ini.',
+            description:
+              'Kami pertama kali bertemu di acara reuni kampus pada tahun 2020. Saat itu kami tidak menyangka bahwa pertemuan singkat itu akan membawa kami ke hari ini.',
             date: '2020-08-15',
           },
           {
             title: 'Mulai Dekat',
-            description: 'Setelah beberapa bulan saling bertukar pesan, kami mulai sering menghabiskan waktu bersama. Dari ngopi bareng hingga jalan-jalan sore.',
+            description:
+              'Setelah beberapa bulan saling bertukar pesan, kami mulai sering menghabiskan waktu bersama. Dari ngopi bareng hingga jalan-jalan sore.',
             date: '2021-01-10',
           },
           {
             title: 'Lamaran',
-            description: 'Di sebuah malam yang penuh bintang, Andi memberanikan diri untuk melamar Sari. Dan jawabannya adalah... Ya!',
+            description:
+              'Di sebuah malam yang penuh bintang, Andi memberanikan diri untuk melamar Sari. Dan jawabannya adalah... Ya!',
             date: '2025-06-20',
           },
         ],
@@ -149,7 +152,8 @@ const mockData: InvitationPageData = {
       sort_order: 7,
       is_active: true,
       content: {
-        description: 'Kami mengundang para tamu untuk mengenakan pakaian formal dengan nuansa warna berikut:',
+        description:
+          'Kami mengundang para tamu untuk mengenakan pakaian formal dengan nuansa warna berikut:',
         color_palette: ['#5F7161', '#A7C4A0', '#C9A96E', '#EBD9D1', '#FDFCF9'],
       },
     },
@@ -161,10 +165,26 @@ const mockData: InvitationPageData = {
       is_active: true,
       content: {
         photos: [
-          { url: 'https://placehold.co/400x500/A7C4A0/2D3436?text=Foto+1', caption: 'Prewedding 1', order: 1 },
-          { url: 'https://placehold.co/400x500/5F7161/FDFCF9?text=Foto+2', caption: 'Prewedding 2', order: 2 },
-          { url: 'https://placehold.co/400x500/C9A96E/FDFCF9?text=Foto+3', caption: 'Prewedding 3', order: 3 },
-          { url: 'https://placehold.co/400x500/EBD9D1/2D3436?text=Foto+4', caption: 'Prewedding 4', order: 4 },
+          {
+            url: 'https://placehold.co/400x500/A7C4A0/2D3436?text=Foto+1',
+            caption: 'Prewedding 1',
+            order: 1,
+          },
+          {
+            url: 'https://placehold.co/400x500/5F7161/FDFCF9?text=Foto+2',
+            caption: 'Prewedding 2',
+            order: 2,
+          },
+          {
+            url: 'https://placehold.co/400x500/C9A96E/FDFCF9?text=Foto+3',
+            caption: 'Prewedding 3',
+            order: 3,
+          },
+          {
+            url: 'https://placehold.co/400x500/EBD9D1/2D3436?text=Foto+4',
+            caption: 'Prewedding 4',
+            order: 4,
+          },
         ],
       },
     },
@@ -186,7 +206,8 @@ const mockData: InvitationPageData = {
       sort_order: 10,
       is_active: true,
       content: {
-        description: 'Doa restu Anda merupakan karunia yang sangat berarti bagi kami. Namun jika Anda ingin memberikan tanda kasih, kami menyediakan:',
+        description:
+          'Doa restu Anda merupakan karunia yang sangat berarti bagi kami. Namun jika Anda ingin memberikan tanda kasih, kami menyediakan:',
         accounts: [
           { bank: 'BCA', account_number: '1234567890', account_name: 'Sari Wulandari' },
           { bank: 'Mandiri', account_number: '0987654321', account_name: 'Andi Pratama' },

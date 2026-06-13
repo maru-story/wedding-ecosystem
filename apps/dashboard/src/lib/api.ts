@@ -1,5 +1,13 @@
 // API client for dashboard application
 
+import {
+  STORAGE_KEY_ACCESS_TOKEN,
+  STORAGE_KEY_REFRESH_TOKEN,
+  STORAGE_KEY_TOKEN_EXPIRY,
+  TOKEN_EXPIRY_BUFFER_SECONDS,
+  TOKEN_REFRESH_INTERVAL_MS,
+} from '@/lib/constants';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 interface ApiOptions {
@@ -16,9 +24,12 @@ export async function apiFetch<T>(endpoint: string, options: ApiOptions = {}): P
   const { method = 'GET', body, headers = {}, skipAuth = false } = options;
 
   const requestHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...headers,
   };
+
+  if (body !== undefined) {
+    requestHeaders['Content-Type'] = 'application/json';
+  }
 
   if (!skipAuth) {
     const token = getAccessToken();
@@ -78,9 +89,9 @@ export class ApiError extends Error {
 
 // --- Token Management ---
 
-const ACCESS_TOKEN_KEY = 'wedding_access_token';
-const REFRESH_TOKEN_KEY = 'wedding_refresh_token';
-const TOKEN_EXPIRY_KEY = 'wedding_token_expiry';
+const ACCESS_TOKEN_KEY = STORAGE_KEY_ACCESS_TOKEN;
+const REFRESH_TOKEN_KEY = STORAGE_KEY_REFRESH_TOKEN;
+const TOKEN_EXPIRY_KEY = STORAGE_KEY_TOKEN_EXPIRY;
 
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -96,8 +107,8 @@ export function setTokens(accessToken: string, refreshToken: string, expiresIn: 
   if (typeof window === 'undefined') return;
   localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-  // Store expiry time (current time + expires_in seconds - 60s buffer for early refresh)
-  const expiryTime = Date.now() + (expiresIn - 60) * 1000;
+  // Store expiry time (current time + expires_in seconds - buffer for early refresh)
+  const expiryTime = Date.now() + (expiresIn - TOKEN_EXPIRY_BUFFER_SECONDS) * 1000;
   localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
 }
 
@@ -152,7 +163,7 @@ export function startAutoRefresh(): void {
     if (isTokenExpiringSoon() && getRefreshToken()) {
       await refreshAccessToken();
     }
-  }, 30_000); // Check every 30 seconds
+  }, TOKEN_REFRESH_INTERVAL_MS);
 }
 
 export function stopAutoRefresh(): void {

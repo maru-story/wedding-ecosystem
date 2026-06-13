@@ -42,16 +42,11 @@ function waitFor(ms: number): Promise<void> {
  * Uses alphanumeric strings to avoid issues with special characters in room names.
  */
 const arbDistinctEventIds = fc
-  .tuple(
-    fc.stringMatching(/^[a-z0-9]{4,20}$/),
-    fc.stringMatching(/^[a-z0-9]{4,20}$/)
-  )
+  .tuple(fc.stringMatching(/^[a-z0-9]{4,20}$/), fc.stringMatching(/^[a-z0-9]{4,20}$/))
   .filter(([e1, e2]) => e1 !== e2);
 
 /** Generates a valid guest name */
-const arbGuestName = fc
-  .string({ minLength: 1, maxLength: 50 })
-  .filter((s) => s.trim().length > 0);
+const arbGuestName = fc.string({ minLength: 1, maxLength: 50 }).filter((s) => s.trim().length > 0);
 
 /** Generates a guest group */
 const arbGuestGroup = fc.constantFrom('family', 'friend', 'colleague', 'vip');

@@ -1,23 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import {
-  GuestGroup,
-  GuestType,
-  AttendanceType,
-} from '@wedding/shared';
-import {
-  GuestService,
-  GuestRepository,
-  GuestRecord,
-  GuestListItem,
-} from './guest.service';
+import { GuestGroup, GuestType, AttendanceType } from '@wedding/shared';
+import { GuestService, GuestRepository, GuestRecord, GuestListItem } from './guest/guest.service';
 import {
   RsvpService,
   RsvpRepository,
   RsvpRecord,
   GuestForRsvp,
   RsvpBroadcaster,
-} from './rsvp.service';
+} from './rsvp/rsvp.service';
 import {
   CheckInService,
   CheckInRepository,
@@ -25,7 +16,7 @@ import {
   GuestInfo,
   RedisClient,
   CheckInBroadcaster,
-} from './checkin.service';
+} from './checkin/checkin.service';
 
 // --- Constants ---
 
@@ -104,7 +95,6 @@ function createMockGuestRepository(): GuestRepository & {
         id: data.id,
         guest_id: data.guest_id,
         qr_payload: data.qr_payload,
-        qr_image_url: null,
         is_active: data.is_active,
         generated_at: new Date(),
       };
@@ -112,9 +102,7 @@ function createMockGuestRepository(): GuestRepository & {
 
     findGuestById: async (guestId, tenantId) => {
       for (const eventGuests of guests.values()) {
-        const found = eventGuests.find(
-          (g) => g.id === guestId && g.tenant_id === tenantId
-        );
+        const found = eventGuests.find((g) => g.id === guestId && g.tenant_id === tenantId);
         if (found) return found;
       }
       return null;
@@ -127,9 +115,7 @@ function createMockGuestRepository(): GuestRepository & {
 
     findGuestsByEvent: async (eventId, tenantId, pagination, _filters?) => {
       // This is the key isolation point: only return guests for the specific event
-      const eventGuests = (guests.get(eventId) || []).filter(
-        (g) => g.tenant_id === tenantId
-      );
+      const eventGuests = (guests.get(eventId) || []).filter((g) => g.tenant_id === tenantId);
       const page = pagination.page ?? 1;
       const perPage = pagination.per_page ?? 50;
       const start = (page - 1) * perPage;
@@ -161,7 +147,9 @@ function createMockGuestRepository(): GuestRepository & {
 
     updateGuest: async () => null,
     deleteGuest: async () => true,
+    deleteGuests: async () => 0,
     deactivateQRCode: async () => true,
+    deactivateQRCodes: async () => 0,
     findQRCodeByGuestId: async () => null,
 
     checkSlugExists: async (eventId: string, slug: string) => {
@@ -180,6 +168,10 @@ function createMockGuestRepository(): GuestRepository & {
       id: eventId,
       slug: `event-${eventId.slice(0, 8)}`,
     }),
+    countGuestsByEvent: async (eventId) => {
+      const eventGuests = guests.get(eventId) || [];
+      return eventGuests.length;
+    },
     findGuestNamesByEvent: async () => [],
     searchGuestsByName: async () => [],
   };
@@ -372,7 +364,12 @@ describe('Property 2: Event Data Isolation Within Tenant', () => {
           // Add guests to event 1
           const createdE1Ids = new Set<string>();
           for (const name of namesE1) {
-            const res = await service.addGuest(eventId1, tenantId, { name, group, type: GuestType.INVITED, plus_one_count: 0 });
+            const res = await service.addGuest(eventId1, tenantId, {
+              name,
+              group,
+              type: GuestType.INVITED,
+              plus_one_count: 0,
+            });
             if (res && 'id' in res) {
               createdE1Ids.add(res.id);
             }
@@ -381,7 +378,12 @@ describe('Property 2: Event Data Isolation Within Tenant', () => {
           // Add guests to event 2
           const createdE2Ids = new Set<string>();
           for (const name of namesE2) {
-            const res = await service.addGuest(eventId2, tenantId, { name, group, type: GuestType.INVITED, plus_one_count: 0 });
+            const res = await service.addGuest(eventId2, tenantId, {
+              name,
+              group,
+              type: GuestType.INVITED,
+              plus_one_count: 0,
+            });
             if (res && 'id' in res) {
               createdE2Ids.add(res.id);
             }
@@ -483,7 +485,10 @@ describe('Property 2: Event Data Isolation Within Tenant', () => {
             },
           ];
 
-          const guestsPerEvent = new Map<string, (GuestInfo & { tenant_id: string; type: GuestType })[]>();
+          const guestsPerEvent = new Map<
+            string,
+            (GuestInfo & { tenant_id: string; type: GuestType })[]
+          >();
           guestsPerEvent.set(eventId1, guestsEvent1);
           guestsPerEvent.set(eventId2, guestsEvent2);
 
@@ -637,7 +642,10 @@ describe('Property 2: Event Data Isolation Within Tenant', () => {
             },
           ];
 
-          const guestsPerEvent = new Map<string, (GuestInfo & { tenant_id: string; type: GuestType })[]>();
+          const guestsPerEvent = new Map<
+            string,
+            (GuestInfo & { tenant_id: string; type: GuestType })[]
+          >();
           guestsPerEvent.set(eventId1, guestsEvent1);
           guestsPerEvent.set(eventId2, guestsEvent2);
 

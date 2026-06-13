@@ -38,6 +38,7 @@ export interface GuestData {
   slug: string;
   group: string;
   plus_one_count: number;
+  qr_payload?: string | null;
 }
 
 export interface SectionData {
@@ -89,12 +90,9 @@ export async function fetchInvitationData(
  */
 export async function fetchEventBySlug(eventSlug: string): Promise<EventData | null> {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/invitations/${encodeURIComponent(eventSlug)}`,
-      {
-        next: { revalidate: 60 },
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/invitations/${encodeURIComponent(eventSlug)}`, {
+      next: { revalidate: 60 },
+    });
 
     if (!response.ok) {
       return null;
@@ -110,6 +108,7 @@ export async function fetchEventBySlug(eventSlug: string): Promise<EventData | n
 
 export interface RsvpPayload {
   guest_id: string;
+  event_id: string;
   attendance: 'akad' | 'resepsi' | 'both' | 'decline';
   guest_count: number;
 }
@@ -141,6 +140,30 @@ export async function submitRsvp(payload: RsvpPayload): Promise<RsvpResponse> {
   return response.json();
 }
 
+/**
+ * Fetch existing RSVP for a guest.
+ * Returns null if the guest hasn't RSVP'd yet.
+ */
+export async function fetchRsvp(guestId: string): Promise<RsvpResponse | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/rsvp/${encodeURIComponent(guestId)}`, {
+      cache: 'no-store',
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return response.json();
+  } catch {
+    return null;
+  }
+}
+
 // --- Messages API ---
 
 export interface MessageData {
@@ -160,6 +183,7 @@ export interface MessagesResponse {
 
 export interface SubmitMessagePayload {
   event_id: string;
+  guest_id?: string;
   sender_name: string;
   message_text: string;
 }
@@ -174,7 +198,7 @@ export async function fetchMessages(
   limit: number = 20
 ): Promise<MessagesResponse> {
   const response = await fetch(
-    `${API_BASE_URL}/messages/${encodeURIComponent(eventId)}?page=${page}&limit=${limit}`,
+    `${API_BASE_URL}/messages/${encodeURIComponent(eventId)}?page=${page}&per_page=${limit}`,
     { cache: 'no-store' }
   );
 
@@ -182,7 +206,14 @@ export async function fetchMessages(
     throw new Error('Gagal memuat ucapan');
   }
 
-  return response.json();
+  const result = await response.json();
+  return {
+    messages: result.data || [],
+    total: result.pagination?.total || 0,
+    page: result.pagination?.page || page,
+    limit: result.pagination?.per_page || limit,
+    total_pages: result.pagination?.total_pages || 1,
+  };
 }
 
 /**

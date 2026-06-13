@@ -49,12 +49,10 @@ function EventCard({
 }) {
   return (
     <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-background)] p-5 text-center shadow-sm">
-      <h3 className="mb-3 font-heading text-lg font-semibold text-[var(--color-primary)]">
+      <h3 className="font-heading mb-3 text-lg font-semibold text-[var(--color-primary)]">
         {title}
       </h3>
-      {date && (
-        <p className="text-sm text-[var(--color-text)]/80">{formatDate(date)}</p>
-      )}
+      {date && <p className="text-sm text-[var(--color-text)]/80">{formatDate(date)}</p>}
       {(timeStart || timeEnd) && (
         <p className="mt-1 text-sm font-medium text-[var(--color-text)]">
           {timeStart || ''}
@@ -69,7 +67,7 @@ function EventCard({
 export function AkadResepsiSection({ content, sortOrder }: AkadResepsiSectionProps) {
   return (
     <SectionWrapper sectionType="akad_resepsi" sortOrder={sortOrder}>
-      <h2 className="mb-8 text-center font-heading text-2xl font-bold text-[var(--color-primary)]">
+      <h2 className="font-heading mb-8 text-center text-2xl font-bold text-[var(--color-primary)]">
         Akad & Resepsi
       </h2>
 

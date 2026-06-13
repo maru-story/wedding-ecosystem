@@ -5,9 +5,9 @@
  * translating domain operations into Prisma queries.
  */
 
-import { PrismaClient } from '@wedding/db';
+import { PrismaClient, Prisma } from '@wedding/db';
 import { SectionType } from '@wedding/shared';
-import type { CMSRepository, SectionRecord } from '../services/cms.service';
+import type { CMSRepository, SectionRecord } from '../services/cms/cms.service';
 
 export class PrismaCMSRepository implements CMSRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -27,7 +27,7 @@ export class PrismaCMSRepository implements CMSRepository {
         section_type: data.section_type,
         sort_order: data.sort_order,
         is_active: data.is_active,
-        content: data.content as any,
+        content: data.content as Prisma.InputJsonValue,
       },
     });
 
@@ -42,7 +42,10 @@ export class PrismaCMSRepository implements CMSRepository {
     return section ? this.toSectionRecord(section) : null;
   }
 
-  async findSectionByType(eventId: string, sectionType: SectionType): Promise<SectionRecord | null> {
+  async findSectionByType(
+    eventId: string,
+    sectionType: SectionType
+  ): Promise<SectionRecord | null> {
     const section = await this.prisma.invitationSection.findFirst({
       where: { event_id: eventId, section_type: sectionType },
     });
@@ -78,12 +81,14 @@ export class PrismaCMSRepository implements CMSRepository {
       updated_at: Date;
     }>
   ): Promise<SectionRecord | null> {
+    const updateData: Prisma.InvitationSectionUpdateInput = {
+      ...data,
+      content: data.content as Prisma.InputJsonValue | undefined,
+    };
+
     const result = await this.prisma.invitationSection.updateMany({
       where: { id: sectionId, event_id: eventId },
-      data: {
-        ...data,
-        content: data.content as any,
-      },
+      data: updateData,
     });
 
     if (result.count === 0) return null;
@@ -96,14 +101,23 @@ export class PrismaCMSRepository implements CMSRepository {
   }
 
   async updateManySortOrders(updates: { id: string; sort_order: number }[]): Promise<void> {
-    // Prisma does not have a bulk update with multiple conditions for different values easily,
-    // so we iterate using sequential updates. It's safe given the small N (max 14).
-    for (const update of updates) {
-      await this.prisma.invitationSection.update({
-        where: { id: update.id },
-        data: { sort_order: update.sort_order },
-      });
-    }
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Temporarily update each section's sort_order to a unique negative value to avoid unique constraints
+      for (let i = 0; i < updates.length; i++) {
+        await tx.invitationSection.update({
+          where: { id: updates[i].id },
+          data: { sort_order: -(i + 1) },
+        });
+      }
+
+      // 2. Set the final positive sort_order values
+      for (const update of updates) {
+        await tx.invitationSection.update({
+          where: { id: update.id },
+          data: { sort_order: update.sort_order },
+        });
+      }
+    });
   }
 
   async deleteSection(sectionId: string, eventId: string): Promise<boolean> {
@@ -115,12 +129,10 @@ export class PrismaCMSRepository implements CMSRepository {
   }
 
   async findEventById(eventId: string, tenantId: string): Promise<{ id: string } | null> {
-    const event = await this.prisma.event.findFirst({
+    return this.prisma.event.findFirst({
       where: { id: eventId, tenant_id: tenantId },
       select: { id: true },
     });
-
-    return event;
   }
 
   async getMaxSortOrder(eventId: string): Promise<number> {
@@ -140,7 +152,7 @@ export class PrismaCMSRepository implements CMSRepository {
     section_type: string;
     sort_order: number;
     is_active: boolean;
-    content: any;
+    content: Prisma.JsonValue;
     updated_at: Date;
   }): SectionRecord {
     return {
@@ -149,7 +161,10 @@ export class PrismaCMSRepository implements CMSRepository {
       section_type: section.section_type as SectionType,
       sort_order: section.sort_order,
       is_active: section.is_active,
-      content: typeof section.content === 'object' && section.content !== null ? section.content : {},
+      content:
+        typeof section.content === 'object' && section.content !== null
+          ? (section.content as Record<string, unknown>)
+          : {},
       updated_at: section.updated_at,
     };
   }

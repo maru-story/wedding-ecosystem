@@ -16,10 +16,10 @@ import type {
   GuestInfo,
   QRCodeInfo,
   GuestSearchResult,
-} from '../services/checkin.service';
+} from '../services/checkin/checkin.service';
 
 export class PrismaCheckInRepository implements CheckInRepository {
-  constructor(private readonly prisma: PrismaClient) { }
+  constructor(private readonly prisma: PrismaClient) {}
 
   async findGuestById(guestId: string): Promise<GuestInfo | null> {
     const guest = await this.prisma.guest.findFirst({
@@ -75,6 +75,7 @@ export class PrismaCheckInRepository implements CheckInRepository {
         guest_id: true,
         scanner_device_id: true,
         method: true,
+        scan_count: true,
         checked_in_at: true,
       },
     });
@@ -86,6 +87,7 @@ export class PrismaCheckInRepository implements CheckInRepository {
       guest_id: checkIn.guest_id,
       scanner_device_id: checkIn.scanner_device_id,
       method: checkIn.method as CheckInMethod,
+      scan_count: checkIn.scan_count,
       checked_in_at: checkIn.checked_in_at,
     };
   }
@@ -112,6 +114,26 @@ export class PrismaCheckInRepository implements CheckInRepository {
       guest_id: checkIn.guest_id,
       scanner_device_id: checkIn.scanner_device_id,
       method: checkIn.method as CheckInMethod,
+      scan_count: checkIn.scan_count,
+      checked_in_at: checkIn.checked_in_at,
+    };
+  }
+
+  async incrementScanCount(checkInId: string): Promise<CheckInRecord> {
+    const checkIn = await this.prisma.checkIn.update({
+      where: { id: checkInId },
+      data: {
+        scan_count: { increment: 1 },
+        checked_in_at: new Date(),
+      },
+    });
+
+    return {
+      id: checkIn.id,
+      guest_id: checkIn.guest_id,
+      scanner_device_id: checkIn.scanner_device_id,
+      method: checkIn.method as CheckInMethod,
+      scan_count: checkIn.scan_count,
       checked_in_at: checkIn.checked_in_at,
     };
   }
@@ -166,7 +188,7 @@ export class PrismaCheckInRepository implements CheckInRepository {
         name: data.name,
         slug: `${slug}-goshow-${Date.now()}`,
         type: data.type,
-        group: 'friend',
+        group: 'friend' as GuestGroup,
         plus_one_count: 0,
         delivery_status: 'not_sent',
       },
@@ -181,11 +203,9 @@ export class PrismaCheckInRepository implements CheckInRepository {
   }
 
   async findEventById(eventId: string): Promise<{ id: string; tenant_id: string } | null> {
-    const event = await this.prisma.event.findFirst({
+    return this.prisma.event.findFirst({
       where: { id: eventId },
       select: { id: true, tenant_id: true },
     });
-
-    return event;
   }
 }

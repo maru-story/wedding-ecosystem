@@ -2,8 +2,27 @@
 
 import { useState } from 'react';
 import { GuestGroup } from '@wedding/shared';
-import { apiFetch, ApiError } from '@/lib/api';
+import { ApiError } from '@/lib/api';
 import type { GuestListItem } from '../page';
+import { useCreateGuest, useUpdateGuest } from '@/hooks/queries';
+import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface AddGuestModalProps {
   guest: GuestListItem | null;
@@ -23,36 +42,37 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
 
   const [name, setName] = useState(guest?.name || '');
   const [group, setGroup] = useState<GuestGroup>(guest?.group || GuestGroup.FAMILY);
-  const [phone, setPhone] = useState(guest?.phone || '');
-  const [email, setEmail] = useState(guest?.email || '');
+  const [phone, setPhone] = useState(() => {
+    if (guest?.phone?.startsWith('+62')) {
+      return guest.phone.slice(3);
+    }
+    return guest?.phone || '';
+  });
   const [plusOneCount, setPlusOneCount] = useState(guest?.plus_one_count ?? 0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const createGuest = useCreateGuest();
+  const updateGuest = useUpdateGuest();
+  const isSubmitting = createGuest.isPending || updateGuest.isPending;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    setIsSubmitting(true);
 
     const payload = {
       name: name.trim(),
       group,
-      phone: phone.trim() || undefined,
-      email: email.trim() || undefined,
+      phone: phone.trim() ? `+62${phone.trim()}` : undefined,
       plus_one_count: plusOneCount,
     };
 
     try {
       if (isEditing) {
-        await apiFetch(`/guests/${guest.id}`, {
-          method: 'PUT',
-          body: payload,
-        });
+        await updateGuest.mutateAsync({ id: guest.id, payload });
+        toast.success(`Data tamu "${name.trim()}" berhasil diperbarui`);
       } else {
-        await apiFetch('/guests', {
-          method: 'POST',
-          body: payload,
-        });
+        await createGuest.mutateAsync(payload);
+        toast.success(`Tamu "${name.trim()}" berhasil ditambahkan`);
       }
       onSaved();
     } catch (err) {
@@ -62,46 +82,26 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
       } else {
         setError('Terjadi kesalahan. Silakan coba lagi.');
       }
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="guest-modal-title"
-    >
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 id="guest-modal-title" className="font-heading text-lg font-bold">
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="bg-card border-border/40 sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-heading text-foreground text-xl tracking-wide">
             {isEditing ? 'Edit Tamu' : 'Tambah Tamu Baru'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="rounded p-1 text-gray-400 hover:text-gray-600"
-            aria-label="Tutup"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            {isEditing
+              ? 'Edit informasi tamu yang sudah terdaftar.'
+              : 'Tambahkan tamu baru ke dalam daftar undangan.'}
+          </DialogDescription>
+        </DialogHeader>
 
         {error && (
           <div
-            className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-sm"
             role="alert"
           >
             {error}
@@ -109,106 +109,103 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="guest-name" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Nama <span className="text-red-500">*</span>
-            </label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="guest-name" className="text-foreground">
+              Nama <span className="text-destructive">*</span>
+            </Label>
+            <Input
               id="guest-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nama lengkap tamu"
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
             />
           </div>
 
-          <div>
-            <label htmlFor="guest-group" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Grup <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="guest-group"
-              value={group}
-              onChange={(e) => setGroup(e.target.value as GuestGroup)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              {GROUP_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+          <div className="space-y-1.5">
+            <Label htmlFor="guest-group" className="text-foreground">
+              Grup <span className="text-destructive">*</span>
+            </Label>
+            <Select value={group} onValueChange={(val) => setGroup(val as GuestGroup)}>
+              <SelectTrigger className="bg-card border-border/60 hover:bg-muted/10 w-full transition-colors">
+                <SelectValue placeholder="Pilih Grup" />
+              </SelectTrigger>
+              <SelectContent>
+                {GROUP_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div>
-            <label htmlFor="guest-phone" className="mb-1.5 block text-sm font-medium text-gray-700">
+          <div className="space-y-1.5">
+            <Label htmlFor="guest-phone" className="text-foreground">
               Nomor Telepon
-            </label>
-            <input
-              id="guest-phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+62812345678"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
+            </Label>
+            <div className="border-border/60 bg-card focus-within:ring-ring focus-within:border-ring flex items-center rounded-lg border pl-3 transition-colors focus-within:ring-1">
+              <span className="text-muted-foreground pr-1 text-sm font-semibold select-none">
+                +62
+              </span>
+              <Input
+                id="guest-phone"
+                type="text"
+                value={phone}
+                onChange={(e) => {
+                  let val = e.target.value.replace(/\D/g, '');
+                  if (val.startsWith('0')) {
+                    val = val.slice(1);
+                  } else if (val.startsWith('62')) {
+                    val = val.slice(2);
+                  }
+                  setPhone(val);
+                }}
+                placeholder="8xxxxxxxxxx"
+                className="border-0 bg-transparent px-1 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="guest-email" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
-              id="guest-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="tamu@email.com"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="guest-plus-one"
-              className="mb-1.5 block text-sm font-medium text-gray-700"
-            >
+          <div className="space-y-1.5">
+            <Label htmlFor="guest-plus-one" className="text-foreground">
               Jumlah Tamu Tambahan (Plus One)
-            </label>
-            <input
+            </Label>
+            <Input
               id="guest-plus-one"
               type="number"
               min={0}
               max={10}
               value={plusOneCount}
               onChange={(e) => setPlusOneCount(parseInt(e.target.value, 10) || 0)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="text-muted-foreground text-[11px]">
               Jumlah orang tambahan yang boleh dibawa tamu (0–10)
             </p>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground"
             >
               Batal
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSubmitting || !name.trim()}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="bg-primary hover:bg-primary/95 text-primary-foreground font-medium"
             >
               {isSubmitting ? 'Menyimpan...' : isEditing ? 'Simpan Perubahan' : 'Tambah Tamu'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

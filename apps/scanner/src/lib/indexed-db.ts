@@ -146,7 +146,10 @@ export async function searchCachedGuests(query: string, eventId: string): Promis
   });
 }
 
-export async function updateCachedGuestCheckIn(guestId: string, checkedInAt: string): Promise<void> {
+export async function updateCachedGuestCheckIn(
+  guestId: string,
+  checkedInAt: string
+): Promise<void> {
   const db = await openDB();
   const tx = db.transaction(GUEST_STORE, 'readwrite');
   const store = tx.objectStore(GUEST_STORE);
@@ -196,7 +199,9 @@ export async function getQueueSize(): Promise<number> {
   });
 }
 
-export async function addToQueue(checkIn: QueuedCheckIn): Promise<{ success: boolean; overflowWarning: boolean }> {
+export async function addToQueue(
+  checkIn: QueuedCheckIn
+): Promise<{ success: boolean; overflowWarning: boolean }> {
   const db = await openDB();
   const currentSize = await getQueueSize();
 
@@ -229,7 +234,7 @@ async function overwriteOldestSynced(db: IDBDatabase, newCheckIn: QueuedCheckIn)
 
   return new Promise((resolve, reject) => {
     // Find oldest synced record
-    const request = index.openCursor(IDBKeyRange.only(1)); // synced = true (stored as 1)
+    const request = index.openCursor(IDBKeyRange.only(true)); // synced = true
     request.onsuccess = (event) => {
       const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
       if (cursor) {

@@ -12,6 +12,7 @@
 
 import { PrismaClient } from '@wedding/db';
 import { FastifyReply } from 'fastify';
+import { ErrorCode, EventStatus } from '@wedding/shared';
 
 // --- Types ---
 
@@ -40,7 +41,7 @@ export interface TenantEventFull {
   akad_end: string;
   resepsi_start: string;
   resepsi_end: string;
-  status: string;
+  status: EventStatus;
   created_at: Date;
 }
 
@@ -77,7 +78,7 @@ export async function getCurrentTenantEvent(
     orderBy: { created_at: 'desc' },
   });
 
-  return event as TenantEventFull | null;
+  return event as unknown as TenantEventFull | null;
 }
 
 /**
@@ -104,7 +105,7 @@ export async function getTenantGuest(
 export function replyEventNotFound(reply: FastifyReply) {
   return reply.status(404).send({
     success: false,
-    error: { code: 'RES_5001', message: 'Event tidak ditemukan' },
+    error: { code: ErrorCode.NOT_FOUND, message: 'Event tidak ditemukan' },
   });
 }
 
@@ -114,7 +115,7 @@ export function replyEventNotFound(reply: FastifyReply) {
 export function replyGuestNotFound(reply: FastifyReply) {
   return reply.status(404).send({
     success: false,
-    error: { code: 'GUEST_6001', message: 'Tamu tidak ditemukan' },
+    error: { code: ErrorCode.NOT_FOUND, message: 'Tamu tidak ditemukan' },
   });
 }
 
@@ -124,6 +125,6 @@ export function replyGuestNotFound(reply: FastifyReply) {
 export function replySectionNotFound(reply: FastifyReply) {
   return reply.status(404).send({
     success: false,
-    error: { code: 'CMS_9001', message: 'Section tidak ditemukan' },
+    error: { code: ErrorCode.NOT_FOUND, message: 'Section tidak ditemukan' },
   });
 }

@@ -8,7 +8,7 @@ export default function InvitationLoading() {
     <div className="flex min-h-screen items-center justify-center bg-[#FDFCF9]">
       <div className="text-center">
         <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[#5F7161] border-t-transparent" />
-        <p className="mt-4 font-body text-sm text-gray-500">Memuat undangan...</p>
+        <p className="font-body mt-4 text-sm text-gray-500">Memuat undangan...</p>
       </div>
     </div>
   );

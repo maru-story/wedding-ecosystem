@@ -37,13 +37,13 @@ export function ClosingSection({ content, sortOrder }: ClosingSectionProps) {
       )}
 
       {content.thank_you_message && (
-        <p className="text-center font-heading text-lg font-semibold text-[var(--color-primary)]">
+        <p className="font-heading text-center text-lg font-semibold text-[var(--color-primary)]">
           {content.thank_you_message}
         </p>
       )}
 
       {!content.thank_you_message && (
-        <p className="text-center font-heading text-lg font-semibold text-[var(--color-primary)]">
+        <p className="font-heading text-center text-lg font-semibold text-[var(--color-primary)]">
           Terima Kasih
         </p>
       )}

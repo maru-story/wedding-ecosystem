@@ -41,6 +41,7 @@ inclusion: always
 ## Testing
 
 - **Unit/Integration Testing**: Vitest 3.2
+- **E2E Testing**: Playwright 1.50.1 (REST API & Socket.io WebSocket)
 - **Property-Based Testing**: fast-check 4.8
 - **Coverage Target**: 80% minimum for business logic
 - **Key Test Areas**: QR validation, RSVP processing, duplicate detection, tenant isolation
@@ -55,6 +56,8 @@ inclusion: always
 | typescript                   | 5.9.3    |
 | zod                          | 3.25.3   |
 | vitest                       | 3.2.4    |
+| @playwright/test             | 1.55.1   |
+| playwright                   | 1.55.1   |
 | fast-check                   | 4.8.0    |
 | fastify                      | 5.8.5    |
 | socket.io / socket.io-client | 4.8.3    |
@@ -76,6 +79,7 @@ npm install            # Install dependencies
 npm run dev            # Run development server
 npm run build          # Build for production
 npm run test           # Run tests (vitest)
+npm run test:e2e --workspace=packages/api # Run Playwright E2E tests
 npm run lint           # Run linting
 npx prisma migrate dev # Database migrations
 npx prisma generate    # Generate Prisma client

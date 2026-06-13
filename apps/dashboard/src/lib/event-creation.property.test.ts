@@ -7,9 +7,8 @@ import {
   type EventCreationInput,
   type EventRepository,
   type ThemeApplicator,
-  type ThemeConfig,
+  DEFAULT_THEME,
 } from './event-creation';
-import { DEFAULT_THEME } from './theme';
 
 // --- Arbitraries ---
 
@@ -28,7 +27,10 @@ const arbDate = fc
     month: fc.integer({ min: 1, max: 12 }),
     day: fc.integer({ min: 1, max: 28 }),
   })
-  .map(({ year, month, day }) => `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+  .map(
+    ({ year, month, day }) =>
+      `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  );
 
 /** Generates a valid tenant_id */
 const arbTenantId = fc.uuid();
@@ -139,38 +141,33 @@ describe('Property 21: Theme Application Resilience', () => {
    */
   it('event creation never fails due to theme application errors', () => {
     fc.assert(
-      fc.property(
-        arbEventInput,
-        fc.boolean(),
-        arbError,
-        (input, shouldThemeFail, error) => {
-          const repository = createMockRepository();
-          const themeApplicator: ThemeApplicator = shouldThemeFail
-            ? createFailingThemeApplicator(error)
-            : createDefaultThemeApplicator();
+      fc.property(arbEventInput, fc.boolean(), arbError, (input, shouldThemeFail, error) => {
+        const repository = createMockRepository();
+        const themeApplicator: ThemeApplicator = shouldThemeFail
+          ? createFailingThemeApplicator(error)
+          : createDefaultThemeApplicator();
 
-          // This should NEVER throw, regardless of theme applicator behavior
-          const result = createEventWithTheme(input, repository, themeApplicator);
+        // This should NEVER throw, regardless of theme applicator behavior
+        const result = createEventWithTheme(input, repository, themeApplicator);
 
-          // Event is always created
-          expect(result.id).toBeDefined();
-          expect(result.id.length).toBeGreaterThan(0);
-          expect(result.slug).toBe(input.slug);
-          expect(result.bride_name).toBe(input.bride_name);
-          expect(result.groom_name).toBe(input.groom_name);
-          expect(result.tenant_id).toBe(input.tenant_id);
-          expect(result.created_at).toBeDefined();
+        // Event is always created
+        expect(result.id).toBeDefined();
+        expect(result.id.length).toBeGreaterThan(0);
+        expect(result.slug).toBe(input.slug);
+        expect(result.bride_name).toBe(input.bride_name);
+        expect(result.groom_name).toBe(input.groom_name);
+        expect(result.tenant_id).toBe(input.tenant_id);
+        expect(result.created_at).toBeDefined();
 
-          // Theme state is consistent with success/failure
-          if (shouldThemeFail) {
-            expect(result.theme_applied).toBe(false);
-            expect(result.theme_config).toBeNull();
-          } else {
-            expect(result.theme_applied).toBe(true);
-            expect(result.theme_config).not.toBeNull();
-          }
+        // Theme state is consistent with success/failure
+        if (shouldThemeFail) {
+          expect(result.theme_applied).toBe(false);
+          expect(result.theme_config).toBeNull();
+        } else {
+          expect(result.theme_applied).toBe(true);
+          expect(result.theme_config).not.toBeNull();
         }
-      ),
+      }),
       { numRuns: 200 }
     );
   });

@@ -10,6 +10,7 @@ out/
 .env
 .env.local
 .env.*.local
+.env.test
 
 # IDE
 .idea/
@@ -35,3 +36,9 @@ coverage/
 
 # Misc
 *.tsbuildinfo
+
+# ECC Local Folder
+.agent/
+.claude/
+.claude-flow/
+.swarm/

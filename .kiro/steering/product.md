@@ -16,20 +16,20 @@ Wedding Digital SaaS — a multi-tenant platform for digital wedding invitation 
 
 ## Applications
 
-| App                            | Type             | Primary Users     | Key Constraint                         |
-| ------------------------------ | ---------------- | ----------------- | -------------------------------------- |
-| Dashboard (`apps/dashboard`)   | Responsive web   | Client, WO, Admin | Desktop-first, must work on tablet     |
-| Invitation (`apps/invitation`) | Mobile-first web | Guests            | Must load < 3s on 3G; no auth required |
-| Scanner (`apps/scanner`)       | PWA              | Scanner Operator  | Must work offline; QR verify < 2s      |
+| App                            | Type             | Primary Users | Key Constraint                         |
+| ------------------------------ | ---------------- | ------------- | -------------------------------------- |
+| Dashboard (`apps/dashboard`)   | Responsive web   | Client, Admin | Desktop-first, must work on tablet     |
+| Invitation (`apps/invitation`) | Mobile-first web | Guests        | Must load < 3s on 3G; no auth required |
+| Scanner (`apps/scanner`)       | PWA              | Client, Admin | Must work offline; QR verify < 2s      |
 
 ## User Roles
 
-| Role                   | Scope           | Can Do                                         | Cannot Do                           |
-| ---------------------- | --------------- | ---------------------------------------------- | ----------------------------------- |
-| Admin                  | All tenants     | Full CRUD, tenant management, system config    | —                                   |
-| Client                 | Own tenant only | Manage own events, guests, CMS, themes         | Access other tenants, system config |
-| WO (Wedding Organizer) | Assigned events | Manage assigned events, guests, check-in       | Create/delete events, billing       |
-| Scanner Operator       | Assigned event  | QR scan, manual check-in, Go-Show registration | Guest management, CMS, settings     |
+| Role                   | Scope           | Can Do                                          | Cannot Do                           |
+| ---------------------- | --------------- | ----------------------------------------------- | ----------------------------------- |
+| Admin                  | All tenants     | Full CRUD, tenant management, system config     | —                                   |
+| Client                 | Own tenant only | Manage own events, guests, CMS, themes, scanner | Access other tenants, system config |
+| WO (Wedding Organizer) | Disabled (MVP)  | None (restricted in MVP)                        | All actions                         |
+| Scanner Operator       | Disabled (MVP)  | None (restricted in MVP)                        | All actions                         |
 
 ## Current Scale & Constraints
 

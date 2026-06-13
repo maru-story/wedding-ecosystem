@@ -12,7 +12,12 @@ import { useConnectivity, type ConnectivityState } from '@/lib/connectivity';
 import { ConnectivityIndicator } from './connectivity-indicator';
 import { useAuth } from './auth-provider';
 import { EventSelector } from './event-selector';
-import { getStoredEventId } from '@/lib/auth';
+import {
+  getStoredEventId,
+  getStoredDeviceId,
+  deactivateDevice,
+  clearStoredEventId,
+} from '@/lib/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -47,8 +52,18 @@ interface PWAProviderProps {
 
 export function PWAProvider({ children }: PWAProviderProps) {
   const { accessToken, storedEventId } = useAuth();
-  const [eventId, setEventId] = useState('');
-  const [eventSelected, setEventSelected] = useState(false);
+  const [eventId, setEventId] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return storedEventId || getStoredEventId() || '';
+    }
+    return '';
+  });
+  const [eventSelected, setEventSelected] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !!(storedEventId || getStoredEventId());
+    }
+    return false;
+  });
 
   const authToken = accessToken || '';
   const apiBaseUrl = API_BASE_URL;
@@ -79,6 +94,11 @@ export function PWAProvider({ children }: PWAProviderProps) {
   }, []);
 
   const resetEvent = useCallback(() => {
+    const deviceId = getStoredDeviceId();
+    if (deviceId) {
+      deactivateDevice(deviceId);
+    }
+    clearStoredEventId();
     setEventId('');
     setEventSelected(false);
   }, []);

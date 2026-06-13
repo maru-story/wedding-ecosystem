@@ -1,5 +1,8 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
 import { PrismaClient } from '@wedding/db';
+import { z } from 'zod';
+import { ErrorCode, createMessageSchema, paginationSchema } from '@wedding/shared';
+import { validate } from '../middleware/validate';
 
 interface MessageRouteOptions extends FastifyPluginOptions {
   prisma: PrismaClient;
@@ -10,43 +13,24 @@ export async function messageRoutes(app: FastifyInstance, opts: MessageRouteOpti
 
   // POST /messages - Submit a message (public, no auth required)
   app.post('/', async (request: FastifyRequest, reply) => {
-    const { event_id, sender_name, message_text } = request.body as {
-      event_id: string;
-      sender_name: string;
-      message_text: string;
-    };
+    const fullSchema = createMessageSchema.extend({
+      event_id: z.string().uuid({ message: 'ID event tidak valid' }),
+      guest_id: z.string().uuid({ message: 'ID tamu tidak valid' }).optional(),
+    });
 
-    if (!event_id || !sender_name || !message_text) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: 'VAL_4001', message: 'event_id, sender_name, dan message_text diperlukan' },
-      });
-    }
-
-    // Validate lengths (Req 6.11)
-    if (sender_name.length > 100) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: 'VAL_4001', message: 'Nama pengirim maksimal 100 karakter' },
-      });
-    }
-
-    if (message_text.length > 500) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: 'VAL_4001', message: 'Isi ucapan maksimal 500 karakter' },
-      });
-    }
+    const body = validate(request.body, fullSchema, reply);
+    if (!body) return reply;
 
     // Verify event exists
     const event = await prisma.event.findFirst({
-      where: { id: event_id },
+      where: { id: body.event_id },
+      select: { id: true },
     });
 
     if (!event) {
       return reply.status(404).send({
         success: false,
-        error: { code: 'RES_5001', message: 'Event tidak ditemukan' },
+        error: { code: ErrorCode.NOT_FOUND, message: 'Event tidak ditemukan' },
       });
     }
 
@@ -54,9 +38,10 @@ export async function messageRoutes(app: FastifyInstance, opts: MessageRouteOpti
     const message = await prisma.message.create({
       data: {
         id: randomUUID(),
-        event_id,
-        sender_name,
-        message_text,
+        event_id: body.event_id,
+        guest_id: body.guest_id || null,
+        sender_name: body.sender_name,
+        message_text: body.message_text,
         is_visible: true,
         created_at: new Date(),
       },
@@ -67,44 +52,196 @@ export async function messageRoutes(app: FastifyInstance, opts: MessageRouteOpti
 
   // GET /messages/:eventId - Get messages for an event (public, paginated)
   app.get('/:eventId', async (request: FastifyRequest, reply) => {
-    const { eventId } = request.params as { eventId: string };
-    const query = request.query as { page?: string; per_page?: string };
+    const paramsSchema = z.object({
+      eventId: z.string().uuid({ message: 'ID event tidak valid' }),
+    });
 
-    const page = parseInt(query.page || '1', 10);
-    const per_page = Math.min(parseInt(query.per_page || '20', 10), 20);
-    const skip = (page - 1) * per_page;
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return reply;
+
+    const query = validate(request.query, paginationSchema, reply);
+    if (!query) return reply;
+
+    const skip = (query.page! - 1) * query.per_page!;
 
     // Verify event exists
     const event = await prisma.event.findFirst({
-      where: { id: eventId },
+      where: { id: params.eventId },
+      select: { id: true },
     });
 
     if (!event) {
       return reply.status(404).send({
         success: false,
-        error: { code: 'RES_5001', message: 'Event tidak ditemukan' },
+        error: { code: ErrorCode.NOT_FOUND, message: 'Event tidak ditemukan' },
       });
     }
 
-    const total = await prisma.message.count({
-      where: { event_id: eventId, is_visible: true },
-    });
-
-    const messages = await prisma.message.findMany({
-      where: { event_id: eventId, is_visible: true },
-      orderBy: { created_at: 'desc' },
-      skip,
-      take: per_page,
-    });
+    const [total, messages] = await Promise.all([
+      prisma.message.count({
+        where: { event_id: params.eventId, is_visible: true },
+      }),
+      prisma.message.findMany({
+        where: { event_id: params.eventId, is_visible: true },
+        orderBy: { created_at: 'desc' },
+        skip,
+        take: query.per_page!,
+      }),
+    ]);
 
     return reply.send({
       data: messages,
       pagination: {
-        page,
-        per_page,
+        page: query.page!,
+        per_page: query.per_page!,
         total,
-        total_pages: Math.ceil(total / per_page),
+        total_pages: Math.ceil(total / query.per_page!),
       },
     });
+  });
+
+  // GET /messages/:eventId/admin - Get all messages for an event (including hidden ones, auth required)
+  app.get(
+    '/:eventId/admin',
+    { onRequest: [app.authenticate] },
+    async (request: FastifyRequest, reply) => {
+      const user = request.user!;
+      const paramsSchema = z.object({
+        eventId: z.string().uuid({ message: 'ID event tidak valid' }),
+      });
+
+      const params = validate(request.params, paramsSchema, reply);
+      if (!params) return reply;
+
+      // Verify event exists and belongs to tenant
+      const event = await prisma.event.findFirst({
+        where: { id: params.eventId, tenant_id: user.tenant_id },
+        select: { id: true },
+      });
+
+      if (!event) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: ErrorCode.NOT_FOUND, message: 'Event tidak ditemukan' },
+        });
+      }
+
+      const query = validate(request.query, paginationSchema, reply);
+      if (!query) return reply;
+
+      const skip = (query.page! - 1) * query.per_page!;
+
+      const [total, messages] = await Promise.all([
+        prisma.message.count({
+          where: { event_id: params.eventId },
+        }),
+        prisma.message.findMany({
+          where: { event_id: params.eventId },
+          include: {
+            guest: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          orderBy: { created_at: 'desc' },
+          skip,
+          take: query.per_page!,
+        }),
+      ]);
+
+      return reply.send({
+        data: messages,
+        pagination: {
+          page: query.page!,
+          per_page: query.per_page!,
+          total,
+          total_pages: Math.ceil(total / query.per_page!),
+        },
+      });
+    }
+  );
+
+  // PUT /messages/:id/visibility - Toggle wish visibility (auth required)
+  app.put(
+    '/:id/visibility',
+    { onRequest: [app.authenticate] },
+    async (request: FastifyRequest, reply) => {
+      const user = request.user!;
+      const paramsSchema = z.object({
+        id: z.string().uuid({ message: 'ID ucapan tidak valid' }),
+      });
+
+      const params = validate(request.params, paramsSchema, reply);
+      if (!params) return reply;
+
+      const bodySchema = z.object({
+        is_visible: z.boolean({ message: 'Status visibilitas harus boolean' }),
+      });
+
+      const body = validate(request.body, bodySchema, reply);
+      if (!body) return reply;
+
+      // Find message and check tenant ownership via event relation
+      const message = await prisma.message.findFirst({
+        where: {
+          id: params.id,
+          event: {
+            tenant_id: user.tenant_id,
+          },
+        },
+        select: { id: true },
+      });
+
+      if (!message) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: ErrorCode.NOT_FOUND, message: 'Ucapan tidak ditemukan' },
+        });
+      }
+
+      const updated = await prisma.message.update({
+        where: { id: params.id },
+        data: { is_visible: body.is_visible },
+      });
+
+      return reply.send(updated);
+    }
+  );
+
+  // DELETE /messages/:id - Delete a wish (auth required)
+  app.delete('/:id', { onRequest: [app.authenticate] }, async (request: FastifyRequest, reply) => {
+    const user = request.user!;
+    const paramsSchema = z.object({
+      id: z.string().uuid({ message: 'ID ucapan tidak valid' }),
+    });
+
+    const params = validate(request.params, paramsSchema, reply);
+    if (!params) return reply;
+
+    // Find message and check tenant ownership via event relation
+    const message = await prisma.message.findFirst({
+      where: {
+        id: params.id,
+        event: {
+          tenant_id: user.tenant_id,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!message) {
+      return reply.status(404).send({
+        success: false,
+        error: { code: ErrorCode.NOT_FOUND, message: 'Ucapan tidak ditemukan' },
+      });
+    }
+
+    await prisma.message.delete({
+      where: { id: params.id },
+    });
+
+    return reply.send({ success: true });
   });
 }

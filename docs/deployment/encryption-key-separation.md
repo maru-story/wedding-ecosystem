@@ -97,11 +97,11 @@ Ensure the variable is scoped correctly:
 The API server validates the key at startup:
 
 ```typescript
-import { loadEncryptionKey } from './config/encryption-key';
+import { getEncryptionKey } from './config/encryption-key/encryption-key';
 
 // Throws if key is missing or invalid — prevents server from starting
 // without proper encryption capability
-const encryptionConfig = loadEncryptionKey();
+const encryptionConfig = getEncryptionKey();
 ```
 
 ## Access Control
@@ -134,23 +134,23 @@ The encryption key is used in two places:
 ### 1. QR Payload Encryption (`GuestService`)
 
 ```typescript
-// packages/api/src/services/guest.service.ts
+// packages/api/src/services/guest/guest.service.ts
 // Encrypts: guest_id|event_id|timestamp|nonce → AES-256-CBC ciphertext
 ```
 
 ### 2. PII Encryption at Rest (`PIIEncryption`)
 
 ```typescript
-// packages/api/src/middleware/encryption.ts
+// packages/api/src/middleware/encryption/encryption.ts
 // Encrypts: phone numbers, email addresses before database storage
 ```
 
 Both consumers receive the key via dependency injection from the config loader:
 
 ```typescript
-import { loadEncryptionKey } from '../config/encryption-key';
+import { getEncryptionKey } from '../config/encryption-key/encryption-key';
 
-const { key } = loadEncryptionKey();
+const { key } = getEncryptionKey();
 const piiEncryption = new PIIEncryption({ encryptionKey: key });
 const guestService = new GuestService({ repository, encryptionKey: key });
 ```

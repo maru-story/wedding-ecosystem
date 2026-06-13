@@ -2,6 +2,7 @@
 
 import { VerificationStatus } from './enums';
 import { ApiError } from './errors';
+import { AuthTokens } from './auth';
 import {
   CheckIn,
   Event,
@@ -41,12 +42,6 @@ export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
 // --- Auth responses ---
 
-export interface AuthTokens {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-}
-
 export interface LoginResponse {
   user: Omit<User, 'password_hash'>;
   tokens: AuthTokens;
@@ -58,7 +53,7 @@ export interface LoginResponse {
 export interface GuestWithStatus extends Omit<Guest, 'event_id'> {
   rsvp: RSVP | null;
   check_in: CheckIn | null;
-  qr_code: Pick<QRCode, 'qr_image_url' | 'is_active'> | null;
+  qr_code: Pick<QRCode, 'qr_payload' | 'is_active'> | null;
 }
 
 /** CSV import result report (Req 3.3) */
@@ -83,6 +78,7 @@ export interface ScanVerificationResult {
   guest_name: string | null;
   guest_group: string | null;
   message: string;
+  scan_count: number;
   checked_in_at: Date | null;
 }
 
@@ -133,6 +129,7 @@ export interface WsCheckInEvent {
   guest_id: string;
   guest_name: string;
   method: string;
+  scan_count: number;
   checked_in_at: Date;
 }
 

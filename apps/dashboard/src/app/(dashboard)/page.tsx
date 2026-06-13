@@ -1,15 +1,38 @@
+'use client';
+
 import { Suspense } from 'react';
 import { DashboardStats } from './components/dashboard-stats';
+import { DashboardCharts } from './components/dashboard-charts';
+import { Card } from '@/components/ui/card';
+import { FadeIn } from '@/components/ui/motion-wrapper';
 
 export default function HomePage() {
   return (
-    <div>
-      <h1 className="font-heading text-2xl font-bold">Selamat Datang</h1>
-      <p className="mt-2 text-gray-600">Kelola undangan pernikahan digital Anda dari sini.</p>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <FadeIn delay={0.02}>
+        <div className="border-border/40 flex flex-col gap-1.5 border-b pb-4">
+          <h1 className="font-heading text-foreground text-2xl font-bold tracking-tight">
+            Dashboard Klien
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Ikhtisar data pernikahan dan analisis real-time seluruh aktivitas tamu undangan
+          </p>
+        </div>
+      </FadeIn>
 
-      {/* Stats cards with Suspense for async data loading */}
+      {/* Stats Cards Section */}
       <Suspense fallback={<StatsSkeletons />}>
         <DashboardStats />
+      </Suspense>
+
+      {/* Visual Charts Dashboard Panel */}
+      <Suspense
+        fallback={
+          <div className="bg-card border-border/40 h-[300px] animate-pulse rounded-2xl border" />
+        }
+      >
+        <DashboardCharts />
       </Suspense>
     </div>
   );
@@ -17,12 +40,9 @@ export default function HomePage() {
 
 function StatsSkeletons() {
   return (
-    <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="animate-pulse rounded-xl bg-white p-5 shadow-sm">
-          <div className="h-4 w-20 rounded bg-gray-200" />
-          <div className="mt-3 h-7 w-10 rounded bg-gray-200" />
-        </div>
+        <Card key={i} className="border-border/40 bg-card h-[120px] animate-pulse" />
       ))}
     </div>
   );

@@ -45,12 +45,8 @@ export function InvitationError({
           </svg>
         </div>
 
-        <h1 className="font-heading text-2xl font-bold text-[var(--color-text)]">
-          {title}
-        </h1>
-        <p className="mt-3 text-base text-[var(--color-text)]/70">
-          {description}
-        </p>
+        <h1 className="font-heading text-2xl font-bold text-[var(--color-text)]">{title}</h1>
+        <p className="mt-3 text-base text-[var(--color-text)]/70">{description}</p>
         <p className="mt-6 text-sm text-[var(--color-text)]/50">
           Pastikan link undangan yang Anda terima sudah benar.
         </p>

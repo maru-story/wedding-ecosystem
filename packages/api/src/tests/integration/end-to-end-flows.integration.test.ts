@@ -23,7 +23,7 @@ import {
   GuestRepository,
   GuestRecord,
   QRCodeRecord,
-} from '../../services/guest.service';
+} from '../../services/guest/guest.service';
 import {
   CheckInService,
   CheckInRepository,
@@ -32,7 +32,7 @@ import {
   CheckInRecord,
   GuestInfo,
   isServiceError,
-} from '../../services/checkin.service';
+} from '../../services/checkin/checkin.service';
 import {
   RsvpService,
   RsvpRepository,
@@ -40,7 +40,7 @@ import {
   RsvpRecord,
   GuestForRsvp,
   isRsvpError,
-} from '../../services/rsvp.service';
+} from '../../services/rsvp/rsvp.service';
 // --- Inline Stats Service for integration testing ---
 // (Avoids cross-package import; mirrors packages/realtime/src/stats.ts behavior)
 
@@ -95,8 +95,7 @@ class StatsService {
 
 // --- Constants ---
 
-const TEST_ENCRYPTION_KEY =
-  'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
+const TEST_ENCRYPTION_KEY = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
 const TEST_TENANT_ID = 'tenant-001';
 const TEST_EVENT_ID = 'event-001';
 const TEST_EVENT_SLUG = 'wedding-john-jane';
@@ -120,7 +119,6 @@ function createValidQRPayload(
 
   return `${iv.toString('hex')}:${encrypted}`;
 }
-
 
 // --- Shared in-memory state for integration ---
 
@@ -159,7 +157,6 @@ function createSharedGuestRepository(state: IntegrationState): GuestRepository {
     createQRCode: vi.fn(async (data) => {
       const record: QRCodeRecord = {
         ...data,
-        qr_image_url: null,
         generated_at: new Date(),
       };
       state.qrCodes.set(data.guest_id, record);
@@ -194,7 +191,6 @@ function createSharedGuestRepository(state: IntegrationState): GuestRepository {
           type: g.type,
           plus_one_count: g.plus_one_count,
           phone: g.phone,
-          email: g.email,
           delivery_status: g.delivery_status,
           rsvp_status: null,
           check_in_status: state.checkIns.has(g.id),
@@ -220,6 +216,17 @@ function createSharedGuestRepository(state: IntegrationState): GuestRepository {
       state.guests.delete(guestId);
       return true;
     }),
+    deleteGuests: vi.fn(async (guestIds, tenantId) => {
+      let count = 0;
+      for (const id of guestIds) {
+        const guest = state.guests.get(id);
+        if (guest && guest.tenant_id === tenantId) {
+          state.guests.delete(id);
+          count++;
+        }
+      }
+      return count;
+    }),
     deactivateQRCode: vi.fn(async (guestId) => {
       const qr = state.qrCodes.get(guestId);
       if (qr) {
@@ -227,6 +234,17 @@ function createSharedGuestRepository(state: IntegrationState): GuestRepository {
         return true;
       }
       return false;
+    }),
+    deactivateQRCodes: vi.fn(async (guestIds) => {
+      let count = 0;
+      for (const id of guestIds) {
+        const qr = state.qrCodes.get(id);
+        if (qr && qr.is_active) {
+          qr.is_active = false;
+          count++;
+        }
+      }
+      return count;
     }),
     findQRCodeByGuestId: vi.fn(async (guestId) => {
       return state.qrCodes.get(guestId) ?? null;
@@ -248,6 +266,26 @@ function createSharedGuestRepository(state: IntegrationState): GuestRepository {
         return { id: TEST_EVENT_ID, slug: TEST_EVENT_SLUG };
       }
       return null;
+    }),
+    countGuestsByEvent: vi.fn(async (eventId, tenantId) => {
+      return Array.from(state.guests.values()).filter(
+        (g) => g.event_id === eventId && g.tenant_id === tenantId
+      ).length;
+    }),
+    findGuestNamesByEvent: vi.fn(async (eventId, tenantId) => {
+      return Array.from(state.guests.values())
+        .filter((g) => g.event_id === eventId && g.tenant_id === tenantId)
+        .map((g) => g.name);
+    }),
+    searchGuestsByName: vi.fn(async (query, eventId, tenantId, limit) => {
+      return Array.from(state.guests.values())
+        .filter(
+          (g) =>
+            g.event_id === eventId &&
+            g.tenant_id === tenantId &&
+            g.name.toLowerCase().includes(query.toLowerCase())
+        )
+        .slice(0, limit);
     }),
   };
 }
@@ -287,18 +325,28 @@ function createSharedCheckInRepository(state: IntegrationState): CheckInReposito
     }),
     createCheckIn: vi.fn(async (data) => {
       const record: CheckInRecord = {
+        scan_count: 1,
         ...data,
       };
       state.checkIns.set(data.guest_id, record);
       return record;
     }),
+    incrementScanCount: vi.fn(async (checkInId) => {
+      for (const [guestId, record] of state.checkIns.entries()) {
+        if (record.id === checkInId) {
+          const updated = {
+            ...record,
+            scan_count: (record.scan_count || 1) + 1,
+          };
+          state.checkIns.set(guestId, updated);
+          return updated;
+        }
+      }
+      throw new Error(`CheckIn with ID ${checkInId} not found`);
+    }),
     searchGuestsByName: vi.fn(async (eventId, query, limit) => {
       const results = Array.from(state.guests.values())
-        .filter(
-          (g) =>
-            g.event_id === eventId &&
-            g.name.toLowerCase().includes(query.toLowerCase())
-        )
+        .filter((g) => g.event_id === eventId && g.name.toLowerCase().includes(query.toLowerCase()))
         .slice(0, limit)
         .map((g) => ({
           id: g.id,
@@ -318,7 +366,6 @@ function createSharedCheckInRepository(state: IntegrationState): CheckInReposito
         name: data.name,
         slug: data.name.toLowerCase().replace(/\s+/g, '-'),
         phone: null,
-        email: null,
         group: GuestGroup.FRIEND,
         type: data.type,
         plus_one_count: 0,
@@ -428,9 +475,7 @@ function createSharedRsvpBroadcaster(state: IntegrationState): RsvpBroadcaster {
 function createSharedStatsRepository(state: IntegrationState): StatsRepository {
   return {
     countGuestsByEvent: vi.fn(async (eventId) => {
-      return Array.from(state.guests.values()).filter(
-        (g) => g.event_id === eventId
-      ).length;
+      return Array.from(state.guests.values()).filter((g) => g.event_id === eventId).length;
     }),
     countRsvpByEvent: vi.fn(async (eventId) => {
       let count = 0;
@@ -471,7 +516,6 @@ function createSharedStatsBroadcaster(state: IntegrationState): StatsBroadcaster
     }),
   };
 }
-
 
 // =============================================================================
 // INTEGRATION TEST SUITE
@@ -527,16 +571,11 @@ describe('Integration Tests: End-to-End Flows', () => {
   describe('Flow 1: Add Guest → Generate QR → Scan QR → Check-in → Dashboard Update', () => {
     it('should complete the full guest check-in flow end-to-end', async () => {
       // Step 1: Add a guest (auto-generates QR code)
-      const addResult = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        {
-          name: 'Budi Santoso',
-          group: GuestGroup.FAMILY,
-          phone: '+6281234567890',
-          email: 'budi@example.com',
-        }
-      );
+      const addResult = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Budi Santoso',
+        group: GuestGroup.FAMILY,
+        phone: '+6281234567890',
+      });
 
       // Verify guest was created with QR code
       expect('id' in addResult).toBe(true);
@@ -550,7 +589,10 @@ describe('Integration Tests: End-to-End Flows', () => {
 
       // Step 2: Scan the QR code at the event
       const qrPayload = guest.qr_code!.qr_payload;
-      const scanResult = await checkInService.verifyQRScan(TEST_TENANT_ID, qrPayload, TEST_EVENT_ID,
+      const scanResult = await checkInService.verifyQRScan(
+        TEST_TENANT_ID,
+        qrPayload,
+        TEST_EVENT_ID,
         'scanner-device-001'
       );
 
@@ -579,13 +621,12 @@ describe('Integration Tests: End-to-End Flows', () => {
       expect(lastStatsBroadcast.eventId).toBe(TEST_EVENT_ID);
     });
 
-    it('should prevent duplicate check-in after successful scan', async () => {
+    it('should allow duplicate check-in after successful scan and increment scan count', async () => {
       // Add guest and get QR
-      const addResult = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        { name: 'Siti Rahayu', group: GuestGroup.FRIEND }
-      );
+      const addResult = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Siti Rahayu',
+        group: GuestGroup.FRIEND,
+      });
       expect('id' in addResult).toBe(true);
       if (!('id' in addResult)) return;
 
@@ -594,25 +635,30 @@ describe('Integration Tests: End-to-End Flows', () => {
       // First scan: GREEN
       const firstScan = await checkInService.verifyQRScan(TEST_TENANT_ID, qrPayload, TEST_EVENT_ID);
       expect(firstScan.status).toBe(VerificationStatus.GREEN);
+      expect(firstScan.scan_count).toBe(1);
 
-      // Second scan: YELLOW (duplicate)
-      const secondScan = await checkInService.verifyQRScan(TEST_TENANT_ID, qrPayload, TEST_EVENT_ID);
-      expect(secondScan.status).toBe(VerificationStatus.YELLOW);
+      // Second scan: GREEN (bypass duplicate check)
+      const secondScan = await checkInService.verifyQRScan(
+        TEST_TENANT_ID,
+        qrPayload,
+        TEST_EVENT_ID
+      );
+      expect(secondScan.status).toBe(VerificationStatus.GREEN);
       expect(secondScan.guest_name).toBe('Siti Rahayu');
-      expect(secondScan.message).toBe('Tamu sudah check-in sebelumnya');
+      expect(secondScan.message).toBe('Check-in berhasil (Scan ke-2)');
+      expect(secondScan.scan_count).toBe(2);
       expect(secondScan.checked_in_at).toBeInstanceOf(Date);
 
-      // Only one check-in record exists
+      // Only one check-in record exists (updated with count 2)
       expect(state.checkIns.size).toBe(1);
     });
 
     it('should reject QR code from a different event', async () => {
       // Add guest to event-001
-      const addResult = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        { name: 'Ahmad Fauzi', group: GuestGroup.COLLEAGUE }
-      );
+      const addResult = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Ahmad Fauzi',
+        group: GuestGroup.COLLEAGUE,
+      });
       expect('id' in addResult).toBe(true);
       if (!('id' in addResult)) return;
 
@@ -639,15 +685,11 @@ describe('Integration Tests: End-to-End Flows', () => {
   describe('Flow 2: RSVP Submit → Dashboard Real-time Update', () => {
     it('should broadcast RSVP update to dashboard via WebSocket', async () => {
       // Setup: Add a guest first
-      const addResult = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        {
-          name: 'Dewi Lestari',
-          group: GuestGroup.FAMILY,
-          plus_one_count: 2,
-        }
-      );
+      const addResult = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Dewi Lestari',
+        group: GuestGroup.FAMILY,
+        plus_one_count: 2,
+      });
       expect('id' in addResult).toBe(true);
       if (!('id' in addResult)) return;
 
@@ -657,14 +699,10 @@ describe('Integration Tests: End-to-End Flows', () => {
       state.broadcasts = [];
 
       // Submit RSVP
-      const rsvpResult = await rsvpService.submitRsvp(
-        guestId,
-        TEST_EVENT_ID,
-        {
-          attendance: AttendanceType.BOTH,
-          guest_count: 3,
-        }
-      );
+      const rsvpResult = await rsvpService.submitRsvp(guestId, TEST_EVENT_ID, {
+        attendance: AttendanceType.BOTH,
+        guest_count: 3,
+      });
 
       // Verify RSVP was created
       expect(isRsvpError(rsvpResult)).toBe(false);
@@ -697,15 +735,11 @@ describe('Integration Tests: End-to-End Flows', () => {
 
     it('should update existing RSVP and broadcast the change', async () => {
       // Setup: Add guest and submit initial RSVP
-      const addResult = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        {
-          name: 'Rina Wati',
-          group: GuestGroup.FRIEND,
-          plus_one_count: 1,
-        }
-      );
+      const addResult = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Rina Wati',
+        group: GuestGroup.FRIEND,
+        plus_one_count: 1,
+      });
       expect('id' in addResult).toBe(true);
       if (!('id' in addResult)) return;
 
@@ -749,22 +783,21 @@ describe('Integration Tests: End-to-End Flows', () => {
 
     it('should handle RSVP decline and broadcast with guest_count 0', async () => {
       // Setup: Add guest
-      const addResult = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        { name: 'Hendra Wijaya', group: GuestGroup.COLLEAGUE, plus_one_count: 3 }
-      );
+      const addResult = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Hendra Wijaya',
+        group: GuestGroup.COLLEAGUE,
+        plus_one_count: 3,
+      });
       expect('id' in addResult).toBe(true);
       if (!('id' in addResult)) return;
 
       state.broadcasts = [];
 
       // Submit decline
-      const rsvpResult = await rsvpService.submitRsvp(
-        addResult.id,
-        TEST_EVENT_ID,
-        { attendance: AttendanceType.DECLINE, guest_count: 0 }
-      );
+      const rsvpResult = await rsvpService.submitRsvp(addResult.id, TEST_EVENT_ID, {
+        attendance: AttendanceType.DECLINE,
+        guest_count: 0,
+      });
 
       expect(isRsvpError(rsvpResult)).toBe(false);
       if (isRsvpError(rsvpResult)) return;
@@ -785,7 +818,6 @@ describe('Integration Tests: End-to-End Flows', () => {
     });
   });
 
-
   // ===========================================================================
   // Flow 3: Concurrent Scanner Operations (2 devices, same QR)
   // Validates: Requirements 7.1, 12.4
@@ -794,11 +826,10 @@ describe('Integration Tests: End-to-End Flows', () => {
   describe('Flow 3: Concurrent Scanner Operations (2 devices, same QR)', () => {
     it('should ensure only one check-in succeeds when 2 devices scan simultaneously', async () => {
       // Setup: Add guest with QR
-      const addResult = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        { name: 'Putri Ayu', group: GuestGroup.VIP }
-      );
+      const addResult = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Putri Ayu',
+        group: GuestGroup.VIP,
+      });
       expect('id' in addResult).toBe(true);
       if (!('id' in addResult)) return;
 
@@ -810,59 +841,67 @@ describe('Integration Tests: End-to-End Flows', () => {
         checkInService.verifyQRScan(TEST_TENANT_ID, qrPayload, TEST_EVENT_ID, 'scanner-002'),
       ]);
 
-      // One should be GREEN, the other YELLOW
-      const statuses = [result1.status, result2.status].sort();
-      expect(statuses).toContain(VerificationStatus.GREEN);
-      expect(statuses).toContain(VerificationStatus.YELLOW);
+      // Both should be GREEN
+      expect(result1.status).toBe(VerificationStatus.GREEN);
+      expect(result2.status).toBe(VerificationStatus.GREEN);
 
-      // Only one check-in record should exist (idempotency)
+      // Only one check-in record should exist (idempotency/count check)
       expect(state.checkIns.size).toBe(1);
 
-      // The GREEN result should have the guest name
-      const greenResult =
-        result1.status === VerificationStatus.GREEN ? result1 : result2;
-      expect(greenResult.guest_name).toBe('Putri Ayu');
-      expect(greenResult.guest_group).toBe(GuestGroup.VIP);
+      // One should have scan_count 1, and the other 2
+      const scanCounts = [result1.scan_count, result2.scan_count].sort((a, b) => a - b);
+      expect(scanCounts).toEqual([1, 2]);
 
-      // The YELLOW result should indicate duplicate
-      const yellowResult =
-        result1.status === VerificationStatus.YELLOW ? result1 : result2;
-      expect(yellowResult.guest_name).toBe('Putri Ayu');
-      expect(yellowResult.message).toBe('Tamu sudah check-in sebelumnya');
+      // Both should have the guest name
+      expect(result1.guest_name).toBe('Putri Ayu');
+      expect(result2.guest_name).toBe('Putri Ayu');
     });
 
     it('should handle rapid sequential scans from different devices', async () => {
       // Setup: Add guest
-      const addResult = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        { name: 'Agus Pratama', group: GuestGroup.FRIEND }
-      );
+      const addResult = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Agus Pratama',
+        group: GuestGroup.FRIEND,
+      });
       expect('id' in addResult).toBe(true);
       if (!('id' in addResult)) return;
 
       const qrPayload = addResult.qr_code!.qr_payload;
 
       // Sequential scans from different devices
-      const scan1 = await checkInService.verifyQRScan(TEST_TENANT_ID, qrPayload, TEST_EVENT_ID,
+      const scan1 = await checkInService.verifyQRScan(
+        TEST_TENANT_ID,
+        qrPayload,
+        TEST_EVENT_ID,
         'scanner-001'
       );
-      const scan2 = await checkInService.verifyQRScan(TEST_TENANT_ID, qrPayload, TEST_EVENT_ID,
+      const scan2 = await checkInService.verifyQRScan(
+        TEST_TENANT_ID,
+        qrPayload,
+        TEST_EVENT_ID,
         'scanner-002'
       );
-      const scan3 = await checkInService.verifyQRScan(TEST_TENANT_ID, qrPayload, TEST_EVENT_ID,
+      const scan3 = await checkInService.verifyQRScan(
+        TEST_TENANT_ID,
+        qrPayload,
+        TEST_EVENT_ID,
         'scanner-001'
       );
 
-      // First scan: GREEN
+      // First scan: GREEN with scan_count 1
       expect(scan1.status).toBe(VerificationStatus.GREEN);
+      expect(scan1.scan_count).toBe(1);
 
-      // Subsequent scans: YELLOW
-      expect(scan2.status).toBe(VerificationStatus.YELLOW);
-      expect(scan3.status).toBe(VerificationStatus.YELLOW);
+      // Subsequent scans: GREEN with incremented count
+      expect(scan2.status).toBe(VerificationStatus.GREEN);
+      expect(scan2.scan_count).toBe(2);
+      expect(scan3.status).toBe(VerificationStatus.GREEN);
+      expect(scan3.scan_count).toBe(3);
 
       // Still only one check-in record
       expect(state.checkIns.size).toBe(1);
+      const record = state.checkIns.get(addResult.id);
+      expect(record?.scan_count).toBe(3);
 
       // Stats should show exactly 1 check-in
       const stats = await statsService.calculateAndBroadcastStats(TEST_EVENT_ID);
@@ -925,21 +964,18 @@ describe('Integration Tests: End-to-End Flows', () => {
   describe('Flow 4: Offline Scan → Reconnect → Sync → Dashboard Update', () => {
     it('should sync offline check-ins in chronological order on reconnect', async () => {
       // Setup: Add multiple guests
-      const guest1Result = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        { name: 'Offline Guest 1', group: GuestGroup.FAMILY }
-      );
-      const guest2Result = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        { name: 'Offline Guest 2', group: GuestGroup.FRIEND }
-      );
-      const guest3Result = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        { name: 'Offline Guest 3', group: GuestGroup.COLLEAGUE }
-      );
+      const guest1Result = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Offline Guest 1',
+        group: GuestGroup.FAMILY,
+      });
+      const guest2Result = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Offline Guest 2',
+        group: GuestGroup.FRIEND,
+      });
+      const guest3Result = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Offline Guest 3',
+        group: GuestGroup.COLLEAGUE,
+      });
 
       expect('id' in guest1Result).toBe(true);
       expect('id' in guest2Result).toBe(true);
@@ -966,7 +1002,10 @@ describe('Integration Tests: End-to-End Flows', () => {
       // Simulate reconnect: sync all offline scans in chronological order
       const syncResults = [];
       for (const entry of offlineQueue) {
-        const result = await checkInService.verifyQRScan(TEST_TENANT_ID, entry.qrPayload, TEST_EVENT_ID,
+        const result = await checkInService.verifyQRScan(
+          TEST_TENANT_ID,
+          entry.qrPayload,
+          TEST_EVENT_ID,
           'scanner-offline-001'
         );
         syncResults.push(result);
@@ -987,19 +1026,21 @@ describe('Integration Tests: End-to-End Flows', () => {
     });
 
     it('should handle idempotent sync (duplicate offline scans ignored)', async () => {
-      // Setup: Add a guest
-      const addResult = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        { name: 'Duplicate Sync Guest', group: GuestGroup.FAMILY }
-      );
+      // Setup: Add guest
+      const addResult = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Duplicate Sync Guest',
+        group: GuestGroup.VIP,
+      });
       expect('id' in addResult).toBe(true);
       if (!('id' in addResult)) return;
 
       const qrPayload = addResult.qr_code!.qr_payload;
 
       // Guest was already checked in by another device while this one was offline
-      const onlineResult = await checkInService.verifyQRScan(TEST_TENANT_ID, qrPayload, TEST_EVENT_ID,
+      const onlineResult = await checkInService.verifyQRScan(
+        TEST_TENANT_ID,
+        qrPayload,
+        TEST_EVENT_ID,
         'scanner-online-001'
       );
       expect(onlineResult.status).toBe(VerificationStatus.GREEN);
@@ -1008,15 +1049,19 @@ describe('Integration Tests: End-to-End Flows', () => {
       state.broadcasts = [];
 
       // Offline device reconnects and tries to sync the same guest
-      const syncResult = await checkInService.verifyQRScan(TEST_TENANT_ID, qrPayload, TEST_EVENT_ID,
+      const syncResult = await checkInService.verifyQRScan(
+        TEST_TENANT_ID,
+        qrPayload,
+        TEST_EVENT_ID,
         'scanner-offline-001'
       );
 
-      // Should get YELLOW (already checked in) — idempotent, no error
-      expect(syncResult.status).toBe(VerificationStatus.YELLOW);
+      // Should get GREEN (already checked in) — bypass and increment
+      expect(syncResult.status).toBe(VerificationStatus.GREEN);
       expect(syncResult.guest_name).toBe('Duplicate Sync Guest');
+      expect(syncResult.scan_count).toBe(2);
 
-      // Still only one check-in record (idempotency preserved)
+      // Still only one check-in record (updated count)
       expect(state.checkIns.size).toBe(1);
 
       // Stats remain consistent
@@ -1090,8 +1135,9 @@ describe('Integration Tests: End-to-End Flows', () => {
       expect(sync1.status).toBe(VerificationStatus.GREEN);
       expect(sync2.status).toBe(VerificationStatus.GREEN);
 
-      // Guest 3: YELLOW (conflict — already checked in by online device)
-      expect(sync3.status).toBe(VerificationStatus.YELLOW);
+      // Guest 3: GREEN (conflict — already checked in by online device, bypass and increment count)
+      expect(sync3.status).toBe(VerificationStatus.GREEN);
+      expect(sync3.scan_count).toBe(2);
 
       // Total: 4 unique check-ins
       expect(state.checkIns.size).toBe(4);
@@ -1100,7 +1146,6 @@ describe('Integration Tests: End-to-End Flows', () => {
       expect(stats.total_checked_in).toBe(4);
     });
   });
-
 
   // ===========================================================================
   // Flow 5: Go-Show Registration → Dashboard Update
@@ -1113,7 +1158,10 @@ describe('Integration Tests: End-to-End Flows', () => {
       state.broadcasts = [];
 
       // Register Go-Show guest
-      const goShowResult = await checkInService.registerGoShow(TEST_TENANT_ID, 'Walk-in Tamu', TEST_EVENT_ID,
+      const goShowResult = await checkInService.registerGoShow(
+        TEST_TENANT_ID,
+        'Walk-in Tamu',
+        TEST_EVENT_ID,
         'scanner-001'
       );
 
@@ -1160,21 +1208,29 @@ describe('Integration Tests: End-to-End Flows', () => {
 
     it('should handle multiple Go-Show registrations and update stats correctly', async () => {
       // Add a regular guest first
-      const regularGuest = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        { name: 'Regular Guest', group: GuestGroup.FAMILY }
-      );
+      const regularGuest = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'Regular Guest',
+        group: GuestGroup.FAMILY,
+      });
       expect('id' in regularGuest).toBe(true);
 
       // Register 3 Go-Show guests
-      const goShow1 = await checkInService.registerGoShow(TEST_TENANT_ID, 'Go-Show 1', TEST_EVENT_ID,
+      const goShow1 = await checkInService.registerGoShow(
+        TEST_TENANT_ID,
+        'Go-Show 1',
+        TEST_EVENT_ID,
         'scanner-001'
       );
-      const goShow2 = await checkInService.registerGoShow(TEST_TENANT_ID, 'Go-Show 2', TEST_EVENT_ID,
+      const goShow2 = await checkInService.registerGoShow(
+        TEST_TENANT_ID,
+        'Go-Show 2',
+        TEST_EVENT_ID,
         'scanner-002'
       );
-      const goShow3 = await checkInService.registerGoShow(TEST_TENANT_ID, 'Go-Show 3', TEST_EVENT_ID,
+      const goShow3 = await checkInService.registerGoShow(
+        TEST_TENANT_ID,
+        'Go-Show 3',
+        TEST_EVENT_ID,
         'scanner-001'
       );
 
@@ -1190,7 +1246,10 @@ describe('Integration Tests: End-to-End Flows', () => {
     });
 
     it('should reject Go-Show with empty name', async () => {
-      const result = await checkInService.registerGoShow(TEST_TENANT_ID, '', TEST_EVENT_ID,
+      const result = await checkInService.registerGoShow(
+        TEST_TENANT_ID,
+        '',
+        TEST_EVENT_ID,
         'scanner-001'
       );
 
@@ -1207,11 +1266,10 @@ describe('Integration Tests: End-to-End Flows', () => {
 
     it('should integrate Go-Show with regular check-in flow in stats', async () => {
       // Add regular guest and check them in via QR
-      const regularGuest = await guestService.addGuest(
-        TEST_EVENT_ID,
-        TEST_TENANT_ID,
-        { name: 'QR Guest', group: GuestGroup.FAMILY }
-      );
+      const regularGuest = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
+        name: 'QR Guest',
+        group: GuestGroup.FAMILY,
+      });
       expect('id' in regularGuest).toBe(true);
       if (!('id' in regularGuest)) return;
 
@@ -1223,7 +1281,12 @@ describe('Integration Tests: End-to-End Flows', () => {
       );
 
       // Register a Go-Show
-      await checkInService.registerGoShow(TEST_TENANT_ID, 'Walk-in Person', TEST_EVENT_ID, 'scanner-002');
+      await checkInService.registerGoShow(
+        TEST_TENANT_ID,
+        'Walk-in Person',
+        TEST_EVENT_ID,
+        'scanner-002'
+      );
 
       // Submit RSVP for the regular guest
       await rsvpService.submitRsvp(regularGuest.id, TEST_EVENT_ID, {
@@ -1257,7 +1320,6 @@ describe('Integration Tests: End-to-End Flows', () => {
         name: 'Teman Andi',
         group: GuestGroup.FRIEND,
         plus_one_count: 1,
-        email: 'andi@example.com',
       });
       const guest3 = await guestService.addGuest(TEST_EVENT_ID, TEST_TENANT_ID, {
         name: 'Kolega Citra',
@@ -1315,7 +1377,10 @@ describe('Integration Tests: End-to-End Flows', () => {
       expect(scan3.status).toBe(VerificationStatus.GREEN); // Still valid QR
 
       // Step 4: Go-Show guests arrive
-      const goShow = await checkInService.registerGoShow(TEST_TENANT_ID, 'Tamu Tak Diundang', TEST_EVENT_ID,
+      const goShow = await checkInService.registerGoShow(
+        TEST_TENANT_ID,
+        'Tamu Tak Diundang',
+        TEST_EVENT_ID,
         'scanner-001'
       );
       expect(isServiceError(goShow)).toBe(false);
@@ -1375,11 +1440,26 @@ describe('Integration Tests: End-to-End Flows', () => {
         TEST_EVENT_ID,
         'scanner-002'
       );
-      await checkInService.manualCheckIn(TEST_TENANT_ID, validGuests[4].id, TEST_EVENT_ID, 'scanner-001');
+      await checkInService.manualCheckIn(
+        TEST_TENANT_ID,
+        validGuests[4].id,
+        TEST_EVENT_ID,
+        'scanner-001'
+      );
 
       // Add 2 Go-Shows
-      await checkInService.registerGoShow(TEST_TENANT_ID, 'Go-Show A', TEST_EVENT_ID, 'scanner-001');
-      await checkInService.registerGoShow(TEST_TENANT_ID, 'Go-Show B', TEST_EVENT_ID, 'scanner-002');
+      await checkInService.registerGoShow(
+        TEST_TENANT_ID,
+        'Go-Show A',
+        TEST_EVENT_ID,
+        'scanner-001'
+      );
+      await checkInService.registerGoShow(
+        TEST_TENANT_ID,
+        'Go-Show B',
+        TEST_EVENT_ID,
+        'scanner-002'
+      );
 
       // Verify final stats consistency
       const stats = await statsService.calculateAndBroadcastStats(TEST_EVENT_ID);

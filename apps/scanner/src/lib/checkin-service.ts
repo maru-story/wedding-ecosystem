@@ -15,16 +15,16 @@ export interface VerificationResult {
   guestGroup?: string;
   errorMessage?: string;
   previousCheckInTime?: string;
+  scanCount?: number;
 }
 
 interface CheckInApiResponse {
-  status: 'valid' | 'invalid' | 'duplicate';
-  guest?: {
-    name: string;
-    group: string;
-  };
-  error?: string;
-  checkedInAt?: string;
+  status: 'green' | 'yellow' | 'red';
+  guest_name?: string | null;
+  guest_group?: string | null;
+  message?: string | null;
+  checked_in_at?: string | null;
+  scan_count?: number | null;
 }
 
 /**
@@ -59,41 +59,42 @@ async function verifyOnline(
   }
 ): Promise<VerificationResult> {
   try {
-    const response = await fetch(`${options.apiBaseUrl}/check-in`, {
+    const response = await fetch(`${options.apiBaseUrl}/checkin/scan`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${options.authToken}`,
       },
       body: JSON.stringify({
-        qrPayload,
-        eventId: options.eventId,
+        qr_payload: qrPayload,
+        event_id: options.eventId,
       }),
     });
 
     const data: CheckInApiResponse = await response.json();
 
-    if (response.ok && data.status === 'valid') {
+    if (response.ok && data.status === 'green') {
       return {
         status: 'valid',
-        guestName: data.guest?.name,
-        guestGroup: data.guest?.group,
+        guestName: data.guest_name || undefined,
+        guestGroup: data.guest_group || undefined,
+        scanCount: data.scan_count || undefined,
       };
     }
 
-    if (response.status === 409 || data.status === 'duplicate') {
+    if (data.status === 'yellow') {
       return {
         status: 'duplicate',
-        guestName: data.guest?.name,
-        guestGroup: data.guest?.group,
-        previousCheckInTime: data.checkedInAt,
+        guestName: data.guest_name || undefined,
+        guestGroup: data.guest_group || undefined,
+        previousCheckInTime: data.checked_in_at || undefined,
       };
     }
 
-    // 404 or other error — invalid QR
+    // red or other error — invalid QR
     return {
       status: 'invalid',
-      errorMessage: data.error || 'QR code tidak valid',
+      errorMessage: data.message || 'QR code tidak valid',
     };
   } catch {
     // Network error — fall back to offline verification
@@ -105,10 +106,7 @@ async function verifyOnline(
  * Offline verification: check against local IndexedDB cache.
  * Also queues the check-in for later sync.
  */
-async function verifyOffline(
-  qrPayload: string,
-  eventId: string
-): Promise<VerificationResult> {
+async function verifyOffline(qrPayload: string, eventId: string): Promise<VerificationResult> {
   try {
     const cachedGuest = await getCachedGuestByQR(qrPayload);
 
@@ -127,13 +125,22 @@ async function verifyOffline(
       };
     }
 
-    // Check for duplicate
+    // Check for duplicate - bypass and queue subsequent scan
     if (cachedGuest.checkedIn) {
+      const checkedInAt = new Date().toISOString();
+      await enqueueCheckIn({
+        guestId: cachedGuest.id,
+        qrPayload,
+        method: 'qr_scan',
+        eventId,
+        guestName: cachedGuest.name,
+      });
+
       return {
-        status: 'duplicate',
+        status: 'valid',
         guestName: cachedGuest.name,
         guestGroup: cachedGuest.group,
-        previousCheckInTime: cachedGuest.checkedInAt,
+        scanCount: 2,
       };
     }
 

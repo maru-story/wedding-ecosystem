@@ -45,7 +45,13 @@ vi.mock('./indexed-db', () => ({
   updateCachedGuestCheckIn: vi.fn(async () => {}),
 }));
 
-import { enqueueCheckIn, getPendingCheckIns, markRecordsSynced, getQueueStats, cleanupSyncedRecords } from './offline-queue';
+import {
+  enqueueCheckIn,
+  getPendingCheckIns,
+  markRecordsSynced,
+  getQueueStats,
+  cleanupSyncedRecords,
+} from './offline-queue';
 
 describe('Offline Queue', () => {
   beforeEach(() => {

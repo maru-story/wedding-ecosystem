@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import type { Socket } from 'socket.io-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRsvpStats, useRsvpList } from './queries';
 
 /** Real-time event statistics (Req 9.6) */
 export interface EventStats {
@@ -18,12 +20,14 @@ export interface RsvpTrackingItem {
   attendance: 'akad' | 'resepsi' | 'both' | 'decline';
   guest_count: number;
   submitted_at: string;
+  group?: string;
+  phone?: string | null;
+  delivery_status?: string;
 }
 
 interface UseRealtimeStatsOptions {
   socket: Socket | null;
-  initialStats?: EventStats;
-  initialRsvpList?: RsvpTrackingItem[];
+  eventId: string | null;
 }
 
 interface UseRealtimeStatsReturn {
@@ -40,56 +44,53 @@ const DEFAULT_STATS: EventStats = {
 
 /**
  * Hook for receiving real-time statistics and RSVP updates via WebSocket.
- * Updates stats within < 500ms after broadcast received (Req 9.6).
+ * Updates stats within < 500ms after broadcast received (Req 9.6) via TanStack Query cache.
  */
 export function useRealtimeStats({
   socket,
-  initialStats = DEFAULT_STATS,
-  initialRsvpList = [],
+  eventId,
 }: UseRealtimeStatsOptions): UseRealtimeStatsReturn {
-  const [stats, setStats] = useState<EventStats>(initialStats);
-  const [rsvpList, setRsvpList] = useState<RsvpTrackingItem[]>(initialRsvpList);
+  const queryClient = useQueryClient();
 
-  const handleStatsUpdated = useCallback((payload: EventStats) => {
-    setStats({
-      total_guests: payload.total_guests,
-      total_rsvp: payload.total_rsvp,
-      total_checked_in: payload.total_checked_in,
-      total_go_show: payload.total_go_show,
-    });
-  }, []);
+  const { data: stats = DEFAULT_STATS } = useRsvpStats(eventId);
+  const { data: rsvpResponse } = useRsvpList(eventId);
+  const rsvpList = rsvpResponse?.data || [];
 
-  const handleRsvpUpdated = useCallback((payload: RsvpTrackingItem) => {
-    setRsvpList((prev) => {
-      // Update existing entry or add new one (Req 4.7 - upsert)
-      const existingIndex = prev.findIndex((item) => item.guest_id === payload.guest_id);
-      if (existingIndex >= 0) {
-        const updated = [...prev];
-        updated[existingIndex] = payload;
-        return updated;
-      }
-      return [payload, ...prev];
-    });
-  }, []);
+  const handleStatsUpdated = useCallback(
+    (payload: EventStats) => {
+      queryClient.setQueryData(['rsvp-stats', eventId], payload);
+    },
+    [queryClient, eventId]
+  );
 
-  const handleGoShowAdded = useCallback((payload: { guest_id: string; guest_name: string; checked_in_at: string }) => {
-    setStats((prev) => ({
-      ...prev,
-      total_guests: prev.total_guests + 1,
-      total_checked_in: prev.total_checked_in + 1,
-      total_go_show: prev.total_go_show + 1,
-    }));
-  }, []);
+  const handleRsvpUpdated = useCallback(
+    (payload: RsvpTrackingItem) => {
+      queryClient.setQueryData<{ data: RsvpTrackingItem[] }>(['rsvp-list', eventId], (prev) => {
+        const prevData = prev?.data || [];
+        const existingIndex = prevData.findIndex((item) => item.guest_id === payload.guest_id);
+        let updatedData = [...prevData];
+        if (existingIndex >= 0) {
+          updatedData[existingIndex] = payload;
+        } else {
+          updatedData = [payload, ...updatedData];
+        }
+        return { data: updatedData };
+      });
+    },
+    [queryClient, eventId]
+  );
+
+  const handleGoShowAdded = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['rsvp-stats', eventId] });
+    queryClient.invalidateQueries({ queryKey: ['rsvp-list', eventId] });
+  }, [queryClient, eventId]);
 
   const handleGuestCheckedIn = useCallback(() => {
-    setStats((prev) => ({
-      ...prev,
-      total_checked_in: prev.total_checked_in + 1,
-    }));
-  }, []);
+    queryClient.invalidateQueries({ queryKey: ['rsvp-stats', eventId] });
+  }, [queryClient, eventId]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !eventId) return;
 
     socket.on('stats_updated', handleStatsUpdated);
     socket.on('rsvp_updated', handleRsvpUpdated);
@@ -102,7 +103,14 @@ export function useRealtimeStats({
       socket.off('go_show_added', handleGoShowAdded);
       socket.off('guest_checked_in', handleGuestCheckedIn);
     };
-  }, [socket, handleStatsUpdated, handleRsvpUpdated, handleGoShowAdded, handleGuestCheckedIn]);
+  }, [
+    socket,
+    eventId,
+    handleStatsUpdated,
+    handleRsvpUpdated,
+    handleGoShowAdded,
+    handleGuestCheckedIn,
+  ]);
 
   return { stats, rsvpList };
 }

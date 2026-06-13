@@ -1,10 +1,22 @@
 'use client';
 
 import { GuestGroup } from '@wedding/shared';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 type GuestStatusFilter = 'belum_rsvp' | 'confirmed' | 'declined' | 'checked_in';
 
 interface GuestFiltersProps {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
   groupFilter: GuestGroup | '';
   statusFilter: GuestStatusFilter | '';
   onGroupChange: (value: GuestGroup | '') => void;
@@ -26,6 +38,8 @@ const STATUS_OPTIONS: { value: GuestStatusFilter; label: string }[] = [
 ];
 
 export function GuestFilters({
+  searchQuery,
+  onSearchChange,
   groupFilter,
   statusFilter,
   onGroupChange,
@@ -33,54 +47,70 @@ export function GuestFilters({
 }: GuestFiltersProps) {
   return (
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-      <div className="flex items-center gap-2">
-        <label htmlFor="filter-group" className="text-sm font-medium text-gray-700">
-          Grup:
-        </label>
-        <select
-          id="filter-group"
-          value={groupFilter}
-          onChange={(e) => onGroupChange(e.target.value as GuestGroup | '')}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-        >
-          <option value="">Semua Grup</option>
-          {GROUP_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+      {/* Search Input */}
+      <div className="relative w-full max-w-sm sm:w-[240px]">
+        <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
+        <Input
+          type="text"
+          placeholder="Cari nama tamu..."
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="bg-card border-border/60 focus-visible:ring-ring pl-9 focus-visible:ring-offset-0"
+        />
       </div>
 
       <div className="flex items-center gap-2">
-        <label htmlFor="filter-status" className="text-sm font-medium text-gray-700">
-          Status:
-        </label>
-        <select
-          id="filter-status"
-          value={statusFilter}
-          onChange={(e) => onStatusChange(e.target.value as GuestStatusFilter | '')}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        <span className="text-muted-foreground text-sm font-medium">Grup:</span>
+        <Select
+          value={groupFilter || 'all'}
+          onValueChange={(val) => onGroupChange(val === 'all' ? '' : (val as GuestGroup))}
         >
-          <option value="">Semua Status</option>
-          {STATUS_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="bg-card border-border/60 hover:bg-muted/30 w-[160px]">
+            <SelectValue placeholder="Semua Grup" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Grup</SelectItem>
+            {GROUP_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {(groupFilter || statusFilter) && (
-        <button
+      <div className="flex items-center gap-2">
+        <span className="text-muted-foreground text-sm font-medium">Status:</span>
+        <Select
+          value={statusFilter || 'all'}
+          onValueChange={(val) => onStatusChange(val === 'all' ? '' : (val as GuestStatusFilter))}
+        >
+          <SelectTrigger className="bg-card border-border/60 hover:bg-muted/30 w-[160px]">
+            <SelectValue placeholder="Semua Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Status</SelectItem>
+            {STATUS_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {(searchQuery || groupFilter || statusFilter) && (
+        <Button
+          variant="ghost"
           onClick={() => {
+            onSearchChange('');
             onGroupChange('');
             onStatusChange('');
           }}
-          className="text-sm text-gray-500 hover:text-gray-700"
+          className="text-muted-foreground hover:text-foreground hover:bg-accent h-9 px-3 text-sm"
         >
           Reset Filter
-        </button>
+        </Button>
       )}
     </div>
   );
