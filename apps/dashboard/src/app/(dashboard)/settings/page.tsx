@@ -52,6 +52,21 @@ export default function SettingsPage() {
     resolver: zodResolver(updateEventSchema),
   });
 
+  const [invitationPrefix, setInvitationPrefix] = useState('undangan.com/');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const host = window.location.host;
+      if (host.includes('localhost') || host.includes('127.0.0.1')) {
+        setInvitationPrefix('localhost:3001/');
+      } else if (host.includes('dashboard')) {
+        setInvitationPrefix(host.replace('dashboard', 'invitation') + '/');
+      } else {
+        setInvitationPrefix('invitation.wedding-ecosystem.com/');
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (event) {
       const formattedDate = event.event_date
@@ -277,7 +292,7 @@ export default function SettingsPage() {
                     <Label htmlFor="slug">Slug Undangan (URL)</Label>
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground/80 hidden text-sm sm:inline">
-                        undangan.com/
+                        {invitationPrefix}
                       </span>
                       <Input
                         id="slug"
@@ -319,6 +334,7 @@ export default function SettingsPage() {
                         id="event_date"
                         {...registerEvent('event_date')}
                         type="date"
+                        min={new Date().toISOString().split('T')[0]}
                         className="bg-card text-foreground h-11 py-2.5 pr-4 pl-10 transition-all duration-200"
                       />
                     </div>

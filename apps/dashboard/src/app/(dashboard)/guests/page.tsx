@@ -15,6 +15,8 @@ import { FadeIn } from '@/components/ui/motion-wrapper';
 import { DEFAULT_MAX_GUESTS, GUESTS_PER_PAGE } from '@/lib/constants';
 import { useTableState } from '@/hooks/use-table-state';
 
+import { RefreshCw } from 'lucide-react';
+
 export interface GuestListItem {
   id: string;
   name: string;
@@ -61,6 +63,7 @@ export default function GuestsPage() {
     isLoading,
     error: queryError,
     refetch,
+    isFetching,
   } = useGuests({
     page: tableState.page,
     perPage: tableState.perPage,
@@ -145,6 +148,15 @@ export default function GuestsPage() {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              disabled={isLoading || isFetching}
+              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground flex items-center gap-1.5"
+            >
+              <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+              Perbarui
+            </Button>
             <Button
               variant="outline"
               onClick={() => setShowImportModal(true)}

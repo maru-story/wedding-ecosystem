@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSocket, type ConnectionStatus } from '@/hooks/use-socket';
 import { useRealtimeStats } from '@/hooks/use-realtime-stats';
 import { useEvent, useRsvpList } from '@/hooks/queries';
@@ -17,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { DataTable } from '@/components/ui/data-table';
 import { TableCell, TableHead, TableRow } from '@/components/ui/table';
-import { Users, CalendarCheck, CheckSquare, UserPlus, Search } from 'lucide-react';
+import { Users, CalendarCheck, CheckSquare, UserPlus, Search, RefreshCw } from 'lucide-react';
 import { FadeIn } from '@/components/ui/motion-wrapper';
 
 const groupLabelMap: Record<string, string> = {
@@ -126,7 +127,20 @@ export default function RsvpTrackingPage() {
   const { data: eventData, isLoading: isEventLoading } = useEvent();
   const eventId = eventData?.id || null;
 
+  const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   const { isLoading: isRsvpListLoading } = useRsvpList(eventId);
+
+  const handleRefresh = async () => {
+    if (!eventId) return;
+    setIsRefreshing(true);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['rsvp-list', eventId] }),
+      queryClient.invalidateQueries({ queryKey: ['rsvp-stats', eventId] }),
+    ]);
+    setIsRefreshing(false);
+  };
 
   // WebSocket connection
   const { socket, connectionStatus } = useSocket({
@@ -193,7 +207,19 @@ export default function RsvpTrackingPage() {
               Pantau konfirmasi kehadiran tamu secara real-time
             </p>
           </div>
-          <ConnectionStatusBadge status={connectionStatus} />
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing || isLoading}
+              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground flex items-center gap-1.5"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Perbarui
+            </Button>
+            <ConnectionStatusBadge status={connectionStatus} />
+          </div>
         </div>
 
         {/* Real-time statistics panel */}

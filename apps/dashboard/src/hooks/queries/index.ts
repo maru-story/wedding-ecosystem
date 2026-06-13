@@ -78,6 +78,7 @@ export function useCreateGuest() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['guests-delivery-status'] });
     },
   });
 }

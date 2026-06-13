@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { FadeIn } from '@/components/ui/motion-wrapper';
-import { MessageSquare, Download, Trash2, Loader2 } from 'lucide-react';
+import { MessageSquare, Download, Trash2, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiFetch } from '@/lib/api';
 import { useTableState } from '@/hooks/use-table-state';
@@ -50,7 +50,12 @@ export default function WishesPage() {
     initialPerPage: 20,
   });
 
-  const { data: wishesData, isLoading: isWishesLoading } = useAdminWishes({
+  const {
+    data: wishesData,
+    isLoading: isWishesLoading,
+    refetch,
+    isFetching: isWishesFetching,
+  } = useAdminWishes({
     eventId,
     page: tableState.page,
     perPage: tableState.perPage,
@@ -191,19 +196,35 @@ export default function WishesPage() {
               Kelola pesan ucapan dan doa yang dikirim oleh tamu undangan pernikahan Anda
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleExportCSV}
-            disabled={isExporting}
-            className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground gap-2 self-start sm:self-auto"
-          >
-            {isExporting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4" />
-            )}
-            Export CSV
-          </Button>
+          <div className="flex gap-2 self-start sm:self-auto">
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              disabled={isWishesLoading || isWishesFetching}
+              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground flex items-center gap-1.5"
+            >
+              <RefreshCw className={`h-4 w-4 ${isWishesFetching ? 'animate-spin' : ''}`} />
+              Perbarui
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleExportCSV}
+              disabled={isExporting}
+              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground gap-2"
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  Export CSV
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Wishes Table */}
