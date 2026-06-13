@@ -198,6 +198,9 @@ jobs:
             packages/*/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
+      - name: Build packages
+        run: npx turbo build
+
       - name: Run Prisma Migrations
         working-directory: packages/db
         env:
