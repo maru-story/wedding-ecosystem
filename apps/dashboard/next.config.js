@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@wedding/shared'],
-  allowedDevOrigins: ['nikon-buyer-construction-cottage.trycloudflare.com'],
+  allowedDevOrigins: ['antenna-wet-mix-cemetery.trycloudflare.com'],
 };
 
 module.exports = nextConfig;

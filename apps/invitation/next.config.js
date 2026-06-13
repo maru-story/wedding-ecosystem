@@ -2,7 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@wedding/shared'],
-  allowedDevOrigins: ['makeup-drawn-lyrics-channels.trycloudflare.com'],
+  allowedDevOrigins: [
+    process.env.DASHBOARD_ORIGIN?.replace('https://', '').replace('http://', ''),
+    process.env.INVITATION_ORIGIN?.replace('https://', '').replace('http://', ''),
+    process.env.SCANNER_ORIGIN?.replace('https://', '').replace('http://', ''),
+  ].filter(Boolean),
   images: {
     unoptimized: process.env.NODE_ENV !== 'production',
     remotePatterns: [
