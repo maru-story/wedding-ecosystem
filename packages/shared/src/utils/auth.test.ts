@@ -146,7 +146,7 @@ describe('verifyToken', () => {
 
   it('should return generic error if jwt.verify throws a generic error', () => {
     const originalVerify = jwt.verify;
-    // @ts-ignore
+    // @ts-expect-error - overriding read-only property for testing catch block
     jwt.verify = () => {
       throw new Error('Generic error');
     };

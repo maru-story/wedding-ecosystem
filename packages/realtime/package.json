@@ -23,7 +23,7 @@
     "@types/node": "22.15.0",
     "fast-check": "4.8.0",
     "socket.io-client": "^4.8.3",
-    "tsx": "4.20.3",
+    "tsx": "4.22.4",
     "typescript": "5.9.3",
     "vitest": "^4.1.8"
   }

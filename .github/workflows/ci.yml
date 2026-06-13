@@ -199,9 +199,10 @@ jobs:
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Run Prisma Migrations
+        working-directory: packages/db
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/wedding_digital_saas_test?schema=public # nosecret
-        run: npx prisma db push --schema=packages/db/prisma/schema.prisma --force-reset
+        run: npx prisma db push --force-reset
 
       - name: Install Playwright Browsers
         run: npx playwright install chromium
