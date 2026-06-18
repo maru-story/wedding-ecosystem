@@ -1,9 +1,11 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { MediaUpload } from '../media-upload';
 import { uploadMedia } from '@/lib/cms';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 
 interface EventData {
   id?: string;
@@ -17,41 +19,24 @@ interface BrideGroomFormProps {
   event?: EventData | null;
 }
 
-interface PersonData {
-  name: string;
-  parent_info: string;
-  photo: string;
-  instagram: string;
-}
-
 export function BrideGroomForm({ content, onChange, event }: BrideGroomFormProps) {
-  const bride = (content.bride as PersonData) || {
-    name: '',
-    parent_info: '',
-    photo: '',
-    instagram: '',
-  };
-  const groom = (content.groom as PersonData) || {
-    name: '',
-    parent_info: '',
-    photo: '',
-    instagram: '',
-  };
+  const brideName = (content.bride_name as string) || '';
+  const groomName = (content.groom_name as string) || '';
+  const backgroundImage = (content.background_image as string) || '';
 
-  const updatePerson = (role: 'bride' | 'groom', field: keyof PersonData, value: string) => {
-    const person = role === 'bride' ? bride : groom;
+  const updateField = (field: string, value: string) => {
     onChange({
       ...content,
-      [role]: { ...person, [field]: value },
+      [field]: value,
     });
   };
 
-  const handleSyncNames = () => {
+  const handleSyncFromSettings = () => {
     if (!event) return;
     onChange({
       ...content,
-      bride: { ...bride, name: event.bride_name || bride.name },
-      groom: { ...groom, name: event.groom_name || groom.name },
+      bride_name: event.bride_name || '',
+      groom_name: event.groom_name || '',
     });
   };
 
@@ -63,93 +48,22 @@ export function BrideGroomForm({ content, onChange, event }: BrideGroomFormProps
     return URL.createObjectURL(file);
   };
 
-  const hasEventNames = event?.bride_name || event?.groom_name;
-
-  const renderPersonForm = (role: 'bride' | 'groom', label: string) => {
-    const person = role === 'bride' ? bride : groom;
-
-    return (
-      <div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
-        <h3 className="text-sm font-semibold text-gray-800">{label}</h3>
-
-        <div>
-          <label htmlFor={`${role}-name`} className="block text-sm font-medium text-gray-700">
-            Nama Lengkap
-          </label>
-          <input
-            id={`${role}-name`}
-            type="text"
-            value={person.name}
-            onChange={(e) => updatePerson(role, 'name', e.target.value)}
-            placeholder="Nama lengkap"
-            className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label htmlFor={`${role}-parent`} className="block text-sm font-medium text-gray-700">
-            Info Orang Tua
-          </label>
-          <input
-            id={`${role}-parent`}
-            type="text"
-            value={person.parent_info}
-            onChange={(e) => updatePerson(role, 'parent_info', e.target.value)}
-            placeholder="Contoh: Putra dari Bapak ... & Ibu ..."
-            className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label htmlFor={`${role}-instagram`} className="block text-sm font-medium text-gray-700">
-            Instagram
-          </label>
-          <input
-            id={`${role}-instagram`}
-            type="text"
-            value={person.instagram}
-            onChange={(e) => updatePerson(role, 'instagram', e.target.value)}
-            placeholder="@username"
-            className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-          />
-        </div>
-
-        <MediaUpload
-          mediaType="image"
-          currentUrl={person.photo}
-          onUpload={async (file) => {
-            const url = await handleUpload(file);
-            updatePerson(role, 'photo', url);
-            return url;
-          }}
-          onRemove={() => updatePerson(role, 'photo', '')}
-          label="Foto"
-        />
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-4">
-      {/* Sync names from event settings */}
-      {hasEventNames && (
+      {/* Sync from event settings */}
+      {event && (
         <div className="border-primary/20 bg-primary/5 flex items-start justify-between rounded-lg border p-3">
           <div className="text-muted-foreground text-sm">
             <p className="text-foreground font-medium">Sinkronkan dari Pengaturan Acara</p>
             <p className="mt-0.5 text-xs">
-              Isi otomatis nama mempelai dari pengaturan acara:{' '}
-              <span className="text-foreground font-medium">
-                {event?.groom_name}
-                {event?.groom_name && event?.bride_name ? ' & ' : ''}
-                {event?.bride_name}
-              </span>
+              Isi otomatis nama mempelai pria dan wanita dari data pengaturan acara Anda.
             </p>
           </div>
           <Button
             type="button"
             size="sm"
             variant="default"
-            onClick={handleSyncNames}
+            onClick={handleSyncFromSettings}
             className="ml-3 shrink-0 gap-1.5"
           >
             <RefreshCw className="h-3.5 w-3.5" />
@@ -157,9 +71,44 @@ export function BrideGroomForm({ content, onChange, event }: BrideGroomFormProps
           </Button>
         </div>
       )}
+      <div className="space-y-3 rounded-lg border border-border/40 bg-muted/20 p-4">
+        <h3 className="text-sm font-semibold text-foreground">Pengaturan Intro Pengantin</h3>
 
-      {renderPersonForm('bride', 'Mempelai Wanita')}
-      {renderPersonForm('groom', 'Mempelai Pria')}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="bride-name">Nama Mempelai Wanita</Label>
+            <Input
+              id="bride-name"
+              type="text"
+              value={brideName}
+              onChange={(e) => updateField('bride_name', e.target.value)}
+              placeholder="Gina"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="groom-name">Nama Mempelai Pria</Label>
+            <Input
+              id="groom-name"
+              type="text"
+              value={groomName}
+              onChange={(e) => updateField('groom_name', e.target.value)}
+              placeholder="Panji"
+            />
+          </div>
+        </div>
+
+        <MediaUpload
+          mediaType="image"
+          currentUrl={backgroundImage}
+          onUpload={async (file) => {
+            const url = await handleUpload(file);
+            updateField('background_image', url);
+            return url;
+          }}
+          onRemove={() => updateField('background_image', '')}
+          label="Background Image (Latar Belakang)"
+        />
+      </div>
     </div>
   );
 }

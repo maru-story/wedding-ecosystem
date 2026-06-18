@@ -63,6 +63,7 @@ export interface EventConfig {
   calendar_link: string | null;
   max_scanner_devices: number;
   max_guests: number;
+  max_gallery_photos: number;
   updated_at: Date;
 }
 
@@ -100,7 +101,7 @@ export interface Guest {
   name: string;
   slug: string;
   phone: string | null;
-  group: GuestGroup;
+  group: string;
   type: GuestType;
   plus_one_count: number;
   invitation_url: string | null;

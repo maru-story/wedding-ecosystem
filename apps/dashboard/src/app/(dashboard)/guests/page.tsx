@@ -6,8 +6,8 @@ import { GuestFilters } from './components/guest-filters';
 import { AddGuestModal } from './components/add-guest-modal';
 import { CsvImportModal } from './components/csv-import-modal';
 import { QrCodeModal } from './components/qr-code-modal';
+import { ManageGroupsModal } from './components/manage-groups-modal';
 import { ApiError } from '@/lib/api';
-import type { GuestGroup } from '@wedding/shared';
 import { useGuests, useEvent, useDashboardStats } from '@/hooks/queries';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,13 +15,13 @@ import { FadeIn } from '@/components/ui/motion-wrapper';
 import { DEFAULT_MAX_GUESTS, GUESTS_PER_PAGE } from '@/lib/constants';
 import { useTableState } from '@/hooks/use-table-state';
 
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Settings2 } from 'lucide-react';
 
 export interface GuestListItem {
   id: string;
   name: string;
   slug: string;
-  group: GuestGroup;
+  group: string;
   type: string;
   plus_one_count: number;
   phone: string | null;
@@ -48,12 +48,13 @@ export default function GuestsPage() {
     initialPerPage: GUESTS_PER_PAGE,
   });
 
-  const [groupFilter, setGroupFilter] = useState<GuestGroup | ''>('');
+  const [groupFilter, setGroupFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<GuestStatusFilter | ''>('');
 
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showManageGroups, setShowManageGroups] = useState(false);
   const [editingGuest, setEditingGuest] = useState<GuestListItem | null>(null);
   const [qrGuest, setQrGuest] = useState<GuestListItem | null>(null);
 
@@ -101,7 +102,7 @@ export default function GuestsPage() {
   const { allSelected, someSelected, handleSelectAll, handleSelectOne } =
     tableState.getSelectionHelpers(guests);
 
-  const handleGroupFilterChange = (val: GuestGroup | '') => {
+  const handleGroupFilterChange = (val: string) => {
     setGroupFilter(val);
     tableState.resetPage();
   };
@@ -156,6 +157,14 @@ export default function GuestsPage() {
             >
               <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
               Perbarui
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowManageGroups(true)}
+              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground flex items-center gap-1.5"
+            >
+              <Settings2 className="h-4 w-4" />
+              Kelola Grup
             </Button>
             <Button
               variant="outline"
@@ -233,6 +242,9 @@ export default function GuestsPage() {
 
         {/* QR Code Modal */}
         {qrGuest && <QrCodeModal guest={qrGuest} onClose={() => setQrGuest(null)} />}
+
+        {/* Manage Groups Modal */}
+        <ManageGroupsModal open={showManageGroups} onClose={() => setShowManageGroups(false)} />
       </div>
     </FadeIn>
   );

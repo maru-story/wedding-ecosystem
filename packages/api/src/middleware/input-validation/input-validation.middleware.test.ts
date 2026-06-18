@@ -169,21 +169,20 @@ describe('Input Validation Middleware', () => {
       expect(reply.statusCode).toBe(200);
     });
 
-    it('should reject invalid guest group', async () => {
+    it('should accept custom group names (any non-empty string is valid)', async () => {
       const middleware = createValidationMiddleware({ bodySchema: createGuestSchema });
       const request = createMockRequest({
         body: {
           name: 'Budi',
-          group: 'invalid_group',
+          group: 'custom_group_xyz',
         },
       });
       const reply = createMockReply();
 
       await middleware(request, reply);
 
-      expect(reply.statusCode).toBe(400);
-      const body = reply.body as { error: { details: Array<{ field: string }> } };
-      expect(body.error.details.some((d) => d.field === 'group')).toBe(true);
+      // Custom groups are allowed — no validation error
+      expect(reply.statusCode).toBe(200);
     });
   });
 

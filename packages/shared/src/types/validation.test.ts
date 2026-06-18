@@ -110,12 +110,12 @@ describe('createGuestSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('rejects invalid group', () => {
+  it('accepts any non-empty string as group', () => {
     const result = createGuestSchema.safeParse({
       name: 'Test Guest',
       group: 'unknown',
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it('rejects name exceeding 1000 characters', () => {

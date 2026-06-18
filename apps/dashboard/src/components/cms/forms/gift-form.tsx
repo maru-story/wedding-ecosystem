@@ -12,19 +12,28 @@ interface GiftFormProps {
 }
 
 interface BankAccount {
-  bank: string;
+  bank_name: string;
   account_number: string;
-  account_name: string;
+  account_holder: string;
 }
 
 export function GiftForm({ content, onChange }: GiftFormProps) {
-  const accounts = (content.accounts as BankAccount[]) || [];
-  const description = (content.description as string) || '';
+  const title = (content.title as string) || '';
+  // Backward compat: read old 'description' key, prefer new 'intro_text'
+  const introText = (content.intro_text as string) || (content.description as string) || '';
+  // Backward compat: normalize old account keys (bank→bank_name, account_name→account_holder)
+  const rawAccounts = (content.accounts as Record<string, string>[]) || [];
+  const accounts: BankAccount[] = rawAccounts.map((a) => ({
+    bank_name: a.bank_name || a.bank || '',
+    account_number: a.account_number || '',
+    account_holder: a.account_holder || a.account_name || '',
+  }));
 
   const addAccount = () => {
+    if (accounts.length >= 2) return;
     onChange({
       ...content,
-      accounts: [...accounts, { bank: '', account_number: '', account_name: '' }],
+      accounts: [...accounts, { bank_name: '', account_number: '', account_holder: '' }],
     });
   };
 
@@ -42,19 +51,39 @@ export function GiftForm({ content, onChange }: GiftFormProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <Label htmlFor="gift-desc">Deskripsi</Label>
+        <Label htmlFor="gift-title">Section Title</Label>
+        <Input
+          id="gift-title"
+          type="text"
+          value={title}
+          onChange={(e) => onChange({ ...content, title: e.target.value })}
+          placeholder="Wedding Gift"
+          className="bg-card border-border/60"
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="gift-intro">Intro Text</Label>
         <Textarea
-          id="gift-desc"
-          value={description}
-          onChange={(e) => onChange({ ...content, description: e.target.value })}
-          placeholder="Contoh: Doa restu Anda merupakan karunia yang sangat berarti bagi kami. Namun jika Anda ingin memberikan tanda kasih..."
+          id="gift-intro"
+          value={introText}
+          onChange={(e) => onChange({ ...content, intro_text: e.target.value })}
+          placeholder="Doa restu Anda merupakan karunia yang sangat berarti bagi kami. Namun jika Anda ingin memberikan tanda kasih, kami menyediakan informasi di bawah ini."
           rows={3}
+          className="bg-card border-border/60"
         />
       </div>
 
       <div className="flex items-center justify-between">
-        <Label>Rekening</Label>
-        <Button type="button" variant="outline" size="sm" onClick={addAccount} className="gap-1.5">
+        <Label>Rekening (maks 2)</Label>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addAccount}
+          disabled={accounts.length >= 2}
+          className="gap-1.5"
+        >
           <Plus className="h-4 w-4" />
           Tambah Rekening
         </Button>
@@ -88,13 +117,14 @@ export function GiftForm({ content, onChange }: GiftFormProps) {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor={`bank-${index}`}>Nama Bank</Label>
+            <Label htmlFor={`bank_name-${index}`}>Nama Bank</Label>
             <Input
-              id={`bank-${index}`}
+              id={`bank_name-${index}`}
               type="text"
-              value={account.bank}
-              onChange={(e) => updateAccount(index, 'bank', e.target.value)}
+              value={account.bank_name}
+              onChange={(e) => updateAccount(index, 'bank_name', e.target.value)}
               placeholder="Contoh: BCA, Mandiri, BNI"
+              className="bg-card border-border/60"
             />
           </div>
 
@@ -106,17 +136,19 @@ export function GiftForm({ content, onChange }: GiftFormProps) {
               value={account.account_number}
               onChange={(e) => updateAccount(index, 'account_number', e.target.value)}
               placeholder="1234567890"
+              className="bg-card border-border/60"
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor={`account_name-${index}`}>Atas Nama</Label>
+            <Label htmlFor={`account_holder-${index}`}>Atas Nama</Label>
             <Input
-              id={`account_name-${index}`}
+              id={`account_holder-${index}`}
               type="text"
-              value={account.account_name}
-              onChange={(e) => updateAccount(index, 'account_name', e.target.value)}
+              value={account.account_holder}
+              onChange={(e) => updateAccount(index, 'account_holder', e.target.value)}
               placeholder="Nama pemilik rekening"
+              className="bg-card border-border/60"
             />
           </div>
         </div>

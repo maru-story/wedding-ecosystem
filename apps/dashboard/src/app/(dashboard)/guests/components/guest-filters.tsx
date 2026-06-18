@@ -11,24 +11,26 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { useGuestGroups } from '@/hooks/queries';
+
+/** Default preset groups always shown in the filter. */
+const DEFAULT_GROUPS: string[] = [
+  GuestGroup.FAMILY,
+  GuestGroup.FRIEND,
+  GuestGroup.COLLEAGUE,
+  GuestGroup.VIP,
+];
 
 type GuestStatusFilter = 'belum_rsvp' | 'confirmed' | 'declined' | 'checked_in';
 
 interface GuestFiltersProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  groupFilter: GuestGroup | '';
+  groupFilter: string;
   statusFilter: GuestStatusFilter | '';
-  onGroupChange: (value: GuestGroup | '') => void;
+  onGroupChange: (value: string) => void;
   onStatusChange: (value: GuestStatusFilter | '') => void;
 }
-
-const GROUP_OPTIONS: { value: GuestGroup; label: string }[] = [
-  { value: GuestGroup.FAMILY, label: 'Keluarga' },
-  { value: GuestGroup.FRIEND, label: 'Teman' },
-  { value: GuestGroup.COLLEAGUE, label: 'Rekan Kerja' },
-  { value: GuestGroup.VIP, label: 'VIP' },
-];
 
 const STATUS_OPTIONS: { value: GuestStatusFilter; label: string }[] = [
   { value: 'belum_rsvp', label: 'Belum RSVP' },
@@ -36,6 +38,19 @@ const STATUS_OPTIONS: { value: GuestStatusFilter; label: string }[] = [
   { value: 'declined', label: 'Menolak' },
   { value: 'checked_in', label: 'Sudah Check-in' },
 ];
+
+/** Merge presets + any custom groups returned from the API. */
+function mergeGroups(apiGroups: string[] = []): string[] {
+  const seen = new Set<string>(DEFAULT_GROUPS);
+  const merged = [...DEFAULT_GROUPS];
+  for (const g of apiGroups) {
+    if (!seen.has(g)) {
+      seen.add(g);
+      merged.push(g);
+    }
+  }
+  return merged;
+}
 
 export function GuestFilters({
   searchQuery,
@@ -45,6 +60,9 @@ export function GuestFilters({
   onGroupChange,
   onStatusChange,
 }: GuestFiltersProps) {
+  const { data: apiGroups } = useGuestGroups();
+  const allGroups = mergeGroups(apiGroups);
+
   return (
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
       {/* Search Input */}
@@ -63,16 +81,16 @@ export function GuestFilters({
         <span className="text-muted-foreground text-sm font-medium">Grup:</span>
         <Select
           value={groupFilter || 'all'}
-          onValueChange={(val) => onGroupChange(val === 'all' ? '' : (val as GuestGroup))}
+          onValueChange={(val) => onGroupChange(val === 'all' ? '' : val)}
         >
           <SelectTrigger className="bg-card border-border/60 hover:bg-muted/30 w-[160px]">
             <SelectValue placeholder="Semua Grup" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Semua Grup</SelectItem>
-            {GROUP_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
+            {allGroups.map((g) => (
+              <SelectItem key={g} value={g}>
+                {g}
               </SelectItem>
             ))}
           </SelectContent>

@@ -78,6 +78,12 @@ describe('Media Upload Middleware', () => {
       expect(cb).toHaveBeenCalledWith(null, true);
     });
 
+    it('should accept valid SVG files', () => {
+      const cb = vi.fn();
+      fileFilter(null, { mimetype: 'image/svg+xml', originalname: 'graphic.svg' }, cb);
+      expect(cb).toHaveBeenCalledWith(null, true);
+    });
+
     it('should accept valid MP4 files', () => {
       const cb = vi.fn();
       fileFilter(null, { mimetype: 'video/mp4', originalname: 'video.mp4' }, cb);

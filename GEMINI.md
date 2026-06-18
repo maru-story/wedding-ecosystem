@@ -6,7 +6,7 @@
 
 ## Project Identity
 
-**Wedding Ecosystem** — A multi-tenant SaaS platform for digital wedding invitation management, targeting the Indonesian market. Monorepo with 3 frontend apps + 1 backend API.
+**Wedding Ecosystem** — A multi-tenant SaaS platform for digital wedding invitation management, targeting the Indonesian market. Monorepo with 2 frontend apps + 1 backend API (plus a standalone invitation app).
 
 **Status**: Production-deployed. All services live on Vercel (frontend) and Railway (backend).
 
@@ -17,13 +17,13 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Frontend Apps (Vercel)                  │
-├───────────────────┬───────────────────┬─────────────────────┤
-│   Dashboard       │   Invitation      │   Scanner (PWA)     │
-│   Next.js 16      │   Next.js 16      │   Next.js 16        │
-│   Port: 3000      │   Port: 3001      │   Port: 3002        │
-└────────┬──────────┴────────┬──────────┴──────────┬──────────┘
-         │                   │                     │
-         └───────────────────┼─────────────────────┘
+├───────────────────┬─────────────────────────────────────────┤
+│   Dashboard       │   Scanner (PWA)                         │
+│   Next.js 16      │   Next.js 16                            │
+│   Port: 3000      │   Port: 3002                            │
+└────────┬──────────┴──────────────────┬──────────────────────┘
+         │                             │
+         └───────────────┬─────────────┘
                              │ REST API + WebSocket (Socket.io)
 ┌────────────────────────────┴────────────────────────────────┐
 │              Backend: Fastify 5 + Socket.io 4.8 (Railway)    │
@@ -46,7 +46,6 @@
 /
 ├── apps/
 │   ├── dashboard/          # Client & WO Dashboard (Next.js 16, responsive, desktop-first)
-│   ├── invitation/         # Guest-facing invitation (Next.js 16, mobile-first, no auth)
 │   └── scanner/            # Scanner PWA (Next.js 16, offline-first, camera access)
 ├── packages/
 │   ├── api/                # Backend API (Fastify 5, single service handles REST + WebSocket)
@@ -95,13 +94,13 @@
 
 ## Language & Locale Conventions
 
-| Context                                                  | Language                                 |
-| -------------------------------------------------------- | ---------------------------------------- |
-| Variable names, function names, comments, docs           | **English**                              |
-| UI labels, button text, error messages, user-facing copy | **Bahasa Indonesia**                     |
-| Date format                                              | `DD MMMM YYYY` (e.g., "12 Januari 2026") |
-| Currency                                                 | IDR (Rp), no decimal places              |
-| Time zone                                                | WIB (Asia/Jakarta, UTC+7)                |
+| Context                                                  | Language / Format                                                                                                          |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Variable names, function names, comments, docs           | **English** (all apps)                                                                                                     |
+| UI labels, button text, error messages, user-facing copy | **Bahasa Indonesia** (Dashboard/Scanner); **English** (guest-facing Invitation app)                                        |
+| Date format                                              | `DD MMMM YYYY` (e.g., "12 Januari 2026") (Dashboard/Scanner); `Month DD, YYYY` (e.g., "January 12, 2026") (Invitation app) |
+| Currency                                                 | IDR (Rp), no decimal places                                                                                                |
+| Time zone                                                | WIB (Asia/Jakarta, UTC+7)                                                                                                  |
 
 ---
 
@@ -123,7 +122,7 @@
 3. **QR uniqueness** — One QR code per guest per event. Payload contains `guest_id` + `event_id`.
 4. **Duplicate detection** — Allow duplicate check-ins. Subsequent scans increment the `scan_count` counter and return a success status (GREEN).
 5. **Go-Show flow** — Walk-in guests added on-site. Temporary record, no QR code, immediately checked in.
-6. **CMS sections** — 14 configurable sections per invitation. Each toggleable and reorderable.
+6. **CMS sections** — 15 configurable sections per invitation (cover, bride_groom, bride, groom, story, verse, countdown, akad_resepsi, rsvp, gallery, video, gift, messages, closing, music). Each toggleable and reorderable.
 7. **RSVP states** — `pending` | `confirmed` | `declined` | `checked_in`.
 8. **Real-time broadcast** — Check-in and RSVP updates broadcast via WebSocket, scoped to event room.
 9. **Offline queue** — Scanner stores actions in IndexedDB when offline, syncs on reconnect. Conflict resolution: server timestamp wins.
@@ -159,8 +158,11 @@
 - `GET /guests` — List guests (paginated, filterable by group)
 - `POST /guests` — Create guest (auto-generates QR)
 - `PUT /guests/:id` — Update guest
+- `DELETE /guests/:id` — Delete guest and deactivate QR
 - `GET /guests/search?q=&event_id=` — Search by name (min 2 chars)
 - `GET /guests/:id/qr` — Get QR code data
+- `GET /guests/groups` — Unique group names in current event
+- `PATCH /guests/groups/reassign` — Reassign all guests from one group to another (body: `{from, to}`)
 - `POST /guests/import` — Bulk import from CSV
 - `POST /guests/bulk-delete` — Bulk delete guests and deactivate their QR codes
 
@@ -287,7 +289,6 @@ npm run dev                    # Run all apps + API via Turborepo
 npm run build                  # Build all packages
 npm run test                   # Run all tests
 npm run test:e2e --workspace=packages/api # Run Playwright E2E tests
-npx playwright test --config=apps/invitation/playwright.config.ts # Run Playwright UI tests
 npm run lint                   # Lint all packages
 
 # Per-package
@@ -332,7 +333,8 @@ R2_PUBLIC_URL=https://cdn.domain.com
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
 NEXT_PUBLIC_WS_URL=http://localhost:4000
-NEXT_PUBLIC_CDN_URL=http://localhost:4000
+NEXT_PUBLIC_INVITATION_URL=http://localhost:3001
+NEXT_PUBLIC_CDN_URL=https://cdn.maruplanner.my.id
 ```
 
 ---
@@ -352,15 +354,14 @@ NEXT_PUBLIC_CDN_URL=http://localhost:4000
 
 ## Deployment
 
-| Service         | Platform      | Config File                   |
-| --------------- | ------------- | ----------------------------- |
-| Dashboard       | Vercel        | `apps/dashboard/vercel.json`  |
-| Invitation      | Vercel        | `apps/invitation/vercel.json` |
-| Scanner         | Vercel        | `apps/scanner/vercel.json`    |
-| API + WebSocket | Railway       | `packages/api/railway.toml`   |
-| Database        | Supabase      | Managed PostgreSQL            |
-| Cache           | Upstash       | Serverless Redis              |
-| CDN/Storage     | Cloudflare R2 | —                             |
+| Service         | Platform      | Config File                  |
+| --------------- | ------------- | ---------------------------- |
+| Dashboard       | Vercel        | `apps/dashboard/vercel.json` |
+| Scanner         | Vercel        | `apps/scanner/vercel.json`   |
+| API + WebSocket | Railway       | `packages/api/railway.toml`  |
+| Database        | Supabase      | Managed PostgreSQL           |
+| Cache           | Upstash       | Serverless Redis             |
+| CDN/Storage     | Cloudflare R2 | —                            |
 
 CI/CD via GitHub Actions:
 
@@ -435,10 +436,10 @@ CI/CD via GitHub Actions:
 
 ## Demo Credentials (Local Development)
 
-| Role    | Email              | Password      | Tenant / Scope |
-| ------- | ------------------ | ------------- | -------------- |
-| Admin   | `admin@demo.com`   | `password123` | System Admin   |
-| Client  | `client@demo.com`  | `password123` | Wedding Demo   |
+| Role   | Email             | Password      | Tenant / Scope |
+| ------ | ----------------- | ------------- | -------------- |
+| Admin  | `admin@demo.com`  | `password123` | System Admin   |
+| Client | `client@demo.com` | `password123` | Wedding Demo   |
 
 **Tenant (Wedding Demo)**: Wedding Demo
 **Event (Romeo & Juliet)**: Romeo & Juliet (slug: `romeo-juliet`)
@@ -459,8 +460,6 @@ CI/CD via GitHub Actions:
 | WS auth middleware            | `packages/realtime/src/middleware/auth.ts`        |
 | Playwright E2E Config         | `packages/api/playwright.config.ts`               |
 | Playwright E2E Tests          | `packages/api/tests/e2e/`                         |
-| Playwright UI Config          | `apps/invitation/playwright.config.ts`            |
-| Playwright UI Tests           | `apps/invitation/tests/`                          |
 | Scanner auth                  | `apps/scanner/src/lib/auth.ts`                    |
 | Scanner offline queue         | `apps/scanner/src/lib/offline-queue.ts`           |
 | Dashboard socket hook         | `apps/dashboard/src/hooks/use-socket.ts`          |

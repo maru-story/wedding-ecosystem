@@ -26,6 +26,8 @@ const prisma = new PrismaClient({ adapter });
 const SECTION_TYPES = [
   'cover',
   'bride_groom',
+  'bride',
+  'groom',
   'story',
   'verse',
   'countdown',

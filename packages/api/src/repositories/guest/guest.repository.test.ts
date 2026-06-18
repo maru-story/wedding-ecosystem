@@ -43,7 +43,7 @@ const BASE_GUEST = {
   name: 'Budi Santoso',
   slug: 'budi-santoso',
   phone: '+6281234567890',
-  group: 'family',
+  group: GuestGroup.FAMILY, // 'Keluarga'
   type: 'invited',
   plus_one_count: 1,
   invitation_url: '/romeo-juliet?to=budi-santoso',

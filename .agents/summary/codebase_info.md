@@ -22,7 +22,6 @@ graph TB
     Root --> Infra["infrastructure/"]
 
     Apps --> Dashboard["dashboard<br/>Next.js 16 — Port 3000"]
-    Apps --> Invitation["invitation<br/>Next.js 16 — Port 3001"]
     Apps --> Scanner["scanner (PWA)<br/>Next.js 16 — Port 3002"]
 
     Packages --> API["api<br/>Fastify 5 — Port 4000"]
@@ -36,7 +35,6 @@ graph TB
 | Package               | Path                | Purpose                             |
 | --------------------- | ------------------- | ----------------------------------- |
 | `@wedding/dashboard`  | `apps/dashboard`    | Client & Admin management dashboard |
-| `@wedding/invitation` | `apps/invitation`   | Guest-facing digital invitation     |
 | `@wedding/scanner`    | `apps/scanner`      | PWA for QR check-in at venue        |
 | `@wedding/api`        | `packages/api`      | REST API + WebSocket backend        |
 | `@wedding/db`         | `packages/db`       | Prisma schema, migrations, client   |

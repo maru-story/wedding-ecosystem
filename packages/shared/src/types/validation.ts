@@ -193,6 +193,19 @@ export const createEventSchema = z.object({
   resepsi_start: z.string().max(10, { message: 'Format waktu tidak valid' }),
   resepsi_end: z.string().max(10, { message: 'Format waktu tidak valid' }),
   status: z.nativeEnum(EventStatus).optional().default(EventStatus.DRAFT),
+  share_title: z
+    .string()
+    .max(100, { message: 'Judul sharing maksimal 100 karakter' })
+    .optional()
+    .nullable()
+    .or(z.literal('')),
+  share_description: z
+    .string()
+    .max(500, { message: 'Deskripsi sharing maksimal 500 karakter' })
+    .optional()
+    .nullable()
+    .or(z.literal('')),
+  share_image_url: z.string().optional().nullable().or(z.literal('')),
 });
 
 /** Event update input */
@@ -201,9 +214,7 @@ export const updateEventSchema = createEventSchema.partial();
 /** Guest creation input (Req 3.1) */
 export const createGuestSchema = z.object({
   name: nameSchema,
-  group: z.nativeEnum(GuestGroup, {
-    errorMap: () => ({ message: 'Grup tamu tidak valid (family, friend, colleague, vip)' }),
-  }),
+  group: z.string().min(1, { message: 'Grup tidak boleh kosong' }).max(100),
   phone: phoneSchema,
   plus_one_count: z
     .number()
@@ -379,3 +390,15 @@ export const bulkDeleteGuestsSchema = z.object({
     .min(1, 'Pilih minimal 1 tamu untuk dihapus'),
 });
 export type BulkDeleteGuestsInput = z.infer<typeof bulkDeleteGuestsSchema>;
+
+/** Group reassign input — moves all guests from one group to another */
+export const reassignGroupSchema = z
+  .object({
+    from: z.string().min(1, { message: 'Grup asal tidak boleh kosong' }).max(100),
+    to: z.string().min(1, { message: 'Grup tujuan tidak boleh kosong' }).max(100),
+  })
+  .refine((data) => data.from !== data.to, {
+    message: 'Grup asal dan tujuan tidak boleh sama',
+    path: ['to'],
+  });
+export type ReassignGroupInput = z.infer<typeof reassignGroupSchema>;

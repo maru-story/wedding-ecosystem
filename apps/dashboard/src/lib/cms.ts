@@ -18,12 +18,13 @@ export interface InvitationSection {
 export type SectionType =
   | 'cover'
   | 'bride_groom'
+  | 'bride'
+  | 'groom'
   | 'story'
   | 'verse'
   | 'countdown'
   | 'akad_resepsi'
   | 'rsvp'
-  | 'attire'
   | 'gallery'
   | 'video'
   | 'gift'
@@ -33,13 +34,14 @@ export type SectionType =
 
 export const SECTION_TYPE_LABELS: Record<SectionType, string> = {
   cover: 'Cover / Opening',
-  bride_groom: 'Pengantin',
+  bride_groom: 'Intro Pengantin',
+  bride: 'Mempelai Wanita',
+  groom: 'Mempelai Pria',
   story: 'Our Story',
   verse: 'Doa / Ayat',
   countdown: 'Countdown',
   akad_resepsi: 'Akad & Resepsi',
   rsvp: 'Konfirmasi Kehadiran',
-  attire: 'Dress Code',
   gallery: 'Galeri Foto',
   video: 'Video',
   gift: 'Wedding Gift',
@@ -51,12 +53,13 @@ export const SECTION_TYPE_LABELS: Record<SectionType, string> = {
 export const SECTION_TYPE_ICONS: Record<SectionType, string> = {
   cover: '🎊',
   bride_groom: '💑',
+  bride: '👰',
+  groom: '🤵',
   story: '📖',
   verse: '🙏',
   countdown: '⏳',
   akad_resepsi: '💒',
   rsvp: '✉️',
-  attire: '👗',
   gallery: '📷',
   video: '🎬',
   gift: '🎁',
@@ -67,7 +70,7 @@ export const SECTION_TYPE_ICONS: Record<SectionType, string> = {
 
 // --- Media Upload Validation ---
 
-export const ALLOWED_IMAGE_FORMATS = ['image/jpeg', 'image/png', 'image/webp'];
+export const ALLOWED_IMAGE_FORMATS = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
 export const ALLOWED_VIDEO_FORMATS = ['video/mp4'];
 export const ALLOWED_AUDIO_FORMATS = ['audio/mpeg', 'audio/mp3'];
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -92,7 +95,7 @@ export function validateMediaFile(
     case 'image':
       allowedFormats = ALLOWED_IMAGE_FORMATS;
       maxSize = MAX_IMAGE_SIZE;
-      formatNames = 'JPEG, PNG, atau WebP';
+      formatNames = 'JPEG, PNG, WebP, atau SVG';
       maxSizeLabel = '5MB';
       break;
     case 'video':

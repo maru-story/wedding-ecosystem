@@ -23,6 +23,7 @@ import {
   paginationSchema,
   guestSearchSchema,
   bulkDeleteGuestsSchema,
+  reassignGroupSchema,
   GuestGroup,
   ErrorCode,
 } from '@wedding/shared';
@@ -37,7 +38,11 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
 
   // --- Wire up GuestService with its Prisma adapter ---
   const repository = new PrismaGuestRepository(prisma);
-  const encryptionKey = process.env.ENCRYPTION_KEY_AES256 || process.env.AES_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
+  const encryptionKey =
+    process.env.ENCRYPTION_KEY_AES256 ||
+    process.env.AES_ENCRYPTION_KEY ||
+    process.env.ENCRYPTION_KEY ||
+    '';
   const guestService = new GuestService({ repository, encryptionKey });
 
   // Auth hook for all guest routes
@@ -49,7 +54,7 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
     const query = validate(
       request.query,
       paginationSchema.extend({
-        group: z.nativeEnum(GuestGroup).optional(),
+        group: z.string().optional(),
         status: z.enum(['belum_rsvp', 'confirmed', 'declined', 'checked_in']).optional(),
         q: z.string().optional(),
         include: z.string().optional(),
@@ -106,6 +111,51 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
     }
 
     return reply.send(result);
+  });
+
+  // GET /guests/groups
+  app.get('/groups', async (request, reply) => {
+    const user = request.user!;
+    const event = await getCurrentTenantEvent(prisma, user.tenant_id);
+    if (!event) {
+      return reply.send({ data: [] });
+    }
+
+    const result = await guestService.listUniqueGroups(event.id, user.tenant_id);
+
+    if (isGuestError(result)) {
+      return reply.status(404).send({
+        success: false,
+        error: { code: result.code, message: result.message },
+      });
+    }
+
+    return reply.send({ data: result });
+  });
+
+  // PATCH /guests/groups/reassign
+  app.patch('/groups/reassign', async (request, reply) => {
+    const user = request.user!;
+    const body = validate(request.body, reassignGroupSchema, reply);
+    if (!body) return reply;
+
+    const event = await getCurrentTenantEvent(prisma, user.tenant_id);
+    if (!event) return replyEventNotFound(reply);
+
+    const result = await guestService.reassignGroup(event.id, user.tenant_id, body.from, body.to);
+
+    if ('code' in result) {
+      return reply.status(404).send({
+        success: false,
+        error: { code: result.code, message: result.message },
+      });
+    }
+
+    return reply.send({
+      success: true,
+      updated_count: result.updatedCount,
+      message: `${result.updatedCount} tamu dipindahkan dari "${body.from}" ke "${body.to}"`,
+    });
   });
 
   // POST /guests

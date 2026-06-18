@@ -6,8 +6,8 @@
 graph TB
     subgraph "Frontend (Vercel)"
         Dashboard["Dashboard<br/>Next.js 16 — :3000"]
-        Invitation["Invitation<br/>Next.js 16 — :3001"]
         Scanner["Scanner PWA<br/>Next.js 16 — :3002"]
+        Invitation["Invitation<br/>Next.js 15 (Standalone)"]
     end
 
     subgraph "Backend (Railway)"
@@ -153,7 +153,7 @@ graph TB
 - Auto-sync within 30 seconds of reconnection
 - Conflict resolution: server timestamp wins
 
-### CMS-Driven Rendering (Invitation)
+### CMS-Driven Rendering (Invitation - Standalone Repo)
 
 14 configurable sections rendered dynamically based on `InvitationSection` records:
 
@@ -237,5 +237,5 @@ graph TB
 | No staging environment                  | Validation via Vercel previews + CI pipeline            |
 | Room-based WebSocket                    | Data isolation per event without Redis adapter overhead |
 | Prisma over raw SQL                     | Type-safe queries, schema-first migrations              |
-| Next.js App Router                      | RSC for invitation performance, shared layout patterns  |
+| Next.js App Router                      | RSC for invitation/dashboard performance, shared layout patterns |
 | PWA for Scanner                         | Offline-first requirement for venue reliability         |

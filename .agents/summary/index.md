@@ -4,7 +4,7 @@
 
 ## Project Summary
 
-**Wedding Digital SaaS** — A multi-tenant platform for digital wedding invitation management targeting the Indonesian market. Monorepo with 3 frontend apps (Dashboard, Invitation, Scanner PWA) sharing a single Fastify backend, PostgreSQL database, Redis cache, and Socket.io real-time server.
+**Wedding Digital SaaS** — A multi-tenant platform for digital wedding invitation management targeting the Indonesian market. Monorepo with 2 frontend apps (Dashboard, Scanner PWA) sharing a single Fastify backend, PostgreSQL database, Redis cache, and Socket.io real-time server. The guest-facing invitation application has been migrated to its own standalone repository: `wedding-ecosystem-invitation` (located at `/home/mochrafi/wedding-project/wedding-ecosystem-invitation` alongside this monorepo).
 
 ## Documentation Files
 
@@ -24,7 +24,7 @@
 
 **Purpose**: Major components, their responsibilities, and internal structure.
 **Consult when**: You need to find where specific functionality lives, understand what a service/middleware/plugin does, or navigate the codebase to locate relevant code.
-**Key content**: Backend services table (11 services with file paths), middleware stack (7 layers), plugins (4), realtime server structure, database package, shared package exports, frontend component trees for all 3 apps (pages, components, hooks, lib).
+**Key content**: Backend services table (11 services with file paths), middleware stack (7 layers), plugins (4), realtime server structure, database package, shared package exports, frontend component trees for the 2 apps (pages, components, hooks, lib).
 
 ### interfaces.md
 

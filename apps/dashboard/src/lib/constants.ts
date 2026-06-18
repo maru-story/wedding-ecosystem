@@ -30,6 +30,15 @@ export const QUOTA_MAX_SCANNER_MIN = 1;
 /** Maximum allowed value for max_scanner_devices (admin form) */
 export const QUOTA_MAX_SCANNER_MAX = 10;
 
+/** Default maximum number of gallery photos per event */
+export const DEFAULT_MAX_GALLERY_PHOTOS = 30;
+
+/** Minimum allowed value for max_gallery_photos (admin form) */
+export const QUOTA_MAX_GALLERY_PHOTOS_MIN = 1;
+
+/** Maximum allowed value for max_gallery_photos (admin form) */
+export const QUOTA_MAX_GALLERY_PHOTOS_MAX = 100;
+
 // --- CSV Import ---
 
 /** Maximum number of data rows allowed per CSV import file */

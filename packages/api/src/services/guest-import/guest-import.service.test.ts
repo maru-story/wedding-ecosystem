@@ -209,7 +209,8 @@ describe('Guest CSV Import Service', () => {
       expect(typeof result).not.toBe('string');
       if (typeof result !== 'string') {
         expect(result.name).toBe('John Doe');
-        expect(result.group).toBe(GuestGroup.FRIEND);
+        // 'friend' is not an Indonesian synonym, passes through as-is
+        expect(result.group).toBe('friend');
         expect(result.plus_one_count).toBe(0);
       }
     });
@@ -235,16 +236,18 @@ describe('Guest CSV Import Service', () => {
       expect(result).toBe('Grup tidak boleh kosong');
     });
 
-    it('should reject invalid group enum', () => {
-      const row: CSVRow = { nama: 'John', grup: 'invalid_group' };
+    it('should accept custom group names (any non-empty string is valid)', () => {
+      const row: CSVRow = { nama: 'John', grup: 'custom_group_xyz' };
       const result = validateRow(row, new Set());
 
-      expect(typeof result).toBe('string');
-      expect(result as string).toContain('Grup tidak valid');
-      expect(result as string).toContain('invalid_group');
+      // Custom groups are now allowed — no rejection
+      expect(typeof result).not.toBe('string');
+      if (typeof result !== 'string') {
+        expect(result.group).toBe('custom_group_xyz');
+      }
     });
 
-    it('should map Indonesian group synonyms to standard enums', () => {
+    it('should map Indonesian group synonyms to display names', () => {
       const rowKeluarga: CSVRow = { nama: 'Budi', grup: 'Keluarga' };
       const rowTeman: CSVRow = { nama: 'Siti', grup: 'teman' };
       const rowRekan: CSVRow = { nama: 'Andi', grup: 'rekan kerja' };
@@ -257,27 +260,33 @@ describe('Guest CSV Import Service', () => {
       expect(typeof resTeman).not.toBe('string');
       expect(typeof resRekan).not.toBe('string');
 
-      if (typeof resKeluarga !== 'string') expect(resKeluarga.group).toBe('family');
-      if (typeof resTeman !== 'string') expect(resTeman.group).toBe('friend');
-      if (typeof resRekan !== 'string') expect(resRekan.group).toBe('colleague');
+      // Normalized to Indonesian display names
+      if (typeof resKeluarga !== 'string') expect(resKeluarga.group).toBe(GuestGroup.FAMILY); // 'Keluarga'
+      if (typeof resTeman !== 'string') expect(resTeman.group).toBe(GuestGroup.FRIEND); // 'Teman'
+      if (typeof resRekan !== 'string') expect(resRekan.group).toBe(GuestGroup.COLLEAGUE); // 'Rekan Kerja'
     });
 
-    it('should accept all valid group values', () => {
-      const groups = ['family', 'friend', 'colleague', 'vip'];
+    it('should accept all default preset group values', () => {
+      // Indonesian display names are the canonical presets
+      const groups = [GuestGroup.FAMILY, GuestGroup.FRIEND, GuestGroup.COLLEAGUE, GuestGroup.VIP];
       for (const group of groups) {
-        const row: CSVRow = { nama: `Guest ${group}`, grup: group };
+        const row: CSVRow = { nama: `Tamu ${group}`, grup: group };
         const result = validateRow(row, new Set());
         expect(typeof result).not.toBe('string');
+        if (typeof result !== 'string') {
+          expect(result.group).toBe(group);
+        }
       }
     });
 
-    it('should be case-insensitive for group validation', () => {
-      const row: CSVRow = { nama: 'John', grup: 'FRIEND' };
+    it('should normalize case-insensitive Indonesian synonyms', () => {
+      // 'TEMAN' (uppercase) is a synonym for 'Teman'
+      const row: CSVRow = { nama: 'John', grup: 'TEMAN' };
       const result = validateRow(row, new Set());
 
       expect(typeof result).not.toBe('string');
       if (typeof result !== 'string') {
-        expect(result.group).toBe(GuestGroup.FRIEND);
+        expect(result.group).toBe(GuestGroup.FRIEND); // 'Teman'
       }
     });
 
@@ -367,13 +376,14 @@ describe('Guest CSV Import Service', () => {
     });
 
     it('should trim whitespace from name and group', () => {
-      const row: CSVRow = { nama: '  John Doe  ', grup: '  friend  ' };
+      const row: CSVRow = { nama: '  John Doe  ', grup: '  teman  ' };
       const result = validateRow(row, new Set());
 
       expect(typeof result).not.toBe('string');
       if (typeof result !== 'string') {
         expect(result.name).toBe('John Doe');
-        expect(result.group).toBe(GuestGroup.FRIEND);
+        // 'teman' (trimmed) is a synonym → normalizes to 'Teman'
+        expect(result.group).toBe(GuestGroup.FRIEND); // 'Teman'
       }
     });
   });
@@ -435,7 +445,8 @@ describe('Guest CSV Import Service', () => {
     });
 
     it('should skip invalid rows without stopping import (Req 3.4)', async () => {
-      const csv = 'nama,grup\nJohn Doe,friend\n,friend\nJane Smith,invalid_group\nBob,vip';
+      // 'custom_group' is now valid — only empty name causes a failure
+      const csv = 'nama,grup\nJohn Doe,friend\n,friend\nJane Smith,custom_group\nBob,vip';
 
       const report = await bulkImportGuests(
         { eventId: 'event-001', tenantId: 'tenant-001', csvText: csv },
@@ -443,14 +454,11 @@ describe('Guest CSV Import Service', () => {
         []
       );
 
-      // John Doe and Bob should succeed
-      expect(report.successCount).toBe(2);
-      // Row 3 (empty name) and Row 4 (invalid group) should fail
-      expect(report.failedRows).toHaveLength(2);
+      // John Doe, Jane Smith, and Bob all succeed; only empty-name row fails
+      expect(report.successCount).toBe(3);
+      expect(report.failedRows).toHaveLength(1);
       expect(report.failedRows[0].row).toBe(3);
       expect(report.failedRows[0].reason).toContain('Nama tidak boleh kosong');
-      expect(report.failedRows[1].row).toBe(4);
-      expect(report.failedRows[1].reason).toContain('Grup tidak valid');
     });
 
     it('should detect duplicate names within the import batch', async () => {
@@ -497,7 +505,8 @@ describe('Guest CSV Import Service', () => {
     });
 
     it('should handle all optional columns in CSV', async () => {
-      const csv = 'nama,grup,phone,plus_one_count\nJohn Doe,friend,+6281234567890,2';
+      // 'teman' is an Indonesian synonym → normalizes to 'Teman' (GuestGroup.FRIEND)
+      const csv = 'nama,grup,phone,plus_one_count\nJohn Doe,teman,+6281234567890,2';
 
       const report = await bulkImportGuests(
         { eventId: 'event-001', tenantId: 'tenant-001', csvText: csv },
@@ -509,7 +518,7 @@ describe('Guest CSV Import Service', () => {
       expect(repository.createGuest).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'John Doe',
-          group: GuestGroup.FRIEND,
+          group: GuestGroup.FRIEND, // 'Teman'
           phone: expect.any(String),
           plus_one_count: 2,
         })

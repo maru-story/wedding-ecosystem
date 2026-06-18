@@ -1,8 +1,7 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Check } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 interface RsvpFormProps {
   content: Record<string, unknown>;
@@ -10,7 +9,7 @@ interface RsvpFormProps {
 }
 
 export function RsvpForm({ content, onChange }: RsvpFormProps) {
-  const maxPlusOne = (content.max_plus_one as number) ?? 1;
+  const introText = (content.intro_text as string) ?? 'Please let us know if you will be\njoining us by filling out the form below:';
 
   return (
     <div className="space-y-4">
@@ -20,42 +19,16 @@ export function RsvpForm({ content, onChange }: RsvpFormProps) {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="rsvp-max-plus-one">Maksimal Tamu Tambahan (Plus One)</Label>
-        <Input
-          id="rsvp-max-plus-one"
-          type="number"
-          min={0}
-          max={10}
-          value={maxPlusOne}
-          onChange={(e) => onChange({ ...content, max_plus_one: parseInt(e.target.value) || 0 })}
-          className="w-32"
+        <Label htmlFor="rsvp-intro-text">Teks Pengantar (Intro Text)</Label>
+        <Textarea
+          id="rsvp-intro-text"
+          value={introText}
+          onChange={(e) => onChange({ ...content, intro_text: e.target.value })}
+          className="w-full min-h-[80px]"
+          placeholder="Masukkan teks pengantar di sini..."
         />
         <p className="text-muted-foreground text-xs">
-          Jumlah tamu tambahan yang diizinkan per undangan. Tamu dapat membawa maksimal {maxPlusOne}{' '}
-          orang tambahan.
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Pilihan Kehadiran</Label>
-        <div className="space-y-2">
-          {[
-            { value: 'akad', label: 'Akad Nikah' },
-            { value: 'resepsi', label: 'Resepsi' },
-            { value: 'both', label: 'Keduanya' },
-            { value: 'decline', label: 'Menolak' },
-          ].map((option) => (
-            <div
-              key={option.value}
-              className="border-border bg-muted/40 flex items-center gap-2 rounded-lg border px-3 py-2"
-            >
-              <Check className="text-success h-4 w-4" />
-              <span className="text-foreground text-sm">{option.label}</span>
-            </div>
-          ))}
-        </div>
-        <p className="text-muted-foreground text-xs">
-          Pilihan kehadiran ini otomatis tersedia di form RSVP undangan.
+          Teks yang ditampilkan di bawah judul RSVP untuk mengarahkan tamu mengisi konfirmasi.
         </p>
       </div>
     </div>

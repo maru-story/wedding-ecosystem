@@ -104,6 +104,12 @@ describe('MediaUploadService', () => {
       expect(isMediaUploadError(result)).toBe(false);
     });
 
+    it('should accept SVG images', async () => {
+      const file = createValidImageFile({ originalname: 'graphic.svg', mimetype: 'image/svg+xml' });
+      const result = await service.uploadFile(file, 'tenant-001', 'event-001');
+      expect(isMediaUploadError(result)).toBe(false);
+    });
+
     it('should accept MP4 videos', async () => {
       const file = createValidVideoFile({ originalname: 'video.mp4', mimetype: 'video/mp4' });
       const result = await service.uploadFile(file, 'tenant-001', 'event-001');
@@ -125,7 +131,7 @@ describe('MediaUploadService', () => {
         expect(result.code).toBe(ErrorCode.INVALID_FILE_FORMAT);
         expect(result.message).toContain('Format file tidak didukung');
         expect(result.message).toContain('application/pdf');
-        expect(result.message).toContain('JPEG, PNG, WebP');
+        expect(result.message).toContain('JPEG, PNG, WebP, SVG');
         expect(result.message).toContain('MP4, WebM');
       }
     });
@@ -315,7 +321,7 @@ describe('MediaUploadService', () => {
   describe('validateFormat', () => {
     it('should return null for all allowed image MIME types', () => {
       for (const mime of ALLOWED_IMAGE_MIMES) {
-        const ext = mime === 'image/jpeg' ? '.jpg' : `.${mime.split('/')[1]}`;
+        const ext = mime === 'image/jpeg' ? '.jpg' : mime === 'image/svg+xml' ? '.svg' : `.${mime.split('/')[1]}`;
         const file = createValidImageFile({
           originalname: `file${ext}`,
           mimetype: mime,
@@ -376,26 +382,20 @@ describe('MediaUploadService', () => {
   });
 
   describe('generateStorageKey', () => {
-    it('should include tenant ID, event ID, and filename', () => {
-      const key = service.generateStorageKey('tenant-001', 'event-001', 'photo.jpg', 'cover');
+    it('should include tenant ID, event ID, and hash of the content', () => {
+      const buffer = Buffer.from('photo-content');
+      const key = service.generateStorageKey('tenant-001', 'event-001', 'photo.jpg', buffer, 'cover');
       expect(key).toContain('tenant-001');
       expect(key).toContain('event-001');
       expect(key).toContain('/cms/cover/');
-      expect(key).toContain('photo.jpg');
+      expect(key).toMatch(/\/cms\/cover\/[a-f0-9]{16}\.jpg$/);
     });
 
-    it('should sanitize special characters in filename', () => {
-      const key = service.generateStorageKey('tenant-001', 'event-001', 'my photo (1).jpg');
-      expect(key).not.toContain(' ');
-      expect(key).not.toContain('(');
-      expect(key).not.toContain(')');
-      expect(key).toContain('my_photo__1_.jpg');
-    });
-
-    it('should include timestamp for uniqueness', () => {
-      const key1 = service.generateStorageKey('tenant-001', 'event-001', 'photo.jpg');
-      // Key should contain a numeric timestamp
-      expect(key1).toMatch(/\/\d+-photo\.jpg$/);
+    it('should return the same key for identical content regardless of original filename', () => {
+      const buffer = Buffer.from('shared-content');
+      const key1 = service.generateStorageKey('tenant-001', 'event-001', 'photo.jpg', buffer, 'cover');
+      const key2 = service.generateStorageKey('tenant-001', 'event-001', 'different-name.jpg', buffer, 'cover');
+      expect(key1).toBe(key2);
     });
   });
 

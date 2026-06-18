@@ -59,17 +59,16 @@ export interface CMSRepository {
   getMaxSortOrder(eventId: string): Promise<number>;
 }
 
-// --- All valid section types ---
-
 export const ALL_SECTION_TYPES: SectionType[] = [
   SectionType.COVER,
   SectionType.BRIDE_GROOM,
+  SectionType.BRIDE,
+  SectionType.GROOM,
   SectionType.STORY,
   SectionType.VERSE,
   SectionType.COUNTDOWN,
   SectionType.AKAD_RESEPSI,
   SectionType.RSVP,
-  SectionType.ATTIRE,
   SectionType.GALLERY,
   SectionType.VIDEO,
   SectionType.GIFT,
@@ -423,7 +422,7 @@ export class CMSService {
   // --- Initialize Default Sections ---
 
   /**
-   * Initialize all 14 sections for a new event with default sort_order (Req 5.2)
+   * Initialize all 15 sections for a new event with default sort_order (Req 5.2)
    * Each section starts as active with empty content
    */
   async initializeDefaultSections(

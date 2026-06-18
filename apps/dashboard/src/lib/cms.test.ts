@@ -25,12 +25,17 @@ describe('validateMediaFile', () => {
       expect(validateMediaFile(file, 'image')).toBeNull();
     });
 
+    it('accepts valid SVG file within size limit', () => {
+      const file = createMockFile('graphic.svg', 1 * 1024 * 1024, 'image/svg+xml'); // 1MB
+      expect(validateMediaFile(file, 'image')).toBeNull();
+    });
+
     it('rejects unsupported image format', () => {
       const file = createMockFile('photo.gif', 1024, 'image/gif');
       const result = validateMediaFile(file, 'image');
       expect(result).not.toBeNull();
       expect(result!.type).toBe('format');
-      expect(result!.message).toContain('JPEG, PNG, atau WebP');
+      expect(result!.message).toContain('JPEG, PNG, WebP, atau SVG');
     });
 
     it('rejects image exceeding 5MB size limit', () => {

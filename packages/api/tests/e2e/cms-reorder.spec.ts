@@ -27,11 +27,11 @@ test.describe('CMS Reordering API E2E', () => {
     const eventId = eventBody.event.id;
     const initialSections = eventBody.sections;
 
-    // We expect 14 default sections to be initialized automatically
-    expect(initialSections).toHaveLength(14);
+    // We expect 15 default sections to be initialized automatically
+    expect(initialSections).toHaveLength(15);
 
-    // Sort orders should be sequential 1..14
-    for (let i = 0; i < 14; i++) {
+    // Sort orders should be sequential 1..15
+    for (let i = 0; i < 15; i++) {
       expect(initialSections[i].sort_order).toBe(i + 1);
     }
 
@@ -60,7 +60,7 @@ test.describe('CMS Reordering API E2E', () => {
     const getSectionsBody = await getSectionsResp.json();
     const updatedSections = getSectionsBody.data;
 
-    expect(updatedSections).toHaveLength(14);
+    expect(updatedSections).toHaveLength(15);
 
     // The target section should now be at the 1st position (index 0)
     expect(updatedSections[0].id).toBe(targetSectionId);
@@ -72,8 +72,8 @@ test.describe('CMS Reordering API E2E', () => {
     expect(updatedSections[2].id).toBe(initialSections[1].id);
     expect(updatedSections[2].sort_order).toBe(3);
 
-    // Verify sort_order constraint: all sort orders should still be sequential 1..14
-    for (let i = 0; i < 14; i++) {
+    // Verify sort_order constraint: all sort orders should still be sequential 1..16
+    for (let i = 0; i < 16; i++) {
       expect(updatedSections[i].sort_order).toBe(i + 1);
     }
   });

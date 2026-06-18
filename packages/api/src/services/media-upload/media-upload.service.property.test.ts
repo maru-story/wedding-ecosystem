@@ -50,6 +50,7 @@ const MIME_TO_EXTENSION: Record<string, string> = {
   'image/jpeg': '.jpg',
   'image/png': '.png',
   'image/webp': '.webp',
+  'image/svg+xml': '.svg',
   'video/mp4': '.mp4',
   'video/webm': '.webm',
 };
@@ -172,7 +173,7 @@ describe('Property 22: File Upload Explicit Validation', () => {
               // Error message must mention the unsupported format
               expect(result.message).toContain('Format file tidak didukung');
               // Error message must mention supported formats
-              expect(result.message).toMatch(/JPEG|PNG|WebP|MP4|WebM/);
+              expect(result.message).toMatch(/JPEG|PNG|WebP|SVG|MP4|WebM/);
             }
           }
         ),

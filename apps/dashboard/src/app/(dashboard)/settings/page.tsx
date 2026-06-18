@@ -32,15 +32,18 @@ import {
   User,
   Lock,
   Shield,
+  FileImage,
 } from 'lucide-react';
 import { FadeIn } from '@/components/ui/motion-wrapper';
 import { CustomTabs } from '@/components/ui/custom-tabs';
+import { uploadMedia } from '@/lib/cms';
+import { MediaUpload } from '@/components/cms/media-upload';
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
   const { data: event, isLoading: eventLoading } = useEvent();
   const { user, updateUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'event' | 'account'>('event');
+  const [activeTab, setActiveTab] = useState<'event' | 'seo' | 'account'>('event');
 
   // --- Form 1: Event Settings ---
   const {
@@ -194,6 +197,36 @@ export default function SettingsPage() {
     updatePasswordMutation.mutate(data);
   };
 
+  // --- Form 4: SEO & Share Preview Settings ---
+  const {
+    register: registerSEO,
+    handleSubmit: handleSubmitSEO,
+    setValue: setValueSEO,
+    watch: watchSEO,
+    reset: resetSEO,
+    formState: { errors: errorsSEO },
+  } = useForm<UpdateEventInput>({
+    resolver: zodResolver(updateEventSchema),
+  });
+
+  useEffect(() => {
+    if (event) {
+      resetSEO({
+        share_title: event.share_title || '',
+        share_description: event.share_description || '',
+        share_image_url: event.share_image_url || '',
+      });
+    }
+  }, [event, resetSEO]);
+
+  const onSubmitSEO = (data: UpdateEventInput) => {
+    updateEventMutation.mutate({
+      share_title: data.share_title || null,
+      share_description: data.share_description || null,
+      share_image_url: data.share_image_url || null,
+    });
+  };
+
   if (eventLoading) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
@@ -237,10 +270,11 @@ export default function SettingsPage() {
       <CustomTabs
         tabs={[
           { value: 'event', label: 'Pengaturan Acara' },
+          { value: 'seo', label: 'Share & SEO' },
           { value: 'account', label: 'Pengaturan Akun' },
         ]}
         activeTab={activeTab}
-        onChange={(val) => setActiveTab(val as 'event' | 'account')}
+        onChange={(val) => setActiveTab(val as 'event' | 'seo' | 'account')}
       />
 
       {/* Tab Content: Event Configuration */}
@@ -492,6 +526,161 @@ export default function SettingsPage() {
                   <>
                     <Save className="mr-2 h-5 w-5" />
                     Simpan Perubahan
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </FadeIn>
+      )}
+
+      {/* Tab Content: SEO & Share Configuration */}
+      {activeTab === 'seo' && (
+        <FadeIn delay={0.1}>
+          <form onSubmit={handleSubmitSEO(onSubmitSEO)} className="space-y-8">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {/* Left 2 columns: Inputs */}
+              <div className="md:col-span-2 space-y-6">
+                <Card className="border-border/60 bg-card shadow-sm">
+                  <CardHeader className="border-border/40 border-b pb-4">
+                    <div className="text-primary flex items-center gap-2">
+                      <FileImage className="h-5 w-5" />
+                      <CardTitle className="font-heading text-lg font-bold">
+                        Pengaturan Tampilan Share & SEO
+                      </CardTitle>
+                    </div>
+                    <CardDescription>
+                      Atur judul, deskripsi, dan gambar pratinjau yang akan muncul saat link undangan dibagikan ke media sosial atau aplikasi chatting (WhatsApp, Telegram, Facebook, dll).
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-5 pt-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="share_title">Judul Share (Share Title)</Label>
+                      <Input
+                        id="share_title"
+                        {...registerSEO('share_title')}
+                        placeholder="Contoh: Undangan Pernikahan Romeo & Juliet"
+                        className="bg-card text-foreground placeholder:text-muted-foreground/60 h-11 px-4 py-2.5 transition-all duration-200"
+                      />
+                      <p className="text-muted-foreground/75 text-[10px]">
+                        Disarankan di bawah 60 karakter agar tidak terpotong di media sosial.
+                      </p>
+                      {errorsSEO.share_title && (
+                        <p className="text-destructive text-xs">{errorsSEO.share_title.message}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="share_description">Deskripsi Share (Share Description)</Label>
+                      <Textarea
+                        id="share_description"
+                        {...registerSEO('share_description')}
+                        rows={4}
+                        placeholder="Contoh: Tanpa mengurangi rasa hormat, kami mengundang Anda untuk menghadiri acara pernikahan kami..."
+                        className="bg-card text-foreground placeholder:text-muted-foreground/60 px-4 py-2.5 transition-all duration-200"
+                      />
+                      <p className="text-muted-foreground/75 text-[10px]">
+                        Disarankan di bawah 150 karakter untuk deskripsi share yang optimal.
+                      </p>
+                      {errorsSEO.share_description && (
+                        <p className="text-destructive text-xs">
+                          {errorsSEO.share_description.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Gambar Pratinjau (Share Image/Thumbnail)</Label>
+                      <MediaUpload
+                        mediaType="image"
+                        currentUrl={watchSEO('share_image_url') || undefined}
+                        onUpload={async (file) => {
+                          const result = await uploadMedia(event.id, file, 'seo');
+                          setValueSEO('share_image_url', result.url, { shouldDirty: true });
+                          return result.url;
+                        }}
+                        onRemove={() => {
+                          setValueSEO('share_image_url', '', { shouldDirty: true });
+                        }}
+                      />
+                      <p className="text-muted-foreground/75 text-[10px]">
+                        Rekomendasi rasio 1.91:1 (misalnya 1200x630 pixel) agar pratinjau tampil penuh dan proporsional di WhatsApp/Facebook.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Right column: Interactive preview */}
+              <div className="space-y-6">
+                <Card className="border-border/60 bg-card shadow-sm sticky top-6">
+                  <CardHeader className="border-border/40 border-b pb-4">
+                    <CardTitle className="font-heading text-base font-bold">
+                      Simulasi Tampilan WhatsApp
+                    </CardTitle>
+                    <CardDescription>
+                      Perkiraan bagaimana link undangan Anda akan terlihat saat dibagikan.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-6 space-y-4">
+                    {/* Simulated Chat bubble */}
+                    <div className="bg-[#E7F3EF] dark:bg-[#0B141A] rounded-lg p-3 text-sm shadow-sm border border-[#D1E7DF] dark:border-[#222E35]">
+                      {/* Link message bubble */}
+                      <div className="bg-[#FFFFFF] dark:bg-[#1F2C34] rounded-lg overflow-hidden border border-border/40 max-w-[280px] mx-auto shadow-sm">
+                        {/* Share Image Preview */}
+                        <div className="relative aspect-[1.91/1] bg-muted flex items-center justify-center border-b border-border/30 overflow-hidden">
+                          {watchSEO('share_image_url') ? (
+                            <img
+                              src={watchSEO('share_image_url')!}
+                              alt="Share preview"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center justify-center text-muted-foreground/60 p-4">
+                              <FileImage className="h-8 w-8 mb-1" />
+                              <span className="text-[10px]">Belum ada gambar</span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Info details */}
+                        <div className="p-3 bg-[#F0F2F5] dark:bg-[#202C33] space-y-1">
+                          <div className="font-semibold text-foreground text-xs truncate">
+                            {watchSEO('share_title') || 'Undangan Pernikahan'}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
+                            {watchSEO('share_description') || 'Klik link untuk melihat detail acara pernikahan kami.'}
+                          </div>
+                          <div className="text-[9px] text-muted-foreground/80 uppercase tracking-wider font-medium pt-1">
+                            {invitationPrefix.replace(/\/$/, '')}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right text-[10px] text-muted-foreground mt-1">
+                        12.00
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Simpan SEO */}
+            <div className="flex justify-end pt-2">
+              <Button
+                type="submit"
+                disabled={updateEventMutation.isPending}
+                className="shadow-primary/20 h-12 min-w-[150px] cursor-pointer px-6 text-base font-semibold shadow-lg transition-all duration-200"
+              >
+                {updateEventMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Menyimpan...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-5 w-5" />
+                    Simpan SEO
                   </>
                 )}
               </Button>

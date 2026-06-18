@@ -16,7 +16,6 @@
 | `@wedding/shared`     | 80            | Unit + Property-based                                |
 | `@wedding/realtime`   | ~87           | Unit + Integration + Property-based                  |
 | `@wedding/dashboard`  | ~81           | Unit + Property-based                                |
-| `@wedding/invitation` | ~32 + 14 UI   | Unit + Property-based + Playwright UI Smoke Tests    |
 | `@wedding/scanner`    | ~43           | Unit + Property-based                                |
 
 ## Running Tests
@@ -28,15 +27,11 @@ npm run test
 # Playwright E2E tests (specifically for @wedding/api / @wedding/realtime)
 npm run test:e2e --workspace=packages/api
 
-# Playwright UI smoke tests for invitation application (mobile/desktop viewports)
-npx playwright test --config=apps/invitation/playwright.config.ts
-
 # Per package (unit tests)
 npx turbo test --filter=@wedding/api
 npx turbo test --filter=@wedding/shared
 npx turbo test --filter=@wedding/realtime
 npx turbo test --filter=@wedding/dashboard
-npx turbo test --filter=@wedding/invitation
 npx turbo test --filter=@wedding/scanner
 ```
 
@@ -301,10 +296,6 @@ export default defineConfig({
 ## E2E Playwright Configuration
 
 Playwright is configured under `packages/api/playwright.config.ts`. It manages starting the backend server synchronously using the `webServer` config block, targets the dedicated test database, and runs the E2E specs in sequential mode to ensure database integrity during test state assertions.
-
-## E2E Playwright UI Configuration (Invitation App)
-
-Playwright is configured under `apps/invitation/playwright.config.ts` for running mobile-first UI smoke tests against the invitation web app. It targets the local Next.js dev server on port `3001` (reusing it if running), using a mobile Chrome viewport (iPhone 14) and desktop Chrome, saving screenshot results to `test-results/` for inspection.
 
 ## E2E Testing Validation Rules
 

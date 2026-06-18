@@ -16,9 +16,16 @@ interface VideoFormProps {
 }
 
 export function VideoForm({ content, onChange, event }: VideoFormProps) {
-  const videoUrl = (content.video_url as string) || '';
-  const thumbnailUrl = (content.thumbnail_url as string) || '';
-  const videoType = (content.type as string) || 'youtube';
+  const title = (content.title as string) || '';
+  // Backward compat: read old 'type' key, prefer new 'video_type'
+  const videoType = (content.video_type as string) || (content.type as string) || 'youtube';
+  // Backward compat: old schema stored youtube URL in 'video_url' when type was 'youtube'
+  const youtubeUrl =
+    (content.youtube_url as string) ||
+    (videoType === 'youtube' ? (content.video_url as string) || '' : '');
+  const videoUrl = videoType === 'upload' ? (content.video_url as string) || '' : '';
+  // Backward compat: read old 'thumbnail_url' key, prefer new 'photo_url'
+  const photoUrl = (content.photo_url as string) || (content.thumbnail_url as string) || '';
 
   const handleUpload = async (file: File): Promise<string> => {
     if (event?.id) {
@@ -30,8 +37,22 @@ export function VideoForm({ content, onChange, event }: VideoFormProps) {
 
   return (
     <div className="space-y-4">
+      {/* Section Title */}
+      <div className="space-y-1.5">
+        <Label htmlFor="video-title">Section Title</Label>
+        <Input
+          id="video-title"
+          type="text"
+          value={title}
+          onChange={(e) => onChange({ ...content, title: e.target.value })}
+          placeholder='Catch a glimpse before the "I do"'
+          className="bg-card border-border/60"
+        />
+      </div>
+
+      {/* Video Source */}
       <div className="space-y-2">
-        <Label>Tipe Video</Label>
+        <Label>Video Source</Label>
         <div className="flex gap-4">
           <label className="flex cursor-pointer items-center gap-2">
             <input
@@ -39,7 +60,7 @@ export function VideoForm({ content, onChange, event }: VideoFormProps) {
               name="video-type"
               value="youtube"
               checked={videoType === 'youtube'}
-              onChange={() => onChange({ ...content, type: 'youtube' })}
+              onChange={() => onChange({ ...content, video_type: 'youtube', video_url: '' })}
               className="border-border text-primary focus:ring-ring focus:ring-offset-background h-4 w-4"
             />
             <span className="text-foreground text-sm">YouTube</span>
@@ -50,7 +71,7 @@ export function VideoForm({ content, onChange, event }: VideoFormProps) {
               name="video-type"
               value="upload"
               checked={videoType === 'upload'}
-              onChange={() => onChange({ ...content, type: 'upload' })}
+              onChange={() => onChange({ ...content, video_type: 'upload', youtube_url: '' })}
               className="border-border text-primary focus:ring-ring focus:ring-offset-background h-4 w-4"
             />
             <span className="text-foreground text-sm">Upload</span>
@@ -58,21 +79,26 @@ export function VideoForm({ content, onChange, event }: VideoFormProps) {
         </div>
       </div>
 
-      {videoType === 'youtube' ? (
+      {/* YouTube URL */}
+      {videoType === 'youtube' && (
         <div className="space-y-1.5">
-          <Label htmlFor="video-url">URL YouTube</Label>
+          <Label htmlFor="youtube-url">YouTube URL</Label>
           <Input
-            id="video-url"
+            id="youtube-url"
             type="url"
-            value={videoUrl}
-            onChange={(e) => onChange({ ...content, video_url: e.target.value })}
-            placeholder="https://www.youtube.com/watch?v=..."
+            value={youtubeUrl}
+            onChange={(e) => onChange({ ...content, youtube_url: e.target.value })}
+            placeholder="https://youtube.com/watch?v=..."
+            className="bg-card border-border/60"
           />
           <p className="text-muted-foreground text-xs">
-            Paste link YouTube video prewedding atau cinematic Anda.
+            Mendukung format: watch URL, short URL (youtu.be), atau embed URL.
           </p>
         </div>
-      ) : (
+      )}
+
+      {/* Video Upload */}
+      {videoType === 'upload' && (
         <MediaUpload
           mediaType="video"
           currentUrl={videoUrl}
@@ -82,20 +108,21 @@ export function VideoForm({ content, onChange, event }: VideoFormProps) {
             return url;
           }}
           onRemove={() => onChange({ ...content, video_url: '' })}
-          label="Upload Video"
+          label="Video File"
         />
       )}
 
+      {/* Photo Below Video */}
       <MediaUpload
         mediaType="image"
-        currentUrl={thumbnailUrl}
+        currentUrl={photoUrl}
         onUpload={async (file) => {
           const url = await handleUpload(file);
-          onChange({ ...content, thumbnail_url: url });
+          onChange({ ...content, photo_url: url });
           return url;
         }}
-        onRemove={() => onChange({ ...content, thumbnail_url: '' })}
-        label="Thumbnail (opsional)"
+        onRemove={() => onChange({ ...content, photo_url: '' })}
+        label="Photo Below Video (opsional)"
       />
     </div>
   );

@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { CoverForm } from './forms/cover-form';
 import { BrideGroomForm } from './forms/bride-groom-form';
+import { BrideForm } from './forms/bride-form';
+import { GroomForm } from './forms/groom-form';
 import { StoryForm } from './forms/story-form';
 import { VerseForm } from './forms/verse-form';
 import { CountdownForm } from './forms/countdown-form';
 import { AkadResepsiForm } from './forms/akad-resepsi-form';
 import { RsvpForm } from './forms/rsvp-form';
-import { AttireForm } from './forms/attire-form';
 import { GalleryForm } from './forms/gallery-form';
 import { VideoForm } from './forms/video-form';
 import { GiftForm } from './forms/gift-form';
@@ -39,6 +40,7 @@ interface SectionEditorFormProps {
   onSave: (content: Record<string, unknown>) => Promise<void>;
   saving: boolean;
   event?: EventData | null;
+  onChange?: (content: Record<string, unknown>) => void;
 }
 
 export function SectionEditorForm({
@@ -47,16 +49,22 @@ export function SectionEditorForm({
   onSave,
   saving,
   event,
+  onChange,
 }: SectionEditorFormProps) {
   const [formData, setFormData] = useState<Record<string, unknown>>(content);
 
   const handleChange = (newData: Record<string, unknown>) => {
     setFormData(newData);
+    onChange?.(newData);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSave(formData);
+    // Strip preview-only fields that should not persist to the database
+    const { mock_messages, ...persistData } = formData as Record<string, unknown> & {
+      mock_messages?: unknown;
+    };
+    await onSave(persistData);
   };
 
   const renderForm = () => {
@@ -67,6 +75,10 @@ export function SectionEditorForm({
         return <CoverForm {...props} event={event} />;
       case 'bride_groom':
         return <BrideGroomForm {...props} event={event} />;
+      case 'bride':
+        return <BrideForm {...props} event={event} />;
+      case 'groom':
+        return <GroomForm {...props} event={event} />;
       case 'story':
         return <StoryForm {...props} event={event} />;
       case 'verse':
@@ -77,8 +89,6 @@ export function SectionEditorForm({
         return <AkadResepsiForm {...props} event={event} />;
       case 'rsvp':
         return <RsvpForm {...props} />;
-      case 'attire':
-        return <AttireForm {...props} event={event} />;
       case 'gallery':
         return <GalleryForm {...props} event={event} />;
       case 'video':

@@ -155,7 +155,6 @@ graph LR
 | Countdown                   | Hitung mundur ke hari-H + tombol "Tambah ke Kalender"                    |
 | Akad & Resepsi              | Detail waktu, tempat, dan link Google Maps                               |
 | Konfirmasi Kehadiran (RSVP) | Form konfirmasi: nama, pilihan acara, jumlah tamu                        |
-| Attire / Dress Code         | Panduan pakaian dan color palette                                        |
 | Photo Gallery               | Galeri foto prewedding dengan carousel/lightbox                          |
 | Video                       | Video prewedding atau cinematic                                          |
 | Wedding Gift                | Info rekening/transfer untuk kado digital                                |
@@ -463,7 +462,7 @@ erDiagram
     INVITATION_SECTION {
         uuid id PK
         uuid event_id FK
-        enum section_type "cover | bride_groom | story | verse | countdown | akad_resepsi | rsvp | attire | gallery | video | gift | messages | closing | music"
+        enum section_type "cover | bride_groom | story | verse | countdown | akad_resepsi | rsvp | gallery | video | gift | messages | closing | music"
         integer sort_order
         boolean is_active
         json content "section-specific content data"
@@ -502,7 +501,6 @@ Setiap section memiliki struktur `content` JSON yang berbeda sesuai tipe:
 | `countdown`    | `{ target_date, calendar_link }`                                              |
 | `akad_resepsi` | `{ akad: { date, time_start, time_end }, resepsi: { ... }, venue, maps_url }` |
 | `rsvp`         | `{ options: ["akad", "resepsi", "both", "decline"], max_plus_one }`           |
-| `attire`       | `{ description, outfit_image, color_palette: [hex_colors] }`                  |
 | `gallery`      | `{ photos: [{ url, caption, order }] }`                                       |
 | `video`        | `{ video_url, thumbnail_url, type: "youtube                                   | upload" }` |
 | `gift`         | `{ accounts: [{ bank, account_number, account_name }], description }`         |
@@ -847,6 +845,6 @@ _For any_ newly created event, if default theme application fails due to system 
 
 ### Property 22: File Upload Explicit Validation
 
-_For any_ file upload, the system SHALL explicitly validate file size (max 10MB) and format (JPEG, PNG, WebP for images; MP4, WebM for video) before processing, rejecting files that fail with specific error reasons.
+_For any_ file upload, the system SHALL explicitly validate file size (max 10MB) and format (JPEG, PNG, WebP, SVG for images; MP4, WebM for video) before processing, rejecting files that fail with specific error reasons.
 
 **Validates: Requirements 13.8, 13.9**

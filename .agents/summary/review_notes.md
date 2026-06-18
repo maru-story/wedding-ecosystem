@@ -9,7 +9,7 @@
 - **Zero-Cast Repository Policy** — Repositories now use explicit Prisma types; `as any` has been eliminated (Verified July 2026)
 - **Standardized Error Envelope** — All API errors now return a consistent JSON shape with `ErrorCode` enum values
 - **Package names** — Consistent `@wedding/*` naming convention throughout
-- **Port assignments** — Dashboard :3000, Invitation :3001, Scanner :3002, API :4000 consistent everywhere
+- **Port assignments** — Dashboard :3000, Scanner :3002, API :4000 consistent everywhere
 - **Scale constraints** — 1 event, 500 guests, single instance consistently documented
 - **Enum values** — All 11 enums match between `data_models.md` and `interfaces.md`
 - **API endpoint patterns** — Routes in `interfaces.md` match the service responsibilities in `components.md`

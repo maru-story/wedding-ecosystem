@@ -10,16 +10,17 @@ import type {
 
 // --- Constants ---
 
-/** All 14 section types in default sort order */
+/** All 15 section types in default sort order */
 export const DEFAULT_SECTION_ORDER: SectionType[] = [
   SectionType.COVER,
   SectionType.BRIDE_GROOM,
+  SectionType.BRIDE,
+  SectionType.GROOM,
   SectionType.STORY,
   SectionType.VERSE,
   SectionType.COUNTDOWN,
   SectionType.AKAD_RESEPSI,
   SectionType.RSVP,
-  SectionType.ATTIRE,
   SectionType.GALLERY,
   SectionType.VIDEO,
   SectionType.GIFT,
@@ -74,6 +75,9 @@ export interface EventRecord {
   resepsi_start: string;
   resepsi_end: string;
   status: EventStatus;
+  share_title?: string | null;
+  share_description?: string | null;
+  share_image_url?: string | null;
   created_at: Date;
 }
 
@@ -86,6 +90,7 @@ export interface EventConfigRecord {
   calendar_link: string | null;
   max_scanner_devices: number;
   max_guests: number;
+  max_gallery_photos: number;
   updated_at: Date;
 }
 
@@ -141,6 +146,7 @@ export interface EventRepository {
     calendar_link: string | null;
     max_scanner_devices: number;
     max_guests: number;
+    max_gallery_photos: number;
   }): Promise<EventConfigRecord>;
 
   createSection(data: {
@@ -182,13 +188,13 @@ export class EventService {
    * Implements:
    * - Req 11.7: Apply default theme on event creation. If theme application fails,
    *   still create the event without styling.
-   * - Req 5.10: Initialize 14 sections with unique, sequential sort_order starting from 1.
+   * - Req 5.10: Initialize 15 sections with unique, sequential sort_order starting from 1.
    *
    * The creation flow:
    * 1. Validate input and check slug uniqueness
    * 2. Create the event record (must always succeed)
    * 3. Attempt to apply default theme (graceful failure)
-   * 4. Initialize 14 default sections with sequential sort_order (graceful failure)
+   * 4. Initialize 16 default sections with sequential sort_order (graceful failure)
    */
   async createEvent(
     tenantId: string,
@@ -245,7 +251,7 @@ export class EventService {
       themeApplied = false;
     }
 
-    // Step 3: Initialize 14 sections with default sort_order (Req 5.10)
+    // Step 3: Initialize 15 sections with default sort_order (Req 5.10)
     let sections: SectionRecord[] = [];
     let sectionsInitialized = false;
 
@@ -275,7 +281,7 @@ export class EventService {
    */
   async applyDefaultTheme(eventId: string, tenantId: string): Promise<EventConfigRecord> {
     const plan = await this.repository.findTenantPlan(tenantId);
-    
+
     let maxGuests = 2000; // Fallback / Enterprise default
     if (plan === PlanType.BASIC) {
       maxGuests = 100;
@@ -292,12 +298,13 @@ export class EventService {
       calendar_link: null,
       max_scanner_devices: 2,
       max_guests: maxGuests,
+      max_gallery_photos: 30,
     });
   }
 
   /**
-   * Initialize all 14 sections with sequential sort_order (Req 5.10).
-   * Sort order is unique and sequential: 1, 2, 3, ..., 14 (no gaps).
+   * Initialize all 16 sections with sequential sort_order (Req 5.10).
+   * Sort order is unique and sequential: 1, 2, 3, ..., 15 (no gaps).
    * All sections start as active with empty content.
    */
   async initializeDefaultSections(eventId: string): Promise<SectionRecord[]> {

@@ -125,16 +125,17 @@ describe('CMSService', () => {
       );
     });
 
-    it('should support all 14 section types (Req 5.2)', () => {
-      expect(ALL_SECTION_TYPES).toHaveLength(14);
+    it('should support all 15 section types (Req 5.2)', () => {
+      expect(ALL_SECTION_TYPES).toHaveLength(15);
       expect(ALL_SECTION_TYPES).toContain(SectionType.COVER);
       expect(ALL_SECTION_TYPES).toContain(SectionType.BRIDE_GROOM);
+      expect(ALL_SECTION_TYPES).toContain(SectionType.BRIDE);
+      expect(ALL_SECTION_TYPES).toContain(SectionType.GROOM);
       expect(ALL_SECTION_TYPES).toContain(SectionType.STORY);
       expect(ALL_SECTION_TYPES).toContain(SectionType.VERSE);
       expect(ALL_SECTION_TYPES).toContain(SectionType.COUNTDOWN);
       expect(ALL_SECTION_TYPES).toContain(SectionType.AKAD_RESEPSI);
       expect(ALL_SECTION_TYPES).toContain(SectionType.RSVP);
-      expect(ALL_SECTION_TYPES).toContain(SectionType.ATTIRE);
       expect(ALL_SECTION_TYPES).toContain(SectionType.GALLERY);
       expect(ALL_SECTION_TYPES).toContain(SectionType.VIDEO);
       expect(ALL_SECTION_TYPES).toContain(SectionType.GIFT);
@@ -574,7 +575,7 @@ describe('CMSService', () => {
   });
 
   describe('initializeDefaultSections', () => {
-    it('should create all 14 sections with sequential sort_order (Req 5.2, 5.10)', async () => {
+    it('should create all 15 sections with sequential sort_order (Req 5.2, 5.10)', async () => {
       vi.mocked(repository.findEventById).mockResolvedValue({ id: 'event-001' });
       vi.mocked(repository.createSection).mockImplementation(async (data) => ({
         ...data,
@@ -585,14 +586,14 @@ describe('CMSService', () => {
 
       expect(isCMSError(result)).toBe(false);
       if (!isCMSError(result)) {
-        expect(result).toHaveLength(14);
+        expect(result).toHaveLength(15);
 
         // Verify sequential sort_order starting from 1
         for (let i = 0; i < result.length; i++) {
           expect(result[i].sort_order).toBe(i + 1);
         }
 
-        // Verify all 14 section types are created
+        // Verify all 15 section types are created
         const types = result.map((s) => s.section_type);
         expect(types).toEqual(ALL_SECTION_TYPES);
       }

@@ -163,7 +163,7 @@ function parseCSVLine(line: string, delimiter = ','): string[] {
 
 export interface ValidatedRow {
   name: string;
-  group: GuestGroup;
+  group: string;
   phone: string | undefined;
   plus_one_count: number;
 }
@@ -180,23 +180,23 @@ export function validateRow(row: CSVRow, existingNames: Set<string>): ValidatedR
   }
 
   // Check required field: grup
-  let grup = row.grup?.trim().toLowerCase();
-  if (!grup || grup === '') {
+  const grupRaw = row.grup?.trim();
+  if (!grupRaw || grupRaw === '') {
     return 'Grup tidak boleh kosong';
   }
 
-  // Normalize Indonesian group synonyms to standard enums
-  if (grup === 'keluarga') {
-    grup = 'family';
-  } else if (['teman', 'kawan', 'sahabat'].includes(grup)) {
-    grup = 'friend';
-  } else if (['rekan', 'kerja', 'kantor', 'rekan kerja'].includes(grup)) {
-    grup = 'colleague';
-  }
+  let grup = grupRaw;
+  const lowerGrup = grupRaw.toLowerCase();
 
-  // Validate group enum
-  if (!VALID_GROUPS.includes(grup)) {
-    return `Grup tidak valid: "${row.grup?.trim()}". Harus salah satu dari: ${VALID_GROUPS.join(', ')}`;
+  // Normalize Indonesian group synonyms to standard presets
+  if (lowerGrup === 'keluarga') {
+    grup = 'Keluarga';
+  } else if (['teman', 'kawan', 'sahabat'].includes(lowerGrup)) {
+    grup = 'Teman';
+  } else if (['rekan', 'kerja', 'kantor', 'rekan kerja'].includes(lowerGrup)) {
+    grup = 'Rekan Kerja';
+  } else if (lowerGrup === 'vip') {
+    grup = 'VIP';
   }
 
   // Check duplicate name within this import batch + event

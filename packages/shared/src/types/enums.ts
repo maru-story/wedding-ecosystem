@@ -10,10 +10,10 @@ export enum UserRole {
 
 /** Guest group classification (Req 3.1) */
 export enum GuestGroup {
-  FAMILY = 'family',
-  FRIEND = 'friend',
-  COLLEAGUE = 'colleague',
-  VIP = 'vip',
+  FAMILY = 'Keluarga',
+  FRIEND = 'Teman',
+  COLLEAGUE = 'Rekan Kerja',
+  VIP = 'VIP',
 }
 
 /** Guest type: invited or walk-in (Req 8.5) */
@@ -41,12 +41,13 @@ export enum CheckInMethod {
 export enum SectionType {
   COVER = 'cover',
   BRIDE_GROOM = 'bride_groom',
+  BRIDE = 'bride',
+  GROOM = 'groom',
   STORY = 'story',
   VERSE = 'verse',
   COUNTDOWN = 'countdown',
   AKAD_RESEPSI = 'akad_resepsi',
   RSVP = 'rsvp',
-  ATTIRE = 'attire',
   GALLERY = 'gallery',
   VIDEO = 'video',
   GIFT = 'gift',

@@ -35,6 +35,8 @@ function createMockRepository(): GuestRepository {
     countGuestsByEvent: vi.fn(async () => 0),
     findGuestNamesByEvent: vi.fn(),
     searchGuestsByName: vi.fn(),
+    findUniqueGroupsByEvent: vi.fn(async () => []),
+    reassignGroup: vi.fn(async () => 0),
   };
 }
 
@@ -712,6 +714,107 @@ describe('GuestService', () => {
 
     it('should return false for success results', () => {
       expect(isGuestError({ success: true })).toBe(false);
+    });
+  });
+
+  describe('reassignGroup', () => {
+    it('should reassign all guests from one group to another', async () => {
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        slug: 'wedding',
+      });
+      vi.mocked(repository.findUniqueGroupsByEvent).mockResolvedValue([
+        'Keluarga',
+        'Teman',
+        'Tetangga',
+      ]);
+      vi.mocked(repository.reassignGroup).mockResolvedValue(15);
+
+      const result = await service.reassignGroup('event-001', 'tenant-001', 'Tetangga', 'Teman');
+
+      expect(isGuestError(result)).toBe(false);
+      if (!isGuestError(result)) {
+        expect(result.updatedCount).toBe(15);
+      }
+
+      expect(repository.reassignGroup).toHaveBeenCalledWith(
+        'event-001',
+        'tenant-001',
+        'Tetangga',
+        'Teman'
+      );
+    });
+
+    it('should return error if event not found', async () => {
+      vi.mocked(repository.findEventById).mockResolvedValue(null);
+
+      const result = await service.reassignGroup('nonexistent', 'tenant-001', 'Tetangga', 'Teman');
+
+      expect(isGuestError(result)).toBe(true);
+      if (isGuestError(result)) {
+        expect(result.code).toBe(ErrorCode.NOT_FOUND);
+        expect(result.message).toBe('Event tidak ditemukan');
+      }
+    });
+
+    it('should return error if source group does not exist in event', async () => {
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        slug: 'wedding',
+      });
+      vi.mocked(repository.findUniqueGroupsByEvent).mockResolvedValue(['Keluarga', 'Teman']);
+
+      const result = await service.reassignGroup(
+        'event-001',
+        'tenant-001',
+        'NonExistentGroup',
+        'Teman'
+      );
+
+      expect(isGuestError(result)).toBe(true);
+      if (isGuestError(result)) {
+        expect(result.code).toBe(ErrorCode.NOT_FOUND);
+        expect(result.message).toContain('NonExistentGroup');
+      }
+
+      expect(repository.reassignGroup).not.toHaveBeenCalled();
+    });
+
+    it('should allow reassigning to a new group that does not exist yet', async () => {
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        slug: 'wedding',
+      });
+      vi.mocked(repository.findUniqueGroupsByEvent).mockResolvedValue(['Keluarga', 'Teman']);
+      vi.mocked(repository.reassignGroup).mockResolvedValue(5);
+
+      const result = await service.reassignGroup(
+        'event-001',
+        'tenant-001',
+        'Teman',
+        'Teman Kuliah'
+      );
+
+      expect(isGuestError(result)).toBe(false);
+      if (!isGuestError(result)) {
+        expect(result.updatedCount).toBe(5);
+      }
+    });
+
+    it('should return zero count when source group has no guests (edge case)', async () => {
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        slug: 'wedding',
+      });
+      vi.mocked(repository.findUniqueGroupsByEvent).mockResolvedValue(['VIP']);
+      vi.mocked(repository.reassignGroup).mockResolvedValue(0);
+
+      const result = await service.reassignGroup('event-001', 'tenant-001', 'VIP', 'Keluarga');
+
+      expect(isGuestError(result)).toBe(false);
+      if (!isGuestError(result)) {
+        expect(result.updatedCount).toBe(0);
+      }
     });
   });
 });
