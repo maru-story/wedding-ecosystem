@@ -65,6 +65,21 @@ export function useGuests({
 }
 
 /**
+ * Hook to fetch unique guest group names currently in use for the active event.
+ * Combines preset defaults with any custom groups added by the couple.
+ */
+export function useGuestGroups() {
+  return useQuery<string[]>({
+    queryKey: ['guest-groups'],
+    queryFn: async () => {
+      const res = await apiFetch<{ data: string[] }>('/guests/groups');
+      return res.data;
+    },
+    staleTime: 30_000, // 30s — groups change infrequently
+  });
+}
+
+/**
  * Mutation hook to create a new guest.
  */
 export function useCreateGuest() {
@@ -79,6 +94,7 @@ export function useCreateGuest() {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['guests-delivery-status'] });
+      queryClient.invalidateQueries({ queryKey: ['guest-groups'] });
     },
   });
 }
@@ -98,6 +114,8 @@ export function useUpdateGuest() {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['guests-delivery-status'] });
+      queryClient.invalidateQueries({ queryKey: ['guest-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['rsvp-list'] });
     },
   });
 }
@@ -116,6 +134,7 @@ export function useDeleteGuest() {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['guests-delivery-status'] });
+      queryClient.invalidateQueries({ queryKey: ['guest-groups'] });
     },
   });
 }
@@ -135,6 +154,30 @@ export function useBulkDeleteGuests() {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['guests-delivery-status'] });
+      queryClient.invalidateQueries({ queryKey: ['guest-groups'] });
+    },
+  });
+}
+
+/**
+ * Mutation hook to reassign all guests from one group to another.
+ */
+export function useReassignGroup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { from: string; to: string }) =>
+      apiFetch<{ success: boolean; updated_count: number; message: string }>(
+        '/guests/groups/reassign',
+        {
+          method: 'PATCH',
+          body: payload,
+        }
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests'] });
+      queryClient.invalidateQueries({ queryKey: ['guest-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['rsvp-list'] });
     },
   });
 }
@@ -490,6 +533,7 @@ export function useImportGuests() {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['guests-delivery-status'] });
+      queryClient.invalidateQueries({ queryKey: ['guest-groups'] });
     },
   });
 }

@@ -6,10 +6,13 @@ import { PlanType } from '@wedding/shared';
 import {
   DEFAULT_MAX_GUESTS,
   DEFAULT_MAX_SCANNER_DEVICES,
+  DEFAULT_MAX_GALLERY_PHOTOS,
   QUOTA_MAX_GUESTS_MIN,
   QUOTA_MAX_GUESTS_MAX,
   QUOTA_MAX_SCANNER_MIN,
   QUOTA_MAX_SCANNER_MAX,
+  QUOTA_MAX_GALLERY_PHOTOS_MIN,
+  QUOTA_MAX_GALLERY_PHOTOS_MAX,
   ADMIN_PER_PAGE,
 } from '@/lib/constants';
 import { Badge } from '@/components/ui/badge';
@@ -149,15 +152,19 @@ export default function AdminTenantsPage() {
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
   const [isSavingQuota, setIsSavingQuota] = useState(false);
   const [quotaInputs, setQuotaInputs] = useState<
-    Record<string, { max_guests: number; max_scanner_devices: number }>
+    Record<string, { max_guests: number; max_scanner_devices: number; max_gallery_photos: number }>
   >({});
 
   useEffect(() => {
-    const initialInputs: Record<string, { max_guests: number; max_scanner_devices: number }> = {};
+    const initialInputs: Record<
+      string,
+      { max_guests: number; max_scanner_devices: number; max_gallery_photos: number }
+    > = {};
     tenantEvents.forEach((event) => {
       initialInputs[event.id] = {
         max_guests: event.event_config?.max_guests ?? DEFAULT_MAX_GUESTS,
         max_scanner_devices: event.event_config?.max_scanner_devices ?? DEFAULT_MAX_SCANNER_DEVICES,
+        max_gallery_photos: event.event_config?.max_gallery_photos ?? DEFAULT_MAX_GALLERY_PHOTOS,
       };
     });
     setQuotaInputs(initialInputs);
@@ -205,7 +212,7 @@ export default function AdminTenantsPage() {
 
   const handleQuotaInputChange = (
     eventId: string,
-    field: 'max_guests' | 'max_scanner_devices',
+    field: 'max_guests' | 'max_scanner_devices' | 'max_gallery_photos',
     value: number
   ) => {
     setQuotaInputs((prev) => ({
@@ -227,6 +234,7 @@ export default function AdminTenantsPage() {
             body: {
               max_guests: quotaInputs[event.id]?.max_guests,
               max_scanner_devices: quotaInputs[event.id]?.max_scanner_devices,
+              max_gallery_photos: quotaInputs[event.id]?.max_gallery_photos,
             },
           })
         )
@@ -500,15 +508,21 @@ export default function AdminTenantsPage() {
                 </div>
                 <div className="flex items-center justify-between text-sm pt-2 border-t border-border/40 mt-2">
                   <span className="text-muted-foreground font-medium">Nama Client:</span>
-                  <span className="text-foreground font-semibold">{detailTenant.client_name || '-'}</span>
+                  <span className="text-foreground font-semibold">
+                    {detailTenant.client_name || '-'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-medium">Username Client:</span>
-                  <span className="text-foreground font-mono text-xs">{detailTenant.client_username || '-'}</span>
+                  <span className="text-foreground font-mono text-xs">
+                    {detailTenant.client_username || '-'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-medium">Email Client:</span>
-                  <span className="text-foreground font-semibold">{detailTenant.client_email || '-'}</span>
+                  <span className="text-foreground font-semibold">
+                    {detailTenant.client_email || '-'}
+                  </span>
                 </div>
               </div>
 
@@ -793,10 +807,10 @@ export default function AdminTenantsPage() {
           <DialogHeader className="mb-4">
             <DialogTitle className="text-foreground animate-in fade-in flex items-center gap-2 text-xl font-bold duration-200">
               <SlidersHorizontal className="h-5 w-5 text-indigo-500" />
-              Kelola Kuota Tamu & Perangkat
+              Kelola Kuota Event
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Atur batas maksimal tamu dan scanner untuk tenant{' '}
+              Atur batas maksimal tamu, scanner, dan foto galeri untuk tenant{' '}
               <strong>{selectedTenant?.name}</strong>.
             </DialogDescription>
           </DialogHeader>
@@ -869,6 +883,33 @@ export default function AdminTenantsPage() {
                           handleQuotaInputChange(
                             event.id,
                             'max_scanner_devices',
+                            parseInt(e.target.value, 10) || 0
+                          )
+                        }
+                        required
+                        className="border-border/60 bg-card focus-visible:ring-primary/20 rounded-lg"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor={`max_gallery_${event.id}`}
+                        className="text-muted-foreground text-xs font-bold"
+                      >
+                        Maksimal Foto Galeri (max_gallery_photos)
+                      </Label>
+                      <Input
+                        id={`max_gallery_${event.id}`}
+                        type="number"
+                        min={QUOTA_MAX_GALLERY_PHOTOS_MIN}
+                        max={QUOTA_MAX_GALLERY_PHOTOS_MAX}
+                        value={
+                          quotaInputs[event.id]?.max_gallery_photos ?? DEFAULT_MAX_GALLERY_PHOTOS
+                        }
+                        onChange={(e) =>
+                          handleQuotaInputChange(
+                            event.id,
+                            'max_gallery_photos',
                             parseInt(e.target.value, 10) || 0
                           )
                         }

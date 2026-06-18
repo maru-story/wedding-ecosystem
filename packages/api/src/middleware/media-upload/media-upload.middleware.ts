@@ -35,7 +35,7 @@ export function createMediaFileFilter() {
     if (!allowedMimes.includes(file.mimetype) && !(file.mimetype === 'audio/mp3')) {
       cb(
         new Error(
-          `Format file tidak didukung: ${file.mimetype}. Format yang didukung: JPEG, PNG, WebP (gambar), MP4, WebM (video), dan MP3 (audio).`
+          `Format file tidak didukung: ${file.mimetype}. Format yang didukung: JPEG, PNG, WebP, SVG (gambar), MP4, WebM (video), dan MP3 (audio).`
         ),
         false
       );
@@ -53,7 +53,7 @@ export function createMediaFileFilter() {
     ) {
       cb(
         new Error(
-          'Ekstensi file tidak sesuai dengan tipe file. Format yang didukung: JPEG, PNG, WebP (gambar), MP4, WebM (video), dan MP3 (audio).'
+          'Ekstensi file tidak sesuai dengan tipe file. Format yang didukung: JPEG, PNG, WebP, SVG (gambar), MP4, WebM (video), dan MP3 (audio).'
         ),
         false
       );

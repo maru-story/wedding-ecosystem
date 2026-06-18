@@ -187,7 +187,7 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
 - [x] 9. Implement CMS service
   - [x] 9.1 Implement CMS CRUD for invitation sections
     - Create `packages/api/src/services/cms.service.ts`
-    - Implement CRUD for 14 section types (cover, bride_groom, story, verse, countdown, akad_resepsi, rsvp, attire, gallery, video, gift, messages, closing, music)
+    - Implement CRUD for 16 section types (cover, bride_groom, bride, groom, story, verse, countdown, akad_resepsi, rsvp, gallery, video, gift, messages, closing, music)
     - Implement section activation/deactivation
     - Implement sort_order management with auto-resequencing (sequential, no gaps, starting from 1)
     - Store section-specific content as JSON per section type
@@ -195,7 +195,7 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
 
   - [x] 9.2 Implement media upload with validation
     - Implement file upload endpoint with Multer + Cloud Storage
-    - Validate file format (JPEG, PNG, WebP for images; MP4, WebM for video)
+    - Validate file format (JPEG, PNG, WebP, SVG for images; MP4, WebM for video)
     - Validate file size (max 5MB photos, 50MB video, 10MB general)
     - Implement virus scan integration
     - Return specific error messages for validation failures
@@ -265,7 +265,7 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
 
   - [x] 13.3 Implement CMS Editor pages
     - Create section list with drag-and-drop reordering
-    - Create section editor forms for each of 14 section types
+    - Create section editor forms for each of 16 section types
     - Implement media upload UI with format/size validation feedback
     - Implement section activation/deactivation toggles
     - Create invitation preview page
@@ -385,7 +385,7 @@ This plan implements a multi-tenant Wedding Digital SaaS platform consisting of 
   - [x] 17.2 Implement default theme and event creation flow
     - Apply default theme (dashboard + invitation) on new event creation
     - Handle theme application failure gracefully (create event without styling)
-    - Initialize 14 sections with default sort_order on event creation
+    - Initialize 16 sections with default sort_order on event creation
     - _Requirements: 11.7, 5.10_
 
   - [x]\* 17.3 Write integration tests for end-to-end flows

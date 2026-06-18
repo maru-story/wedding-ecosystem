@@ -10,7 +10,6 @@ graph TB
         Realtime["@wedding/realtime"]
         API["@wedding/api"]
         Dashboard["@wedding/dashboard"]
-        Invitation["@wedding/invitation"]
         Scanner["@wedding/scanner"]
     end
 
@@ -20,7 +19,6 @@ graph TB
     DB --> Shared
     Realtime --> Shared
     Dashboard --> Shared
-    Invitation --> Shared
     Scanner --> Shared
 ```
 
@@ -88,18 +86,6 @@ graph TB
 | `shadcn`                   | 4.7.0    | Component CLI                            |
 | `tw-animate-css`           | 1.4.0    | Animation utilities                      |
 
-### @wedding/invitation (Frontend)
-
-| Package               | Version | Purpose                                 |
-| --------------------- | ------- | --------------------------------------- |
-| `next`                | 16.2.6  | React framework (SSR for performance)   |
-| `react` / `react-dom` | 19.2.6  | UI library                              |
-| `motion`              | 12.38.0 | Animation library (section transitions) |
-| `react-hook-form`     | 7.75.0  | RSVP form handling                      |
-| `@hookform/resolvers` | 5.2.2   | Zod resolver for react-hook-form        |
-| `zod`                 | 3.25.3  | RSVP form validation                    |
-| `clsx`                | 2.1.1   | Conditional class names                 |
-| `tailwind-merge`      | 3.3.0   | Merge Tailwind classes                  |
 
 ### @wedding/scanner (Frontend PWA)
 

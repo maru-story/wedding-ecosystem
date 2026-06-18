@@ -97,9 +97,9 @@ Wedding Digital SaaS adalah platform multi-tenant yang menyediakan ekosistem len
 #### Acceptance Criteria
 
 1. THE Dashboard SHALL menyediakan CMS editor untuk mengelola konten setiap section undangan
-2. THE CMS SHALL mendukung 14 tipe section: cover, bride_groom, story, verse, countdown, akad_resepsi, rsvp, attire, gallery, video, gift, messages, closing, dan music
+2. THE CMS SHALL mendukung 13 tipe section: cover, bride_groom, story, verse, countdown, akad_resepsi, rsvp, gallery, video, gift, messages, closing, dan music
 3. WHEN client mengaktifkan atau menonaktifkan sebuah section, THE Invitation_App SHALL hanya menampilkan section yang aktif sesuai urutan sort_order
-4. THE CMS SHALL mendukung upload media (foto dan video) dengan validasi format (JPEG, PNG, WebP untuk foto; MP4 untuk video) dan ukuran file maksimal 5MB per foto dan 50MB per video
+4. THE CMS SHALL mendukung upload media (foto dan video) dengan validasi format (JPEG, PNG, WebP, SVG untuk foto; MP4 untuk video) dan ukuran file maksimal 5MB per foto dan 50MB per video
 5. IF upload media gagal karena file melebihi batas ukuran atau format tidak termasuk dalam daftar yang didukung, THEN THE Dashboard SHALL menampilkan pesan error yang menyebutkan format yang didukung dan batas ukuran maksimal
 6. WHEN konten section diubah dan disimpan melalui CMS, THE Backend_API SHALL menyimpan perubahan dan Invitation_App SHALL menampilkan konten terbaru pada pemuatan halaman berikutnya
 7. IF penyimpanan konten section gagal, THEN THE Dashboard SHALL menampilkan pesan error dan mempertahankan data yang sudah diisi oleh client di form editor
@@ -228,7 +228,7 @@ Wedding Digital SaaS adalah platform multi-tenant yang menyediakan ekosistem len
 5. THE Backend_API SHALL memvalidasi semua input di sisi server sebelum memproses, termasuk tipe data, panjang string (maksimal 1000 karakter untuk field teks), dan format field (email, phone)
 6. IF input tidak lolos validasi server, THEN THE Backend_API SHALL menolak request dan mengembalikan pesan error yang menyebutkan field mana yang gagal beserta alasan spesifiknya
 7. THE Backend_API SHALL menerapkan CORS policy yang hanya mengizinkan request dari origin domain yang terdaftar untuk masing-masing aplikasi (Dashboard, Invitation_App, Scanner_System)
-8. THE Backend_API SHALL melakukan virus scan dan validasi tipe file pada setiap upload media, dengan batasan ukuran file maksimal 10MB dan hanya menerima format gambar (JPEG, PNG, WebP) serta video (MP4, WebM), dimana validasi ukuran dan format dilakukan secara eksplisit sebelum memproses file
+8. THE Backend_API SHALL melakukan virus scan dan validasi tipe file pada setiap upload media, dengan batasan ukuran file maksimal 10MB dan hanya menerima format gambar (JPEG, PNG, WebP, SVG) serta video (MP4, WebM), dimana validasi ukuran dan format dilakukan secara eksplisit sebelum memproses file
 9. IF file upload tidak lolos validasi keamanan, THEN THE Backend_API SHALL menolak upload dan mengembalikan pesan error yang menyebutkan alasan penolakan spesifik (ukuran melebihi batas, format tidak didukung, atau terdeteksi malware)
 
 ### Requirement 14: Notifikasi dan Distribusi Undangan

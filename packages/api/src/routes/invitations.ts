@@ -26,9 +26,13 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
     const params = validate(request.params, paramsSchema, reply);
     if (!params) return reply;
 
+    const isPreview = params.guestSlug === 'preview';
+
     // Find event by slug
     const event = await prisma.event.findFirst({
-      where: { slug: params.eventSlug, status: 'published' },
+      where: isPreview 
+        ? { slug: params.eventSlug }
+        : { slug: params.eventSlug, status: 'published' },
     });
 
     if (!event) {
@@ -38,31 +42,51 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
       });
     }
 
-    // Find guest by slug within the event
-    const guest = await prisma.guest.findFirst({
-      where: { slug: params.guestSlug, event_id: event.id },
-      include: {
-        qr_codes: {
-          where: { is_active: true },
-          take: 1,
+    // Handle preview guest or fetch real guest
+    let guest;
+    if (isPreview) {
+      const query = request.query as Record<string, string> | undefined;
+      guest = {
+        id: '00000000-0000-0000-0000-000000000000',
+        name: query?.to || 'Nama Tamu Preview',
+        slug: 'preview',
+        group: 'Preview',
+        plus_one_count: 0,
+        qr_codes: [],
+        rsvps: [],
+      };
+    } else {
+      guest = await prisma.guest.findFirst({
+        where: { slug: params.guestSlug, event_id: event.id },
+        include: {
+          qr_codes: {
+            where: { is_active: true },
+            take: 1,
+          },
+          rsvps: {
+            orderBy: { submitted_at: 'desc' },
+            take: 1,
+          },
         },
-      },
-    });
-
-    if (!guest) {
-      return reply.status(404).send({
-        success: false,
-        error: { code: ErrorCode.NOT_FOUND, message: 'Tamu tidak ditemukan' },
       });
+
+      if (!guest) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: ErrorCode.NOT_FOUND, message: 'Tamu tidak ditemukan' },
+        });
+      }
     }
 
-    // Fetch event config (theme) and active sections in parallel
+    // Fetch event config (theme) and sections in parallel
     const [eventConfig, sections] = await Promise.all([
       prisma.eventConfig.findFirst({
         where: { event_id: event.id },
       }),
       prisma.invitationSection.findMany({
-        where: { event_id: event.id, is_active: true },
+        where: isPreview 
+          ? { event_id: event.id }
+          : { event_id: event.id, is_active: true },
         orderBy: { sort_order: 'asc' },
       }),
     ]);
@@ -103,6 +127,12 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
         group: guest.group,
         plus_one_count: guest.plus_one_count,
         qr_payload: guest.qr_codes[0]?.qr_payload || null,
+        rsvp: guest.rsvps && guest.rsvps[0] ? {
+          id: guest.rsvps[0].id,
+          attendance: guest.rsvps[0].attendance,
+          guest_count: guest.rsvps[0].guest_count,
+          submitted_at: guest.rsvps[0].submitted_at.toISOString(),
+        } : null,
       },
       theme: invitationTheme,
       sections: sections.map((s) => ({

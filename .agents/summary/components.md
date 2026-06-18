@@ -6,8 +6,8 @@
 graph TB
     subgraph "Frontend Apps"
         D["Dashboard"]
-        I["Invitation"]
         S["Scanner"]
+        I["Invitation (Standalone)"]
     end
 
     subgraph "Backend Packages"
@@ -164,9 +164,9 @@ graph TB
 
     subgraph "Key Components"
         Layout["layout/DashboardLayout + Sidebar + Header"]
-        GuestTable["guests/GuestTable + Filters + AddModal + CSVImport + QRModal"]
+        GuestTable["guests/GuestTable + Filters + AddModal (Creatable Group) + CSVImport + QRModal"]
         CMSComp["cms/SectionList + SectionEditorForm + MediaUpload"]
-        Forms["cms/forms/ (14 section-specific forms)"]
+        Forms["cms/forms/ (15 section-specific forms — gallery supports multi-upload)"]
         UI["ui/ (shadcn: Button, Dialog, Table, Card, Select, etc. + DataTable)"]
     end
 
@@ -174,6 +174,7 @@ graph TB
         UseSocket["hooks/use-socket.ts"]
         UseStats["hooks/use-realtime-stats.ts"]
         UseTable["hooks/use-table-state.ts"]
+        UseGroups["hooks/queries → useGuestGroups (dynamic group names)"]
         AuthLib["lib/auth.ts"]
         APILib["lib/api.ts"]
         CMSLib["lib/cms.ts"]
@@ -181,40 +182,20 @@ graph TB
     end
 ```
 
-### Invitation (`apps/invitation`)
+#### Guest Group Design Pattern
 
-```mermaid
-graph TB
-    subgraph "App Router"
-        SlugPage["[eventSlug]/page.tsx<br/>(generateMetadata, SSR)"]
-        InvView["invitation-view.tsx<br/>(SectionRenderer)"]
-        Preview["preview/page.tsx"]
-    end
+Guest groups are **event-scoped free-text strings** (not a DB enum). The dashboard uses an inline `CreatableGroupSelect` component inside `add-guest-modal.tsx` that:
 
-    subgraph "14 Section Components"
-        Cover["InvitationCover"]
-        BrideGroom["BrideGroomSection"]
-        Story["StorySection"]
-        Verse["VerseSection"]
-        Countdown["CountdownSection"]
-        AkadResepsi["AkadResepsiSection"]
-        RSVP["RsvpSection + RsvpForm"]
-        Attire["AttireSection"]
-        Gallery["GallerySection"]
-        Video["VideoSection"]
-        Gift["GiftSection"]
-        Messages["MessagesSection"]
-        Closing["ClosingSection"]
-        Music["MusicPlayer"]
-    end
+- Loads existing groups via `useGuestGroups()` → `GET /guests/groups`
+- Merges them with 4 preset defaults: `Keluarga`, `Teman`, `Rekan Kerja`, `VIP`
+- Lets the couple type a new group name on-the-fly ("Buat grup: ...") without any prior setup
+- `GuestFilters` sources its group options from the same `useGuestGroups()` hook
+- `ManageGroupsModal` (`guests/components/manage-groups-modal.tsx`) allows bulk reassign of all guests from one group to another via `PATCH /guests/groups/reassign`. Accessible from the page header "Kelola Grup" button.
+- All guest mutation hooks (`useCreateGuest`, `useUpdateGuest`, `useDeleteGuest`, `useBulkDeleteGuests`, `useImportGuests`, `useReassignGroup`) invalidate the `['guest-groups']` and `['rsvp-list']` React Query caches on success
 
-    subgraph "Lib"
-        APIClient["lib/api.ts (fetchInvitationData, submitRsvp, submitMessage)"]
-        Personalization["lib/personalization.ts (URL → guest name)"]
-        SectionRendering["lib/section-rendering.ts"]
-        ThemeProvider["components/theme-provider.tsx"]
-    end
-```
+### Invitation (Standalone Repo: `wedding-ecosystem-invitation`)
+
+Aplikasi Invitation telah dipisahkan ke repository tersendiri. Aplikasi ini menggunakan Next.js 15, Tailwind v4 (CSS-first), dan Framer Motion, serta mengintegrasikan komponen UI kustom dari template `wedding-panji-gina` yang disesuaikan untuk berkomunikasi dengan API Fastify.
 
 ### Scanner (`apps/scanner`)
 

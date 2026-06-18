@@ -430,6 +430,7 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
           select: {
             max_guests: true,
             max_scanner_devices: true,
+            max_gallery_photos: true,
           },
         },
       },
@@ -454,6 +455,12 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
     const bodySchema = z.object({
       max_guests: z.number().int().min(1, 'Jumlah tamu minimal 1').max(100000).optional(),
       max_scanner_devices: z.number().int().min(1, 'Jumlah scanner minimal 1').max(10).optional(),
+      max_gallery_photos: z
+        .number()
+        .int()
+        .min(1, 'Jumlah foto galeri minimal 1')
+        .max(100)
+        .optional(),
     });
 
     const body = validate(request.body, bodySchema, reply);
@@ -481,6 +488,7 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
       update: {
         max_guests: body.max_guests,
         max_scanner_devices: body.max_scanner_devices,
+        max_gallery_photos: body.max_gallery_photos,
       },
       create: {
         event_id: params.eventId,
@@ -488,6 +496,7 @@ export async function adminRoutes(app: FastifyInstance, opts: AdminRouteOptions)
         active_sections: [],
         max_guests: body.max_guests ?? 2000,
         max_scanner_devices: body.max_scanner_devices ?? 2,
+        max_gallery_photos: body.max_gallery_photos ?? 30,
       },
     });
 

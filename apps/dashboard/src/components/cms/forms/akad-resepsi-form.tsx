@@ -2,6 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 interface EventData {
   event_date?: string | null;
@@ -31,6 +34,11 @@ export function AkadResepsiForm({ content, onChange, event }: AkadResepsiFormPro
   const resepsi = (content.resepsi as EventTime) || { date: '', time_start: '', time_end: '' };
   const venue = (content.venue as string) || '';
   const mapsUrl = (content.maps_url as string) || '';
+  
+  // New dynamic fields
+  const introText = (content.intro_text as string) || '';
+  const venueAddress = (content.venue_address as string) || '';
+  const mapsButtonText = (content.maps_button_text as string) || '';
 
   const updateEvent = (type: 'akad' | 'resepsi', field: keyof EventTime, value: string) => {
     const current = type === 'akad' ? akad : resepsi;
@@ -59,6 +67,7 @@ export function AkadResepsiForm({ content, onChange, event }: AkadResepsiFormPro
         time_end: event.resepsi_end || resepsi.time_end,
       },
       venue: event.venue_name || venue,
+      venue_address: event.venue_address || venueAddress,
       maps_url: event.venue_maps_url || mapsUrl,
     });
   };
@@ -137,6 +146,18 @@ export function AkadResepsiForm({ content, onChange, event }: AkadResepsiFormPro
         </div>
       )}
 
+      {/* Intro Text */}
+      <div className="space-y-1.5">
+        <Label htmlFor="intro-text">Kalimat Pengantar (Intro Text)</Label>
+        <Textarea
+          id="intro-text"
+          value={introText}
+          onChange={(e) => onChange({ ...content, intro_text: e.target.value })}
+          placeholder="Contoh: Tanpa mengurangi rasa hormat, kami mengundang bapak/ibu..."
+          rows={3}
+        />
+      </div>
+
       {renderEventForm('akad', 'Akad Nikah')}
       {renderEventForm('resepsi', 'Resepsi')}
 
@@ -151,6 +172,17 @@ export function AkadResepsiForm({ content, onChange, event }: AkadResepsiFormPro
           onChange={(e) => onChange({ ...content, venue: e.target.value })}
           placeholder="Contoh: Hotel Grand Ballroom"
           className="focus:border-primary focus:ring-primary/20 mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="venue-address">Alamat Venue</Label>
+        <Textarea
+          id="venue-address"
+          value={venueAddress}
+          onChange={(e) => onChange({ ...content, venue_address: e.target.value })}
+          placeholder="Contoh: Jl. Menado No 8, Merdeka, Kec. Sumur Bandung, Kota Bandung, Jawa Barat 40113"
+          rows={2}
         />
       </div>
 
@@ -169,6 +201,17 @@ export function AkadResepsiForm({ content, onChange, event }: AkadResepsiFormPro
         <p className="mt-1 text-xs text-gray-500">
           Link ini akan ditampilkan sebagai tombol navigasi di undangan.
         </p>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="maps-button-text">Teks Tombol Maps</Label>
+        <Input
+          id="maps-button-text"
+          type="text"
+          value={mapsButtonText}
+          onChange={(e) => onChange({ ...content, maps_button_text: e.target.value })}
+          placeholder="Contoh: View Maps / Buka Peta"
+        />
       </div>
     </div>
   );

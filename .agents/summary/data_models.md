@@ -53,23 +53,26 @@ Platform user with role-based access, scoped to a tenant.
 
 Wedding event owned by a tenant.
 
-| Field            | Type        | Constraints      | Description              |
-| ---------------- | ----------- | ---------------- | ------------------------ |
-| `id`             | UUID        | PK               | Unique identifier        |
-| `tenant_id`      | UUID        | FK → Tenant      | Owning tenant            |
-| `slug`           | String      | Unique           | URL slug for invitation  |
-| `bride_name`     | String      | Required         | Bride's name             |
-| `groom_name`     | String      | Required         | Groom's name             |
-| `event_date`     | DateTime    | Required         | Wedding date             |
-| `venue_name`     | String      | Required         | Venue name               |
-| `venue_address`  | String      | Required         | Full address             |
-| `venue_maps_url` | String      | Required         | Google Maps link         |
-| `akad_start`     | String      | Required         | Akad ceremony start time |
-| `akad_end`       | String      | Required         | Akad ceremony end time   |
-| `resepsi_start`  | String      | Required         | Reception start time     |
-| `resepsi_end`    | String      | Required         | Reception end time       |
-| `status`         | EventStatus | Default: `draft` | Publication state        |
-| `created_at`     | DateTime    | Auto             | Creation timestamp       |
+| Field               | Type        | Constraints      | Description               |
+| ------------------- | ----------- | ---------------- | ------------------------- |
+| `id`                | UUID        | PK               | Unique identifier         |
+| `tenant_id`         | UUID        | FK → Tenant      | Owning tenant             |
+| `slug`              | String      | Unique           | URL slug for invitation   |
+| `bride_name`        | String      | Required         | Bride's name              |
+| `groom_name`        | String      | Required         | Groom's name              |
+| `event_date`        | DateTime    | Required         | Wedding date              |
+| `venue_name`        | String      | Required         | Venue name                |
+| `venue_address`     | String      | Required         | Full address              |
+| `venue_maps_url`    | String      | Required         | Google Maps link          |
+| `akad_start`        | String      | Required         | Akad ceremony start time  |
+| `akad_end`          | String      | Required         | Akad ceremony end time    |
+| `resepsi_start`     | String      | Required         | Reception start time      |
+| `resepsi_end`       | String      | Required         | Reception end time        |
+| `status`            | EventStatus | Default: `draft` | Publication state         |
+| `share_title`       | String      | Nullable         | SEO sharing title         |
+| `share_description` | String      | Nullable         | SEO sharing description   |
+| `share_image_url`   | String      | Nullable         | SEO sharing thumbnail URL |
+| `created_at`        | DateTime    | Auto             | Creation timestamp        |
 
 **Indexes**: `[tenant_id]`, `[slug]`
 
@@ -93,22 +96,24 @@ Event configuration including theme and section settings.
 
 Guest record within an event, directly tenant-scoped for query performance.
 
-| Field             | Type           | Constraints         | Description                     |
-| ----------------- | -------------- | ------------------- | ------------------------------- |
-| `id`              | UUID           | PK                  | Unique identifier               |
-| `event_id`        | UUID           | FK → Event          | Parent event                    |
-| `tenant_id`       | UUID           | Required            | Denormalized for fast filtering |
-| `name`            | String         | Required            | Guest full name                 |
-| `slug`            | String         | Required            | URL-friendly name               |
-| `phone`           | String?        | Optional            | Phone (encrypted at rest)       |
-| `group`           | GuestGroup     | Required            | Categorization                  |
-| `type`            | GuestType      | Default: `invited`  | Invited vs go-show              |
-| `plus_one_count`  | Int            | Default: `0`        | Additional guests               |
-| `invitation_url`  | String?        | Optional            | Generated invitation link       |
-| `delivery_status` | DeliveryStatus | Default: `not_sent` | Invitation delivery status      |
-| `created_at`      | DateTime       | Auto                | Creation timestamp              |
+| Field             | Type           | Constraints         | Description                                                                                                                         |
+| ----------------- | -------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `id`              | UUID           | PK                  | Unique identifier                                                                                                                   |
+| `event_id`        | UUID           | FK → Event          | Parent event                                                                                                                        |
+| `tenant_id`       | UUID           | Required            | Denormalized for fast filtering                                                                                                     |
+| `name`            | String         | Required            | Guest full name                                                                                                                     |
+| `slug`            | String         | Required            | URL-friendly name                                                                                                                   |
+| `phone`           | String?        | Optional            | Phone (encrypted at rest)                                                                                                           |
+| `group`           | **String**     | Required            | Guest category — free text. Default presets: `Keluarga`, `Teman`, `Rekan Kerja`, `VIP`. Couples may define custom groups per event. |
+| `type`            | GuestType      | Default: `invited`  | Invited vs go-show                                                                                                                  |
+| `plus_one_count`  | Int            | Default: `0`        | Additional guests                                                                                                                   |
+| `invitation_url`  | String?        | Optional            | Generated invitation link                                                                                                           |
+| `delivery_status` | DeliveryStatus | Default: `not_sent` | Invitation delivery status                                                                                                          |
+| `created_at`      | DateTime       | Auto                | Creation timestamp                                                                                                                  |
 
 **Indexes**: `[tenant_id]`, `[event_id]`, `[slug]`, Unique `[event_id, slug]`
+
+> **Note**: `group` was migrated from a PostgreSQL `GuestGroup` enum to a plain `TEXT` column (migration: `20260617043307_change_guest_group_to_string`). Custom group names are event-scoped and do not bleed across tenants. The `GuestGroup` TypeScript enum in `@wedding/shared` now contains the Indonesian display-name presets (`Keluarga`, `Teman`, `Rekan Kerja`, `VIP`) and is used only as a UI constant, not as a DB constraint.
 
 ### QRCode
 
@@ -154,7 +159,7 @@ Check-in record for a guest at the venue.
 
 ### InvitationSection
 
-CMS section for an invitation (14 section types).
+CMS section for an invitation (15 section types: cover, bride_groom, bride, groom, story, verse, countdown, akad_resepsi, rsvp, gallery, video, gift, messages, closing, music).
 
 | Field          | Type        | Constraints     | Description              |
 | -------------- | ----------- | --------------- | ------------------------ |
@@ -224,11 +229,12 @@ classDiagram
         wo
         scanner
     }
-    class GuestGroup {
-        family
-        friend
-        colleague
-        vip
+    class GuestGroup_Presets {
+        Keluarga
+        Teman
+        RekanKerja
+        VIP
+        ..custom_strings..
     }
     class GuestType {
         invited
@@ -253,7 +259,6 @@ classDiagram
         countdown
         akad_resepsi
         rsvp
-        attire
         gallery
         video
         gift
@@ -319,7 +324,7 @@ classDiagram
 
 Content is a flexible JSON object whose shape depends on the `section_type`. Examples:
 
-- **cover**: `{ title, subtitle, background_image_url }`
+- **cover**: `{ title, subtitle, opening_text }`
 - **bride_groom**: `{ bride: {name, parents, photo_url}, groom: {...} }`
 - **akad_resepsi**: `{ akad: {date, time, venue}, resepsi: {...} }`
 - **gallery**: `{ images: [{url, caption}] }`

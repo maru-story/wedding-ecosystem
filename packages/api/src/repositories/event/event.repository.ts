@@ -59,6 +59,7 @@ export class PrismaEventRepository implements EventRepository {
     calendar_link: string | null;
     max_scanner_devices: number;
     max_guests: number;
+    max_gallery_photos: number;
   }): Promise<EventConfigRecord> {
     const config = await this.prisma.eventConfig.create({
       data: {
@@ -70,6 +71,7 @@ export class PrismaEventRepository implements EventRepository {
         calendar_link: data.calendar_link,
         max_scanner_devices: data.max_scanner_devices,
         max_guests: data.max_guests,
+        max_gallery_photos: data.max_gallery_photos,
       },
     });
 
@@ -162,6 +164,9 @@ export class PrismaEventRepository implements EventRepository {
         resepsi_start: data.resepsi_start,
         resepsi_end: data.resepsi_end,
         status: data.status,
+        share_title: data.share_title,
+        share_description: data.share_description,
+        share_image_url: data.share_image_url,
       },
     });
 

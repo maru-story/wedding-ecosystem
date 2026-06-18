@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { GuestGroup } from '@wedding/shared';
 import { ApiError } from '@/lib/api';
 import type { GuestListItem } from '../page';
-import { useCreateGuest, useUpdateGuest } from '@/hooks/queries';
+import { useCreateGuest, useUpdateGuest, useGuestGroups } from '@/hooks/queries';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -16,13 +16,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { ChevronDown, Check, Plus } from 'lucide-react';
+
+/** Default preset groups always available in the dropdown. */
+const DEFAULT_GROUPS: string[] = [
+  GuestGroup.FAMILY,    // 'Keluarga'
+  GuestGroup.FRIEND,    // 'Teman'
+  GuestGroup.COLLEAGUE, // 'Rekan Kerja'
+  GuestGroup.VIP,       // 'VIP'
+];
 
 interface AddGuestModalProps {
   guest: GuestListItem | null;
@@ -30,18 +32,149 @@ interface AddGuestModalProps {
   onSaved: () => void;
 }
 
-const GROUP_OPTIONS: { value: GuestGroup; label: string }[] = [
-  { value: GuestGroup.FAMILY, label: 'Keluarga' },
-  { value: GuestGroup.FRIEND, label: 'Teman' },
-  { value: GuestGroup.COLLEAGUE, label: 'Rekan Kerja' },
-  { value: GuestGroup.VIP, label: 'VIP' },
-];
+/** Merge unique groups: presets first, then additional custom ones. */
+function mergeGroups(apiGroups: string[] = []): string[] {
+  const seen = new Set<string>(DEFAULT_GROUPS);
+  const merged = [...DEFAULT_GROUPS];
+  for (const g of apiGroups) {
+    if (!seen.has(g)) {
+      seen.add(g);
+      merged.push(g);
+    }
+  }
+  return merged;
+}
+
+/** Inline Creatable Group Select — no external deps, matches design system. */
+function CreatableGroupSelect({
+  value,
+  onChange,
+  groups,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  groups: string[];
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setSearch('');
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const trimmed = search.trim();
+  const filtered = groups.filter((g) => g.toLowerCase().includes(trimmed.toLowerCase()));
+  const exactMatch = groups.some((g) => g.toLowerCase() === trimmed.toLowerCase());
+  const showCreate = trimmed.length > 0 && !exactMatch;
+
+  function select(val: string) {
+    onChange(val);
+    setOpen(false);
+    setSearch('');
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      {/* Trigger */}
+      <button
+        type="button"
+        id="guest-group"
+        onClick={() => {
+          setOpen((prev) => !prev);
+          setTimeout(() => inputRef.current?.focus(), 50);
+        }}
+        className="border-border/60 bg-card hover:bg-muted/10 flex h-9 w-full items-center justify-between rounded-lg border px-3 text-sm transition-colors"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span className={value ? 'text-foreground' : 'text-muted-foreground'}>
+          {value || 'Pilih atau buat grup...'}
+        </span>
+        <ChevronDown className="text-muted-foreground h-4 w-4 flex-shrink-0" />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="bg-card border-border/40 absolute top-full left-0 z-50 mt-1 w-full overflow-hidden rounded-lg border shadow-lg">
+          {/* Search Input */}
+          <div className="border-border/30 border-b p-2">
+            <Input
+              ref={inputRef}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari atau buat grup baru..."
+              className="bg-muted/20 border-border/40 h-8 text-sm"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (showCreate) select(trimmed);
+                  else if (filtered.length > 0) select(filtered[0]);
+                }
+                if (e.key === 'Escape') {
+                  setOpen(false);
+                  setSearch('');
+                }
+              }}
+            />
+          </div>
+
+          {/* Options list */}
+          <ul className="max-h-48 overflow-y-auto py-1" role="listbox">
+            {filtered.map((g) => (
+              <li
+                key={g}
+                role="option"
+                aria-selected={value === g}
+                onClick={() => select(g)}
+                className="hover:bg-accent/30 flex cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors"
+              >
+                <Check
+                  className={`h-3.5 w-3.5 flex-shrink-0 ${value === g ? 'opacity-100 text-primary' : 'opacity-0'}`}
+                />
+                {g}
+              </li>
+            ))}
+
+            {/* Create new group option */}
+            {showCreate && (
+              <li
+                role="option"
+                aria-selected={false}
+                onClick={() => select(trimmed)}
+                className="text-primary hover:bg-primary/10 flex cursor-pointer items-center gap-2 border-t border-dashed px-3 py-2 text-sm font-medium transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5 flex-shrink-0" />
+                Buat grup: &ldquo;{trimmed}&rdquo;
+              </li>
+            )}
+
+            {filtered.length === 0 && !showCreate && (
+              <li className="text-muted-foreground px-3 py-4 text-center text-sm">
+                Tidak ada grup ditemukan
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
   const isEditing = !!guest;
 
   const [name, setName] = useState(guest?.name || '');
-  const [group, setGroup] = useState<GuestGroup>(guest?.group || GuestGroup.FAMILY);
+  const [group, setGroup] = useState<string>(guest?.group || GuestGroup.FAMILY);
   const [phone, setPhone] = useState(() => {
     if (guest?.phone?.startsWith('+62')) {
       return guest.phone.slice(3);
@@ -53,7 +186,10 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
 
   const createGuest = useCreateGuest();
   const updateGuest = useUpdateGuest();
+  const { data: apiGroups } = useGuestGroups();
   const isSubmitting = createGuest.isPending || updateGuest.isPending;
+
+  const allGroups = mergeGroups(apiGroups);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -128,18 +264,12 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
             <Label htmlFor="guest-group" className="text-foreground">
               Grup <span className="text-destructive">*</span>
             </Label>
-            <Select value={group} onValueChange={(val) => setGroup(val as GuestGroup)}>
-              <SelectTrigger className="bg-card border-border/60 hover:bg-muted/10 w-full transition-colors">
-                <SelectValue placeholder="Pilih Grup" />
-              </SelectTrigger>
-              <SelectContent>
-                {GROUP_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <CreatableGroupSelect value={group} onChange={setGroup} groups={allGroups} />
+            {group && !DEFAULT_GROUPS.includes(group) && (
+              <p className="text-muted-foreground text-[11px]">
+                Grup kustom &ldquo;{group}&rdquo; akan dibuat untuk event ini.
+              </p>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -198,7 +328,7 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || !name.trim()}
+              disabled={isSubmitting || !name.trim() || !group.trim()}
               className="bg-primary hover:bg-primary/95 text-primary-foreground font-medium"
             >
               {isSubmitting ? 'Menyimpan...' : isEditing ? 'Simpan Perubahan' : 'Tambah Tamu'}

@@ -42,19 +42,22 @@ interface GuestTableProps {
   onClearSelection: () => void;
 }
 
-const GROUP_LABELS: Record<GuestGroup, string> = {
-  [GuestGroup.FAMILY]: 'Keluarga',
-  [GuestGroup.FRIEND]: 'Teman',
-  [GuestGroup.COLLEAGUE]: 'Rekan Kerja',
-  [GuestGroup.VIP]: 'VIP',
+/** Color classes for preset groups. Custom groups fall back to neutral. */
+const GROUP_COLORS: Record<string, string> = {
+  [GuestGroup.FAMILY]:    'bg-primary/15 text-foreground border-transparent hover:bg-primary/20',
+  [GuestGroup.FRIEND]:    'bg-accent/40 text-foreground border-transparent hover:bg-accent/50',
+  [GuestGroup.COLLEAGUE]: 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80',
+  [GuestGroup.VIP]:       'bg-copper/15 text-copper border-transparent font-semibold hover:bg-copper/20',
 };
 
-const GROUP_COLORS: Record<GuestGroup, string> = {
-  [GuestGroup.FAMILY]: 'bg-primary/15 text-foreground border-transparent hover:bg-primary/20',
-  [GuestGroup.FRIEND]: 'bg-accent/40 text-foreground border-transparent hover:bg-accent/50',
-  [GuestGroup.COLLEAGUE]: 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80',
-  [GuestGroup.VIP]: 'bg-copper/15 text-copper border-transparent font-semibold hover:bg-copper/20',
-};
+const CUSTOM_GROUP_COLOR = 'bg-muted/60 text-muted-foreground border-transparent hover:bg-muted';
+
+function getGroupBadge(group: string): { label: string; className: string } {
+  return {
+    label: group,
+    className: GROUP_COLORS[group] ?? CUSTOM_GROUP_COLOR,
+  };
+}
 
 function getRsvpLabel(status: string | null): { label: string; className: string } {
   switch (status) {
@@ -209,8 +212,8 @@ export function GuestTable({
                 </div>
               </TableCell>
               <TableCell className="px-4 py-3">
-                <Badge variant="outline" className={GROUP_COLORS[guest.group]}>
-                  {GROUP_LABELS[guest.group]}
+                <Badge variant="outline" className={getGroupBadge(guest.group).className}>
+                  {getGroupBadge(guest.group).label}
                 </Badge>
               </TableCell>
               <TableCell className="px-4 py-3">

@@ -10,6 +10,7 @@ import {
   DEFAULT_DASHBOARD_THEME,
   DEFAULT_INVITATION_THEME,
   isEventError,
+  EventServiceError,
 } from './event.service';
 import { ErrorCode, EventStatus, SectionType } from '@wedding/shared';
 
@@ -64,7 +65,7 @@ const TENANT_ID = 'tenant-123';
 
 describe('EventService', () => {
   describe('createEvent', () => {
-    it('should create event with default theme and 14 sections', async () => {
+    it('should create event with default theme and 15 sections', async () => {
       const repo = createMockRepository();
       const service = new EventService({ repository: repo });
 
@@ -87,10 +88,10 @@ describe('EventService', () => {
 
       // Sections initialized
       expect(result.sections_initialized).toBe(true);
-      expect(result.sections).toHaveLength(14);
+      expect(result.sections).toHaveLength(15);
     });
 
-    it('should initialize 14 sections with sequential sort_order starting from 1', async () => {
+    it('should initialize 15 sections with sequential sort_order starting from 1', async () => {
       const repo = createMockRepository();
       const service = new EventService({ repository: repo });
 
@@ -99,12 +100,12 @@ describe('EventService', () => {
       expect(isEventError(result)).toBe(false);
       if (isEventError(result)) return;
 
-      // Verify sort_order is sequential: 1, 2, 3, ..., 14
+      // Verify sort_order is sequential: 1, 2, 3, ..., 16
       for (let i = 0; i < result.sections.length; i++) {
         expect(result.sections[i].sort_order).toBe(i + 1);
       }
 
-      // Verify all 14 section types are present
+      // Verify all 15 section types are present
       const sectionTypes = result.sections.map((s) => s.section_type);
       expect(sectionTypes).toEqual(DEFAULT_SECTION_ORDER);
     });
@@ -123,9 +124,9 @@ describe('EventService', () => {
       for (let i = 0; i < sortOrders.length; i++) {
         expect(sortOrders[i]).toBe(i + 1);
       }
-      // First is 1, last is 14
+      // First is 1, last is 15
       expect(sortOrders[0]).toBe(1);
-      expect(sortOrders[sortOrders.length - 1]).toBe(14);
+      expect(sortOrders[sortOrders.length - 1]).toBe(15);
     });
 
     it('should apply default dashboard theme with correct colors', async () => {
@@ -190,7 +191,7 @@ describe('EventService', () => {
 
       // Sections still initialized (independent of theme)
       expect(result.sections_initialized).toBe(true);
-      expect(result.sections).toHaveLength(14);
+      expect(result.sections).toHaveLength(15);
     });
 
     it('should still create event when section initialization fails', async () => {
@@ -314,7 +315,7 @@ describe('EventService', () => {
       if (isEventError(result)) return;
 
       expect(result.config!.active_sections).toEqual(DEFAULT_SECTION_ORDER);
-      expect(result.config!.active_sections).toHaveLength(14);
+      expect(result.config!.active_sections).toHaveLength(15);
     });
 
     it('should set max_scanner_devices to 2 and max_guests to 2000 for enterprise plan', async () => {
@@ -362,8 +363,8 @@ describe('EventService', () => {
   });
 
   describe('DEFAULT_SECTION_ORDER', () => {
-    it('should contain exactly 14 section types', () => {
-      expect(DEFAULT_SECTION_ORDER).toHaveLength(14);
+    it('should contain exactly 15 section types', () => {
+      expect(DEFAULT_SECTION_ORDER).toHaveLength(15);
     });
 
     it('should contain all SectionType enum values', () => {
@@ -377,18 +378,19 @@ describe('EventService', () => {
     it('should have correct order matching design spec', () => {
       expect(DEFAULT_SECTION_ORDER[0]).toBe(SectionType.COVER);
       expect(DEFAULT_SECTION_ORDER[1]).toBe(SectionType.BRIDE_GROOM);
-      expect(DEFAULT_SECTION_ORDER[2]).toBe(SectionType.STORY);
-      expect(DEFAULT_SECTION_ORDER[3]).toBe(SectionType.VERSE);
-      expect(DEFAULT_SECTION_ORDER[4]).toBe(SectionType.COUNTDOWN);
-      expect(DEFAULT_SECTION_ORDER[5]).toBe(SectionType.AKAD_RESEPSI);
-      expect(DEFAULT_SECTION_ORDER[6]).toBe(SectionType.RSVP);
-      expect(DEFAULT_SECTION_ORDER[7]).toBe(SectionType.ATTIRE);
-      expect(DEFAULT_SECTION_ORDER[8]).toBe(SectionType.GALLERY);
-      expect(DEFAULT_SECTION_ORDER[9]).toBe(SectionType.VIDEO);
-      expect(DEFAULT_SECTION_ORDER[10]).toBe(SectionType.GIFT);
-      expect(DEFAULT_SECTION_ORDER[11]).toBe(SectionType.MESSAGES);
-      expect(DEFAULT_SECTION_ORDER[12]).toBe(SectionType.CLOSING);
-      expect(DEFAULT_SECTION_ORDER[13]).toBe(SectionType.MUSIC);
+      expect(DEFAULT_SECTION_ORDER[2]).toBe(SectionType.BRIDE);
+      expect(DEFAULT_SECTION_ORDER[3]).toBe(SectionType.GROOM);
+      expect(DEFAULT_SECTION_ORDER[4]).toBe(SectionType.STORY);
+      expect(DEFAULT_SECTION_ORDER[5]).toBe(SectionType.VERSE);
+      expect(DEFAULT_SECTION_ORDER[6]).toBe(SectionType.COUNTDOWN);
+      expect(DEFAULT_SECTION_ORDER[7]).toBe(SectionType.AKAD_RESEPSI);
+      expect(DEFAULT_SECTION_ORDER[8]).toBe(SectionType.RSVP);
+      expect(DEFAULT_SECTION_ORDER[9]).toBe(SectionType.GALLERY);
+      expect(DEFAULT_SECTION_ORDER[10]).toBe(SectionType.VIDEO);
+      expect(DEFAULT_SECTION_ORDER[11]).toBe(SectionType.GIFT);
+      expect(DEFAULT_SECTION_ORDER[12]).toBe(SectionType.MESSAGES);
+      expect(DEFAULT_SECTION_ORDER[13]).toBe(SectionType.CLOSING);
+      expect(DEFAULT_SECTION_ORDER[14]).toBe(SectionType.MUSIC);
     });
   });
 

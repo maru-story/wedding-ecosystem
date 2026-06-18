@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSocket, type ConnectionStatus } from '@/hooks/use-socket';
 import { useRealtimeStats } from '@/hooks/use-realtime-stats';
-import { useEvent, useRsvpList } from '@/hooks/queries';
+import { useEvent, useRsvpList, useGuestGroups } from '@/hooks/queries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,12 +21,28 @@ import { TableCell, TableHead, TableRow } from '@/components/ui/table';
 import { Users, CalendarCheck, CheckSquare, UserPlus, Search, RefreshCw } from 'lucide-react';
 import { FadeIn } from '@/components/ui/motion-wrapper';
 
-const groupLabelMap: Record<string, string> = {
-  family: 'Keluarga',
-  friend: 'Teman',
-  colleague: 'Rekan Kerja',
-  vip: 'VIP',
-};
+import { GuestGroup } from '@wedding/shared';
+
+/** Default preset groups always shown in the filter. */
+const DEFAULT_GROUPS: string[] = [
+  GuestGroup.FAMILY,
+  GuestGroup.FRIEND,
+  GuestGroup.COLLEAGUE,
+  GuestGroup.VIP,
+];
+
+/** Merge presets + any custom groups from API. */
+function mergeGroups(apiGroups: string[] = []): string[] {
+  const seen = new Set<string>(DEFAULT_GROUPS);
+  const merged = [...DEFAULT_GROUPS];
+  for (const g of apiGroups) {
+    if (!seen.has(g)) {
+      seen.add(g);
+      merged.push(g);
+    }
+  }
+  return merged;
+}
 
 /** Map attendance type to Bahasa Indonesia label */
 function getAttendanceLabel(attendance: string): string {
@@ -126,6 +142,9 @@ function DeliveryStatusBadge({ status }: { status: string }) {
 export default function RsvpTrackingPage() {
   const { data: eventData, isLoading: isEventLoading } = useEvent();
   const eventId = eventData?.id || null;
+
+  const { data: apiGroups } = useGuestGroups();
+  const allGroups = mergeGroups(apiGroups);
 
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -292,12 +311,13 @@ export default function RsvpTrackingPage() {
                 <SelectTrigger className="bg-card border-border/60 hover:bg-muted/30 w-[160px]">
                   <SelectValue placeholder="Semua Grup" />
                 </SelectTrigger>
-                <SelectContent>
+              <SelectContent>
                   <SelectItem value="all">Semua Grup</SelectItem>
-                  <SelectItem value="family">Keluarga</SelectItem>
-                  <SelectItem value="friend">Teman</SelectItem>
-                  <SelectItem value="colleague">Rekan Kerja</SelectItem>
-                  <SelectItem value="vip">VIP</SelectItem>
+                  {allGroups.map((g) => (
+                    <SelectItem key={g} value={g}>
+                      {g}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -391,7 +411,7 @@ export default function RsvpTrackingPage() {
                   variant="secondary"
                   className="bg-primary/10 text-primary border-primary/20 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase"
                 >
-                  {groupLabelMap[item.group || ''] || item.group || '-'}
+                  {item.group || '-'}
                 </Badge>
               </TableCell>
               <TableCell className="text-muted-foreground px-6 py-4 font-mono text-xs">

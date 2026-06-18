@@ -262,4 +262,51 @@ test.describe('Settings UI E2E', () => {
     const isNewPasswordValid = await bcrypt.compare('newpassword123', updatedUser!.password_hash);
     expect(isNewPasswordValid).toBe(true);
   });
+
+  test('should allow user to update SEO and share metadata settings successfully', async ({ page }) => {
+    // Navigate to local dashboard login page context first to allow setting localStorage
+    await page.goto('http://localhost:3000/login');
+
+    // Inject the generated tenant JWT token into localStorage
+    await page.evaluate(
+      ({ token, userId, tenantId, email }) => {
+        localStorage.setItem('wedding_access_token', token);
+        localStorage.setItem('wedding_refresh_token', 'dummy-refresh-token');
+        localStorage.setItem('wedding_token_expiry', (Date.now() + 3600000).toString());
+
+        const user = {
+          id: userId,
+          tenant_id: tenantId,
+          email: email,
+          name: 'Client Owner Settings',
+          role: 'client',
+        };
+        localStorage.setItem('wedding_user', JSON.stringify(user));
+      },
+      { token, userId, tenantId, email: userEmail }
+    );
+
+    // Navigate to /settings
+    await page.goto('http://localhost:3000/settings');
+
+    // Click on "Share & SEO" tab
+    await page.click('button[role="tab"]:has-text("Share & SEO")');
+
+    // Verify input fields exist and fill them
+    await page.fill('input[id="share_title"]', 'Undangan Nikah Romeo & Juliet');
+    await page.fill('textarea[id="share_description"]', 'Datang ya ke pernikahan kami pada 12 Oktober 2026!');
+
+    // Submit SEO form
+    await page.click('button[type="submit"]:has-text("Simpan SEO")');
+
+    // Verify successful toast message
+    await expect(page.locator('text=Pengaturan pernikahan berhasil disimpan!')).toBeVisible();
+
+    // Verify backend data was updated
+    const updatedEvent = await prisma.event.findFirst({
+      where: { tenant_id: tenantId },
+    });
+    expect(updatedEvent?.share_title).toBe('Undangan Nikah Romeo & Juliet');
+    expect(updatedEvent?.share_description).toBe('Datang ya ke pernikahan kami pada 12 Oktober 2026!');
+  });
 });

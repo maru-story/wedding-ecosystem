@@ -2,8 +2,6 @@
 
 import { MediaUpload } from '../media-upload';
 import { uploadMedia } from '@/lib/cms';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 
 interface EventData {
   id?: string;
@@ -16,9 +14,8 @@ interface ClosingFormProps {
 }
 
 export function ClosingForm({ content, onChange, event }: ClosingFormProps) {
-  const text = (content.text as string) || '';
-  const image = (content.image as string) || '';
-  const thankYouMessage = (content.thank_you_message as string) || '';
+  // Backward compat: read old 'image' key, prefer new 'photo_url'
+  const photoUrl = (content.photo_url as string) || (content.image as string) || '';
 
   const handleUpload = async (file: File): Promise<string> => {
     if (event?.id) {
@@ -30,38 +27,21 @@ export function ClosingForm({ content, onChange, event }: ClosingFormProps) {
 
   return (
     <div className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="closing-text">Teks Penutup</Label>
-        <Textarea
-          id="closing-text"
-          value={text}
-          onChange={(e) => onChange({ ...content, text: e.target.value })}
-          placeholder="Contoh: Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir..."
-          rows={3}
-        />
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="closing-thanks">Ucapan Terima Kasih</Label>
-        <Textarea
-          id="closing-thanks"
-          value={thankYouMessage}
-          onChange={(e) => onChange({ ...content, thank_you_message: e.target.value })}
-          placeholder="Contoh: Terima kasih atas doa dan restu yang diberikan."
-          rows={2}
-        />
+      <div className="border-primary/20 bg-primary/5 text-foreground rounded-lg border p-3 text-sm">
+        Foto ditampilkan di dalam frame pada halaman penutup undangan. Jika tidak diupload, foto
+        default akan digunakan.
       </div>
 
       <MediaUpload
         mediaType="image"
-        currentUrl={image}
+        currentUrl={photoUrl}
         onUpload={async (file) => {
           const url = await handleUpload(file);
-          onChange({ ...content, image: url });
+          onChange({ ...content, photo_url: url });
           return url;
         }}
-        onRemove={() => onChange({ ...content, image: '' })}
-        label="Foto Penutup (opsional)"
+        onRemove={() => onChange({ ...content, photo_url: '' })}
+        label="Closing Photo"
       />
     </div>
   );

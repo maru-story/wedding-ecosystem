@@ -20,6 +20,7 @@ export function VerseForm({ content, onChange, event }: VerseFormProps) {
   const text = (content.text as string) || '';
   const source = (content.source as string) || '';
   const backgroundImage = (content.background_image as string) || '';
+  const headerImage = (content.header_image as string) || '';
 
   const handleUpload = async (file: File): Promise<string> => {
     if (event?.id) {
@@ -52,6 +53,18 @@ export function VerseForm({ content, onChange, event }: VerseFormProps) {
           placeholder="Contoh: QS. Ar-Rum: 21"
         />
       </div>
+
+      <MediaUpload
+        mediaType="image"
+        currentUrl={headerImage}
+        onUpload={async (file) => {
+          const url = await handleUpload(file);
+          onChange({ ...content, header_image: url });
+          return url;
+        }}
+        onRemove={() => onChange({ ...content, header_image: '' })}
+        label="Kaligrafi / Ornamen Atas (opsional)"
+      />
 
       <MediaUpload
         mediaType="image"

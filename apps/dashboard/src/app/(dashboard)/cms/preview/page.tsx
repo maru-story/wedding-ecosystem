@@ -1,98 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { SECTION_TYPE_LABELS, SECTION_TYPE_ICONS } from '@/lib/cms';
-import type { InvitationSection } from '@/lib/cms';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { useEvent, useCmsSections } from '@/hooks/queries';
+import { useEvent } from '@/hooks/queries';
 import { Loader2 } from 'lucide-react';
-
-function PreviewSection({ section }: { section: InvitationSection }) {
-  const renderContent = () => {
-    switch (section.section_type) {
-      case 'cover': {
-        const { title, subtitle, opening_text } = section.content as {
-          title?: string;
-          subtitle?: string;
-          opening_text?: string;
-        };
-        return (
-          <div className="from-primary/10 flex flex-col items-center justify-center bg-gradient-to-b to-transparent py-16 text-center">
-            <p className="text-muted-foreground text-sm tracking-widest uppercase">
-              {title || 'The Wedding of'}
-            </p>
-            <h2 className="font-heading text-foreground mt-2 text-3xl font-bold">
-              {subtitle || 'Nama Mempelai'}
-            </h2>
-            <p className="text-muted-foreground mt-1 text-sm">Kepada Yth. Nama Tamu</p>
-            <Button className="mt-6 rounded-full" size="default">
-              {opening_text || 'Buka Undangan'}
-            </Button>
-          </div>
-        );
-      }
-      case 'bride_groom': {
-        const { bride, groom } = section.content as {
-          bride?: { name?: string; parent_info?: string };
-          groom?: { name?: string; parent_info?: string };
-        };
-        return (
-          <div className="grid grid-cols-2 gap-6 py-8 text-center">
-            <div>
-              <div className="bg-muted mx-auto h-24 w-24 rounded-full" />
-              <p className="font-heading mt-3 text-lg font-semibold">
-                {bride?.name || 'Mempelai Wanita'}
-              </p>
-              <p className="text-muted-foreground text-xs">
-                {bride?.parent_info || 'Putri dari ...'}
-              </p>
-            </div>
-            <div>
-              <div className="bg-muted mx-auto h-24 w-24 rounded-full" />
-              <p className="font-heading mt-3 text-lg font-semibold">
-                {groom?.name || 'Mempelai Pria'}
-              </p>
-              <p className="text-muted-foreground text-xs">
-                {groom?.parent_info || 'Putra dari ...'}
-              </p>
-            </div>
-          </div>
-        );
-      }
-      case 'verse': {
-        const { text, source } = section.content as { text?: string; source?: string };
-        return (
-          <div className="py-8 text-center italic">
-            <p className="text-foreground text-sm leading-relaxed">
-              &ldquo;{text || 'Ayat atau doa...'}&rdquo;
-            </p>
-            <p className="text-muted-foreground mt-2 text-xs not-italic">— {source || 'Sumber'}</p>
-          </div>
-        );
-      }
-      default: {
-        return (
-          <div className="py-8 text-center">
-            <span className="text-2xl">{SECTION_TYPE_ICONS[section.section_type]}</span>
-            <p className="text-muted-foreground mt-2 text-sm">
-              {SECTION_TYPE_LABELS[section.section_type]}
-            </p>
-          </div>
-        );
-      }
-    }
-  };
-
-  return <div className="border-border/40 border-b last:border-b-0">{renderContent()}</div>;
-}
 
 export default function PreviewPage() {
   const [deviceView, setDeviceView] = useState<'mobile' | 'desktop'>('mobile');
   const { data: event, isLoading: eventLoading } = useEvent();
-  const { data: sections, isLoading: sectionsLoading } = useCmsSections(event?.id);
 
-  if (eventLoading || sectionsLoading) {
+  // Construct the invitation preview URL
+  const getPreviewUrl = () => {
+    if (!event?.slug) return '';
+    const baseUrl = process.env.NEXT_PUBLIC_INVITATION_URL || 'http://localhost:3001';
+    return `${baseUrl}/${event.slug}?to=preview`;
+  };
+
+  if (eventLoading) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
         <div className="text-center">
@@ -116,7 +40,7 @@ export default function PreviewPage() {
     );
   }
 
-  const activeSections = (sections || []).filter((s) => s.is_active);
+  const previewUrl = getPreviewUrl();
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -173,26 +97,63 @@ export default function PreviewPage() {
 
       {/* Preview frame */}
       <div className="flex justify-center">
-        <div
-          className={`border-border/40 bg-card overflow-hidden rounded-2xl border-2 shadow-lg transition-all ${
-            deviceView === 'mobile' ? 'w-[375px]' : 'w-full max-w-[768px]'
-          }`}
-        >
-          {deviceView === 'mobile' && (
-            <div className="flex items-center justify-center bg-neutral-900 py-2 dark:bg-neutral-950">
-              <div className="bg-muted h-4 w-24 rounded-full" />
-            </div>
-          )}
-          <div className="max-h-[600px] overflow-y-auto">
-            {activeSections.length > 0 ? (
-              activeSections.map((section) => <PreviewSection key={section.id} section={section} />)
-            ) : (
-              <div className="text-muted-foreground py-12 text-center text-sm">
-                Belum ada section yang aktif
+        {deviceView === 'mobile' ? (
+          /* Phone simulator frame — same pattern as edit page */
+          <div className="relative h-[700px] w-[360px] overflow-hidden rounded-[36px] border-[10px] border-neutral-900 bg-neutral-900 shadow-2xl">
+            {/* Camera notch */}
+            <div className="absolute top-2 left-1/2 z-30 flex -translate-x-1/2 items-center justify-center">
+              <div className="flex h-5 w-28 items-center justify-center rounded-full bg-neutral-900">
+                <div className="mr-2 h-2 w-2 rounded-full bg-neutral-800" />
+                <div className="h-1 w-10 rounded-full bg-neutral-800" />
               </div>
-            )}
+            </div>
+
+            {/* Iframe */}
+            <div className="relative h-full w-full overflow-hidden rounded-[26px] bg-white">
+              {previewUrl ? (
+                <iframe
+                  src={previewUrl}
+                  className="h-full w-full border-0"
+                  title="Invitation Preview"
+                />
+              ) : (
+                <div className="text-muted-foreground flex h-full items-center justify-center p-4 text-center text-sm">
+                  Menyiapkan pratinjau...
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Desktop frame */
+          <div className="border-border/40 w-full max-w-[768px] overflow-hidden rounded-xl border-2 shadow-lg">
+            {/* Browser chrome */}
+            <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-100 px-4 py-2.5 dark:border-neutral-700 dark:bg-neutral-800">
+              <div className="flex gap-1.5">
+                <div className="h-3 w-3 rounded-full bg-red-400" />
+                <div className="h-3 w-3 rounded-full bg-yellow-400" />
+                <div className="h-3 w-3 rounded-full bg-green-400" />
+              </div>
+              <div className="ml-3 flex-1 rounded-md bg-white/80 px-3 py-1 text-xs text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400">
+                {previewUrl || 'loading...'}
+              </div>
+            </div>
+
+            {/* Iframe */}
+            <div className="h-[600px] bg-white">
+              {previewUrl ? (
+                <iframe
+                  src={previewUrl}
+                  className="h-full w-full border-0"
+                  title="Invitation Preview (Desktop)"
+                />
+              ) : (
+                <div className="text-muted-foreground flex h-full items-center justify-center p-4 text-center text-sm">
+                  Menyiapkan pratinjau...
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

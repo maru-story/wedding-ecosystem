@@ -46,21 +46,6 @@ export default defineConfig({
       stderr: 'inherit',
     },
     {
-      command: 'npx next dev --port 3001',
-      cwd: path.resolve(__dirname, '../../apps/invitation'),
-      env: {
-        NODE_ENV: 'test',
-        NEXT_PUBLIC_API_URL: 'http://localhost:4005',
-        NEXT_PUBLIC_WS_URL: 'http://localhost:4005',
-        NEXT_PUBLIC_CDN_URL: 'http://localhost:4005',
-      },
-      url: 'http://localhost:3001',
-      reuseExistingServer: !process.env.CI,
-      timeout: 300000,
-      stdout: 'inherit',
-      stderr: 'inherit',
-    },
-    {
       command: 'npx next dev --port 3002',
       cwd: path.resolve(__dirname, '../../apps/scanner'),
       env: {

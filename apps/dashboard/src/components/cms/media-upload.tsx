@@ -28,14 +28,14 @@ export function MediaUpload({
 
   const acceptFormats =
     mediaType === 'image'
-      ? 'image/jpeg,image/png,image/webp'
+      ? 'image/jpeg,image/png,image/webp,image/svg+xml'
       : mediaType === 'video'
         ? 'video/mp4'
         : 'audio/mpeg,audio/mp3';
 
   const formatHint =
     mediaType === 'image'
-      ? 'Format: JPEG, PNG, WebP. Maks 5MB.'
+      ? 'Format: JPEG, PNG, WebP, SVG. Maks 5MB.'
       : mediaType === 'video'
         ? 'Format: MP4. Maks 50MB.'
         : 'Format: MP3. Maks 10MB.';

@@ -18,12 +18,7 @@ enum UserRole {
   scanner
 }
 
-enum GuestGroup {
-  family
-  friend
-  colleague
-  vip
-}
+
 
 enum GuestType {
   invited
@@ -46,12 +41,13 @@ enum CheckInMethod {
 enum SectionType {
   cover
   bride_groom
+  bride
+  groom
   story
   verse
   countdown
   akad_resepsi
   rsvp
-  attire
   gallery
   video
   gift
@@ -135,6 +131,9 @@ model Event {
   resepsi_start  String
   resepsi_end    String
   status         EventStatus @default(draft)
+  share_title    String?
+  share_description String?
+  share_image_url   String?
   created_at     DateTime    @default(now())
 
   tenant             Tenant              @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
@@ -159,6 +158,7 @@ model EventConfig {
   calendar_link        String?
   max_scanner_devices         Int      @default(2)
   max_guests                  Int      @default(2000)
+  max_gallery_photos          Int      @default(30)
   invitation_message_template String?  @db.Text
   updated_at                  DateTime @updatedAt
 
@@ -175,7 +175,7 @@ model Guest {
   name            String
   slug            String
   phone           String?
-  group           GuestGroup
+  group           String
   type            GuestType      @default(invited)
   plus_one_count  Int            @default(0)
   invitation_url  String?

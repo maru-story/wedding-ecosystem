@@ -232,7 +232,7 @@ describe('Property 8: Section Sort Order Uniqueness', () => {
           const repository = createInMemoryRepository(eventId, tenantId);
           const service = new CMSService({ repository });
 
-          // Initialize all 14 sections
+          // Initialize all 16 sections
           const initResult = await service.initializeDefaultSections(eventId, tenantId);
           expect(isCMSError(initResult)).toBe(false);
           if (isCMSError(initResult)) return;
@@ -267,7 +267,7 @@ describe('Property 8: Section Sort Order Uniqueness', () => {
           const repository = createInMemoryRepository(eventId, tenantId);
           const service = new CMSService({ repository });
 
-          // Initialize all 14 sections
+          // Initialize all 16 sections
           const initResult = await service.initializeDefaultSections(eventId, tenantId);
           expect(isCMSError(initResult)).toBe(false);
           if (isCMSError(initResult)) return;

@@ -32,6 +32,33 @@ test.describe('Media Upload API E2E', () => {
     expect(body.url).toContain('/cms/cover/');
   });
 
+  test('should upload SVG image successfully', async ({
+    tenantA,
+  }) => {
+    const response = await tenantA.request.post(
+      `/events/${tenantA.eventId}/media/upload?section=verse`,
+      {
+        multipart: {
+          file: {
+            name: 'calligraphy.svg',
+            mimeType: 'image/svg+xml',
+            buffer: Buffer.from('<svg></svg>'),
+          },
+        },
+      }
+    );
+
+    expect(response.status()).toBe(201);
+    const body = await response.json();
+    expect(body.success).toBe(true);
+    expect(body.url).toBeDefined();
+    expect(body.data.url).toBe(body.url);
+    expect(body.data.originalname).toBe('calligraphy.svg');
+    expect(body.data.mimetype).toBe('image/svg+xml');
+    expect(body.data.category).toBe('image');
+    expect(body.url).toContain('/cms/verse/');
+  });
+
   test('should fail upload with unsupported file type', async ({ tenantA }) => {
     const response = await tenantA.request.post(`/events/${tenantA.eventId}/media/upload`, {
       multipart: {

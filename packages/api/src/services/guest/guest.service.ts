@@ -23,7 +23,7 @@ export interface GuestRecord {
   name: string;
   slug: string;
   phone: string | null;
-  group: GuestGroup;
+  group: string;
   type: GuestType;
   plus_one_count: number;
   invitation_url: string | null;
@@ -47,7 +47,7 @@ export interface GuestListItem {
   id: string;
   name: string;
   slug: string;
-  group: GuestGroup;
+  group: string;
   type: GuestType;
   plus_one_count: number;
   phone: string | null;
@@ -69,7 +69,7 @@ export interface PaginatedGuestList {
 }
 
 export interface GuestFilterOptions {
-  group?: GuestGroup;
+  group?: string;
   status?: 'belum_rsvp' | 'confirmed' | 'declined' | 'checked_in';
   q?: string;
 }
@@ -89,12 +89,14 @@ export interface GuestRepository {
     name: string;
     slug: string;
     phone: string | null;
-    group: GuestGroup;
+    group: string;
     type: GuestType;
     plus_one_count: number;
     invitation_url: string | null;
     delivery_status: DeliveryStatus;
   }): Promise<GuestRecord>;
+
+  findUniqueGroupsByEvent(eventId: string, tenantId: string): Promise<string[]>;
 
   createQRCode(data: {
     id: string;
@@ -121,7 +123,7 @@ export interface GuestRepository {
       name: string;
       slug: string;
       phone: string | null;
-      group: GuestGroup;
+      group: string;
       plus_one_count: number;
       invitation_url: string | null;
     }>
@@ -164,6 +166,17 @@ export interface GuestRepository {
     tenantId: string,
     limit: number
   ): Promise<GuestRecord[]>;
+
+  /**
+   * Reassign all guests in an event from one group to another.
+   * Returns the number of guests updated.
+   */
+  reassignGroup(
+    eventId: string,
+    tenantId: string,
+    fromGroup: string,
+    toGroup: string
+  ): Promise<number>;
 }
 
 // --- Guest Service ---
@@ -293,7 +306,7 @@ export class GuestService {
       name: string;
       slug: string;
       phone: string | null;
-      group: GuestGroup;
+      group: string;
       plus_one_count: number;
       invitation_url: string | null;
     }> = {};
@@ -413,7 +426,12 @@ export class GuestService {
       per_page: Math.min(pagination.per_page ?? GUESTS_PER_PAGE, 100),
     };
 
-    const result = await this.repository.findGuestsByEvent(eventId, tenantId, sanitizedPagination, filters);
+    const result = await this.repository.findGuestsByEvent(
+      eventId,
+      tenantId,
+      sanitizedPagination,
+      filters
+    );
     if ('code' in result) return result;
 
     return {
@@ -452,7 +470,12 @@ export class GuestService {
       };
     }
 
-    const guests = await this.repository.searchGuestsByName(query, eventId, tenantId, MAX_SEARCH_RESULTS);
+    const guests = await this.repository.searchGuestsByName(
+      query,
+      eventId,
+      tenantId,
+      MAX_SEARCH_RESULTS
+    );
     return guests.map((g) => ({
       ...g,
       phone: this.piiEncryption.decrypt(g.phone),
@@ -505,6 +528,53 @@ export class GuestService {
     }
 
     return payload;
+  }
+
+  async listUniqueGroups(eventId: string, tenantId: string): Promise<string[] | GuestServiceError> {
+    try {
+      const groups = await this.repository.findUniqueGroupsByEvent(eventId, tenantId);
+      return groups;
+    } catch (error) {
+      return {
+        code: ErrorCode.INTERNAL_ERROR,
+        message: 'Gagal memuat daftar grup',
+      };
+    }
+  }
+
+  // --- Reassign Group ---
+
+  /**
+   * Move all guests from one group to another within an event.
+   * Returns the count of updated guests, or an error if the source group doesn't exist.
+   */
+  async reassignGroup(
+    eventId: string,
+    tenantId: string,
+    fromGroup: string,
+    toGroup: string
+  ): Promise<{ updatedCount: number } | GuestServiceError> {
+    // Verify event exists and belongs to tenant
+    const event = await this.repository.findEventById(eventId, tenantId);
+    if (!event) {
+      return {
+        code: ErrorCode.NOT_FOUND,
+        message: 'Event tidak ditemukan',
+      };
+    }
+
+    // Verify the source group actually has guests
+    const groups = await this.repository.findUniqueGroupsByEvent(eventId, tenantId);
+    if (!groups.includes(fromGroup)) {
+      return {
+        code: ErrorCode.NOT_FOUND,
+        message: `Grup "${fromGroup}" tidak ditemukan dalam event ini`,
+      };
+    }
+
+    const updatedCount = await this.repository.reassignGroup(eventId, tenantId, fromGroup, toGroup);
+
+    return { updatedCount };
   }
 
   // --- Slug Generation ---
@@ -563,7 +633,13 @@ export class GuestService {
  * Type guard to check if a result is a GuestServiceError
  */
 export function isGuestError(
-  result: GuestWithQR | GuestRecord | PaginatedGuestList | { success: boolean } | GuestServiceError
+  result:
+    | GuestWithQR
+    | GuestRecord
+    | PaginatedGuestList
+    | { success: boolean }
+    | GuestServiceError
+    | string[]
 ): result is GuestServiceError {
   return (
     'code' in result &&

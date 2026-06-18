@@ -1,9 +1,10 @@
 import { ErrorCode } from '@wedding/shared';
+import crypto from 'crypto';
 
 // --- Constants ---
 
 /** Allowed MIME types for image uploads (Req 5.4, 13.8) */
-export const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+export const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'] as const;
 
 /** Allowed MIME types for video uploads (Req 5.4, 13.8) */
 export const ALLOWED_VIDEO_MIMES = ['video/mp4', 'video/webm'] as const;
@@ -24,6 +25,7 @@ export const EXTENSION_MIME_MAP: Record<string, string> = {
   '.jpeg': 'image/jpeg',
   '.png': 'image/png',
   '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
   '.mp4': 'video/mp4',
   '.webm': 'video/webm',
   '.mp3': 'audio/mpeg', // Some browsers report audio/mp3, some audio/mpeg, map both
@@ -192,7 +194,13 @@ export class MediaUploadService {
     }
 
     // Step 4: Upload to cloud storage
-    const storageKey = this.generateStorageKey(tenantSlug, eventSlug, file.originalname, section);
+    const storageKey = this.generateStorageKey(
+      tenantSlug,
+      eventSlug,
+      file.originalname,
+      file.buffer,
+      section
+    );
     try {
       const url = await this.cloudStorage.upload(file.buffer, storageKey, file.mimetype);
       return {
@@ -220,7 +228,7 @@ export class MediaUploadService {
     if (!allowedMimes.includes(file.mimetype) && !(file.mimetype === 'audio/mp3')) {
       return {
         code: ErrorCode.INVALID_FILE_FORMAT,
-        message: `Format file tidak didukung: ${file.mimetype}. Format yang didukung: JPEG, PNG, WebP (gambar), MP4, WebM (video), dan MP3 (audio).`,
+        message: `Format file tidak didukung: ${file.mimetype}. Format yang didukung: JPEG, PNG, WebP, SVG (gambar), MP4, WebM (video), dan MP3 (audio).`,
       };
     }
 
@@ -238,7 +246,7 @@ export class MediaUploadService {
     ) {
       return {
         code: ErrorCode.INVALID_FILE_FORMAT,
-        message: `Ekstensi file tidak sesuai dengan tipe file. Format yang didukung: JPEG, PNG, WebP (gambar), MP4, WebM (video), dan MP3 (audio).`,
+        message: `Ekstensi file tidak sesuai dengan tipe file. Format yang didukung: JPEG, PNG, WebP, SVG (gambar), MP4, WebM (video), dan MP3 (audio).`,
       };
     }
 
@@ -294,18 +302,19 @@ export class MediaUploadService {
   }
 
   /**
-   * Generate a unique storage key for the uploaded file.
-   * Format: {tenantSlug}/{eventSlug}/cms/{section}/{timestamp}-{filename}
+   * Generate a unique storage key for the uploaded file using content hashing.
+   * Format: {tenantSlug}/{eventSlug}/cms/{section}/{hash}{extension}
    */
   generateStorageKey(
     tenantSlug: string,
     eventSlug: string,
     filename: string,
+    buffer: Buffer,
     section: string = 'media'
   ): string {
-    const timestamp = Date.now();
-    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-    return `${tenantSlug}/${eventSlug}/cms/${section}/${timestamp}-${sanitizedFilename}`;
+    const hash = crypto.createHash('sha256').update(buffer).digest('hex').slice(0, 16);
+    const extension = this.getFileExtension(filename);
+    return `${tenantSlug}/${eventSlug}/cms/${section}/${hash}${extension}`;
   }
 
   /**

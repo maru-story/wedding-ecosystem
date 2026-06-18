@@ -15,28 +15,30 @@ Base URL: `http://localhost:4000` (dev) / `https://api.domain.railway.app` (prod
 
 ### Events (prefix: `/events`)
 
-| Method | Endpoint                   | Auth | Description                                                                                        |
-| ------ | -------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
-| GET    | `/events/current`          | JWT  | Get current tenant's latest event                                                                  |
-| POST   | `/events`                  | JWT  | Create a new wedding event                                                                         |
-| GET    | `/events/current/stats`    | JWT  | Get current event statistics                                                                       |
-| GET    | `/events/:id/stats`        | JWT  | Get event statistics (guests, RSVPs, check-ins)                                                    |
-| GET    | `/events/:id/rsvp`         | JWT  | Get RSVP summary for event                                                                         |
-| POST   | `/events/:id/media/upload` | JWT  | Upload media for event (optional `?section=` param organizes R2 path: cover, gallery, story, etc.) |
-| PUT    | `/events/:id`              | JWT  | Update wedding event details                                                                       |
+| Method | Endpoint                   | Auth | Description                                                                                                   |
+| ------ | -------------------------- | ---- | ------------------------------------------------------------------------------------------------------------- |
+| GET    | `/events/current`          | JWT  | Get current tenant's latest event                                                                             |
+| POST   | `/events`                  | JWT  | Create a new wedding event                                                                                    |
+| GET    | `/events/current/stats`    | JWT  | Get current event statistics                                                                                  |
+| GET    | `/events/:id/stats`        | JWT  | Get event statistics (guests, RSVPs, check-ins)                                                               |
+| GET    | `/events/:id/rsvp`         | JWT  | Get RSVP summary for event                                                                                    |
+| POST   | `/events/:id/media/upload` | JWT  | Upload media for event (optional `?section=` param organizes R2 path: cover, gallery, story, etc.)            |
+| PUT    | `/events/:id`              | JWT  | Update wedding event details (including SEO/metadata fields: share_title, share_description, share_image_url) |
 
 ### Guests (prefix: `/guests`)
 
-| Method | Endpoint              | Auth | Description                                                                |
-| ------ | --------------------- | ---- | -------------------------------------------------------------------------- |
-| GET    | `/guests`             | JWT  | List guests (paginated, filterable)                                        |
-| POST   | `/guests`             | JWT  | Create guest (auto-generates QR)                                           |
-| PUT    | `/guests/:id`         | JWT  | Update guest                                                               |
-| DELETE | `/guests/:id`         | JWT  | Delete guest and associated QR code                                        |
-| GET    | `/guests/:id/qr`      | JWT  | Get guest QR code (payload: `iv:ciphertext`)                               |
-| GET    | `/guests/search`      | JWT  | Search guests by name (query: `q` min 2 chars, `event_id`)                 |
-| POST   | `/guests/import`      | JWT  | CSV bulk import (max 2000, headers: `nama`,`grup`,`telepon`,`jumlah_tamu`) |
-| POST   | `/guests/bulk-delete` | JWT  | Bulk delete guests and deactivate their QR codes                           |
+| Method | Endpoint                  | Auth | Description                                                                                            |
+| ------ | ------------------------- | ---- | ------------------------------------------------------------------------------------------------------ |
+| GET    | `/guests`                 | JWT  | List guests (paginated, filterable)                                                                    |
+| POST   | `/guests`                 | JWT  | Create guest (auto-generates QR)                                                                       |
+| PUT    | `/guests/:id`             | JWT  | Update guest                                                                                           |
+| DELETE | `/guests/:id`             | JWT  | Delete guest and associated QR code                                                                    |
+| GET    | `/guests/:id/qr`          | JWT  | Get guest QR code (payload: `iv:ciphertext`)                                                           |
+| GET    | `/guests/search`          | JWT  | Search guests by name (query: `q` min 2 chars, `event_id`)                                             |
+| GET    | `/guests/groups`          | JWT  | Get unique group names in use for current event (returns presets + any custom groups)                  |
+| PATCH  | `/guests/groups/reassign` | JWT  | Reassign all guests from one group to another (body: `{from, to}`) — returns updated count             |
+| POST   | `/guests/import`          | JWT  | CSV bulk import (max 2000, headers: `nama`,`grup`,`telepon`,`jumlah_tamu`) — `grup` accepts any string |
+| POST   | `/guests/bulk-delete`     | JWT  | Bulk delete guests and deactivate their QR codes                                                       |
 
 ### Check-in (prefix: `/checkin`)
 
@@ -107,21 +109,21 @@ Base URL: `http://localhost:4000` (dev) / `https://api.domain.railway.app` (prod
 
 ### Platform Admin (prefix: `/admin`)
 
-| Method | Endpoint                          | Auth             | Description                                                             |
-| ------ | --------------------------------- | ---------------- | ----------------------------------------------------------------------- |
-| GET    | `/admin/stats`                    | JWT (Admin role) | Get global platform KPIs (tenants, users, devices, guests)              |
-| GET    | `/admin/tenants`                  | JWT (Admin role) | List all tenants (paginated, search, subscription filter)               |
-| POST   | `/admin/tenants`                  | JWT (Admin role) | Create a new tenant with master client credentials                      |
-| PATCH  | `/admin/tenants/:id/status`       | JWT (Admin role) | Toggle tenant active/inactive status                                    |
-| DELETE | `/admin/tenants/:id`              | JWT (Admin role) | Delete a tenant (cascades to delete users, events, and data)            |
-| GET    | `/admin/users`                    | JWT (Admin role) | List all users across the platform (paginated, role and status filters) |
-| PATCH  | `/admin/users/:id/status`         | JWT (Admin role) | Toggle user active/inactive status (suspend/activate account)           |
-| DELETE | `/admin/users/:id`                | JWT (Admin role) | Delete a user (prevent self-deletion and admin-role deletion)           |
-| POST   | `/admin/users/admin`              | JWT (Admin role) | Create a new platform administrator                                     |
-| PUT    | `/admin/users/:id/reset-password` | JWT (Admin role) | Reset user password with secure random string                           |
-| GET    | `/admin/audit-logs`               | JWT (Admin role) | List system audit logs (paginated, action, and date-range filters)      |
-| GET    | `/admin/tenants/:id/events`       | JWT (Admin role) | List all events of a tenant with their limit configurations             |
-| PATCH  | `/admin/events/:eventId/config`   | JWT (Admin role) | Update event capacity limits (max_guests, max_scanner_devices)          |
+| Method | Endpoint                          | Auth             | Description                                                                      |
+| ------ | --------------------------------- | ---------------- | -------------------------------------------------------------------------------- |
+| GET    | `/admin/stats`                    | JWT (Admin role) | Get global platform KPIs (tenants, users, devices, guests)                       |
+| GET    | `/admin/tenants`                  | JWT (Admin role) | List all tenants (paginated, search, subscription filter)                        |
+| POST   | `/admin/tenants`                  | JWT (Admin role) | Create a new tenant with master client credentials                               |
+| PATCH  | `/admin/tenants/:id/status`       | JWT (Admin role) | Toggle tenant active/inactive status                                             |
+| DELETE | `/admin/tenants/:id`              | JWT (Admin role) | Delete a tenant (cascades to delete users, events, and data)                     |
+| GET    | `/admin/users`                    | JWT (Admin role) | List all users across the platform (paginated, role and status filters)          |
+| PATCH  | `/admin/users/:id/status`         | JWT (Admin role) | Toggle user active/inactive status (suspend/activate account)                    |
+| DELETE | `/admin/users/:id`                | JWT (Admin role) | Delete a user (prevent self-deletion and admin-role deletion)                    |
+| POST   | `/admin/users/admin`              | JWT (Admin role) | Create a new platform administrator                                              |
+| PUT    | `/admin/users/:id/reset-password` | JWT (Admin role) | Reset user password with secure random string                                    |
+| GET    | `/admin/audit-logs`               | JWT (Admin role) | List system audit logs (paginated, action, and date-range filters)               |
+| GET    | `/admin/tenants/:id/events`       | JWT (Admin role) | List all events of a tenant with their limit configurations                      |
+| PATCH  | `/admin/events/:eventId/config`   | JWT (Admin role) | Update event config limits (max_guests, max_scanner_devices, max_gallery_photos) |
 
 ### Detailed Event Statistics Payload
 

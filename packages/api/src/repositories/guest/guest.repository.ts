@@ -20,7 +20,7 @@ export class PrismaGuestRepository implements GuestRepository {
     name: string;
     slug: string;
     phone: string | null;
-    group: GuestGroup;
+    group: string;
     type: GuestType;
     plus_one_count: number;
     invitation_url: string | null;
@@ -145,7 +145,7 @@ export class PrismaGuestRepository implements GuestRepository {
       id: guest.id,
       name: guest.name,
       slug: guest.slug,
-      group: guest.group as GuestGroup,
+      group: guest.group,
       type: guest.type as GuestType,
       plus_one_count: guest.plus_one_count,
       phone: guest.phone ?? null,
@@ -169,7 +169,7 @@ export class PrismaGuestRepository implements GuestRepository {
       name: string;
       slug: string;
       phone: string | null;
-      group: GuestGroup;
+      group: string;
       plus_one_count: number;
       invitation_url: string | null;
     }>
@@ -323,6 +323,29 @@ export class PrismaGuestRepository implements GuestRepository {
     return guests.map((g) => this.toGuestRecord(g));
   }
 
+  async findUniqueGroupsByEvent(eventId: string, tenantId: string): Promise<string[]> {
+    const guests = await this.prisma.guest.findMany({
+      where: { event_id: eventId, tenant_id: tenantId },
+      select: { group: true },
+      distinct: ['group'],
+      orderBy: { group: 'asc' },
+    });
+    return guests.map((g) => g.group);
+  }
+
+  async reassignGroup(
+    eventId: string,
+    tenantId: string,
+    fromGroup: string,
+    toGroup: string
+  ): Promise<number> {
+    const result = await this.prisma.guest.updateMany({
+      where: { event_id: eventId, tenant_id: tenantId, group: fromGroup },
+      data: { group: toGroup },
+    });
+    return result.count;
+  }
+
   // --- Private Helpers ---
 
   private toGuestRecord(guest: {
@@ -346,7 +369,7 @@ export class PrismaGuestRepository implements GuestRepository {
       name: guest.name,
       slug: guest.slug,
       phone: guest.phone,
-      group: guest.group as GuestGroup,
+      group: guest.group,
       type: guest.type as GuestType,
       plus_one_count: guest.plus_one_count,
       invitation_url: guest.invitation_url,

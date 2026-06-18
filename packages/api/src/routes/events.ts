@@ -26,7 +26,11 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
     cloudStorage: createCloudStorage(),
   });
 
-  const encryptionKey = process.env.ENCRYPTION_KEY_AES256 || process.env.AES_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
+  const encryptionKey =
+    process.env.ENCRYPTION_KEY_AES256 ||
+    process.env.AES_ENCRYPTION_KEY ||
+    process.env.ENCRYPTION_KEY ||
+    '';
   let pii: PIIEncryption | null = null;
   if (encryptionKey) {
     try {
@@ -43,7 +47,7 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
    * POST /events - Create a new wedding event
    * Req 1.4: Multi-event support (max 50 per tenant)
    * Req 11.7: Default theme applied automatically
-   * Req 5.10: 14 sections initialized automatically
+   * Req 5.10: 16 sections initialized automatically
    */
   app.post('/', async (request, reply) => {
     const user = request.user!;
@@ -96,6 +100,7 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
           select: {
             max_guests: true,
             max_scanner_devices: true,
+            max_gallery_photos: true,
           },
         },
       },

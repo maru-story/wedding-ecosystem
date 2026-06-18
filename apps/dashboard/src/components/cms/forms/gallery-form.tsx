@@ -1,13 +1,22 @@
 'use client';
 
+import { useState, useRef, useCallback } from 'react';
 import { MediaUpload } from '../media-upload';
-import { uploadMedia } from '@/lib/cms';
+import { uploadMedia, validateMediaFile } from '@/lib/cms';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Trash2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { ImagePlus, Loader2, Trash2, Upload } from 'lucide-react';
+import { toast } from 'sonner';
+import { DEFAULT_MAX_GALLERY_PHOTOS } from '@/lib/constants';
 
 interface EventData {
   id?: string;
+  event_config?: {
+    max_guests?: number;
+    max_scanner_devices?: number;
+    max_gallery_photos?: number;
+  } | null;
 }
 
 interface GalleryFormProps {
@@ -24,8 +33,20 @@ interface Photo {
 
 export function GalleryForm({ content, onChange, event }: GalleryFormProps) {
   const photos = (content.photos as Photo[]) || [];
+  const maxPhotos = event?.event_config?.max_gallery_photos ?? DEFAULT_MAX_GALLERY_PHOTOS;
+  const remaining = maxPhotos - photos.length;
+
+  const [batchUploading, setBatchUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(
+    null
+  );
+  const batchInputRef = useRef<HTMLInputElement>(null);
 
   const addPhoto = () => {
+    if (photos.length >= maxPhotos) {
+      toast.error(`Maksimal ${maxPhotos} foto per galeri`);
+      return;
+    }
     const newOrder = photos.length + 1;
     onChange({
       ...content,
@@ -46,7 +67,7 @@ export function GalleryForm({ content, onChange, event }: GalleryFormProps) {
     onChange({ ...content, photos: updated });
   };
 
-  const handleUpload = async (file: File): Promise<string> => {
+  const handleSingleUpload = async (file: File): Promise<string> => {
     if (event?.id) {
       const res = await uploadMedia(event.id, file, 'gallery');
       return res.url;
@@ -54,22 +75,157 @@ export function GalleryForm({ content, onChange, event }: GalleryFormProps) {
     return URL.createObjectURL(file);
   };
 
+  // --- Batch multi-file upload ---
+  const handleBatchSelect = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+
+      const fileArray = Array.from(files);
+
+      // Check limit
+      if (photos.length + fileArray.length > maxPhotos) {
+        toast.error(
+          `Tidak bisa menambahkan ${fileArray.length} foto. Sisa kuota: ${remaining} (maks ${maxPhotos})`
+        );
+        if (batchInputRef.current) batchInputRef.current.value = '';
+        return;
+      }
+
+      // Validate all files first (gallery allows 10MB per file)
+      const validFiles: File[] = [];
+      const GALLERY_MAX_SIZE = 10 * 1024 * 1024; // 10MB
+      for (const file of fileArray) {
+        const err = validateMediaFile(file, 'image', GALLERY_MAX_SIZE);
+        if (err) {
+          toast.error(`${file.name}: ${err.message}`);
+        } else {
+          validFiles.push(file);
+        }
+      }
+
+      if (validFiles.length === 0) {
+        if (batchInputRef.current) batchInputRef.current.value = '';
+        return;
+      }
+
+      // Upload all valid files
+      setBatchUploading(true);
+      setUploadProgress({ current: 0, total: validFiles.length });
+
+      const newPhotos: Photo[] = [];
+      const startOrder = photos.length + 1;
+
+      for (let i = 0; i < validFiles.length; i++) {
+        setUploadProgress({ current: i + 1, total: validFiles.length });
+        try {
+          let url: string;
+          if (event?.id) {
+            const res = await uploadMedia(event.id, validFiles[i], 'gallery');
+            url = res.url;
+          } else {
+            url = URL.createObjectURL(validFiles[i]);
+          }
+          newPhotos.push({ url, caption: '', order: startOrder + i });
+        } catch {
+          toast.error(`Gagal upload: ${validFiles[i].name}`);
+        }
+      }
+
+      if (newPhotos.length > 0) {
+        onChange({
+          ...content,
+          photos: [...photos, ...newPhotos],
+        });
+        toast.success(`${newPhotos.length} foto berhasil diupload`);
+      }
+
+      setBatchUploading(false);
+      setUploadProgress(null);
+      if (batchInputRef.current) batchInputRef.current.value = '';
+    },
+    [photos, maxPhotos, remaining, event, content, onChange]
+  );
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          Upload foto prewedding untuk galeri undangan.
-        </p>
-        <Button type="button" variant="outline" size="sm" onClick={addPhoto} className="gap-1.5">
-          <Plus className="h-4 w-4" />
-          Tambah Foto
-        </Button>
+      {/* Section Title */}
+      <div className="space-y-1.5">
+        <Label htmlFor="gallery-title">Section Title</Label>
+        <Input
+          id="gallery-title"
+          type="text"
+          value={(content.title as string) || ''}
+          onChange={(e) => onChange({ ...content, title: e.target.value })}
+          placeholder="Portrait of Us"
+          className="bg-card border-border/60"
+        />
       </div>
 
+      {/* Batch Upload Area */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground text-sm">
+            Upload foto prewedding ({photos.length}/{maxPhotos})
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addPhoto}
+            disabled={photos.length >= maxPhotos}
+            className="gap-1.5"
+          >
+            <ImagePlus className="h-4 w-4" />
+            Tambah Manual
+          </Button>
+        </div>
+
+        {/* Multi-file drop zone */}
+        <div
+          className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${
+            batchUploading || photos.length >= maxPhotos
+              ? 'pointer-events-none border-border/30 bg-muted/5 opacity-60'
+              : 'border-border/60 bg-muted/10 hover:border-primary/40 hover:bg-muted/20'
+          }`}
+          onClick={() => !batchUploading && batchInputRef.current?.click()}
+        >
+          {batchUploading ? (
+            <>
+              <Loader2 className="text-primary mb-2 h-8 w-8 animate-spin" />
+              <p className="text-foreground text-sm font-medium">
+                Mengupload {uploadProgress?.current}/{uploadProgress?.total} foto...
+              </p>
+            </>
+          ) : (
+            <>
+              <Upload className="text-muted-foreground/60 mb-2 h-8 w-8" />
+              <p className="text-foreground text-sm font-medium">
+                Klik untuk upload beberapa foto sekaligus
+              </p>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Format: JPEG, PNG, WebP, SVG. Maks 10MB per file. Sisa kuota: {remaining} foto.
+              </p>
+            </>
+          )}
+        </div>
+
+        <input
+          ref={batchInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/svg+xml"
+          multiple
+          onChange={handleBatchSelect}
+          className="hidden"
+          aria-label="Upload beberapa foto galeri sekaligus"
+        />
+      </div>
+
+      {/* Photo Grid */}
       {photos.length === 0 && (
         <div className="border-border/60 bg-card rounded-lg border-2 border-dashed p-8 text-center">
           <p className="text-muted-foreground text-sm">
-            Belum ada foto. Klik tombol di atas untuk menambahkan.
+            Belum ada foto. Upload foto di atas atau tambah manual.
           </p>
         </div>
       )}
@@ -100,7 +256,7 @@ export function GalleryForm({ content, onChange, event }: GalleryFormProps) {
               mediaType="image"
               currentUrl={photo.url}
               onUpload={async (file) => {
-                const url = await handleUpload(file);
+                const url = await handleSingleUpload(file);
                 updatePhoto(index, 'url', url);
                 return url;
               }}
