@@ -102,6 +102,18 @@ export default function SettingsPage() {
       toast.success('Pengaturan pernikahan berhasil disimpan!');
       queryClient.invalidateQueries({ queryKey: ['event'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+
+      // Purge invitation cache after event update
+      if (event?.slug) {
+        fetch(`${process.env.NEXT_PUBLIC_INVITATION_URL}/api/revalidate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventSlug: event.slug,
+            secret: process.env.NEXT_PUBLIC_REVALIDATION_SECRET,
+          }),
+        }).catch((e) => console.warn('Revalidation failed:', e));
+      }
     },
     onError: (error: any) => {
       toast.error(error.data?.error?.message || 'Gagal menyimpan pengaturan.');
@@ -550,7 +562,9 @@ export default function SettingsPage() {
                       </CardTitle>
                     </div>
                     <CardDescription>
-                      Atur judul, deskripsi, dan gambar pratinjau yang akan muncul saat link undangan dibagikan ke media sosial atau aplikasi chatting (WhatsApp, Telegram, Facebook, dll).
+                      Atur judul, deskripsi, dan gambar pratinjau yang akan muncul saat link
+                      undangan dibagikan ke media sosial atau aplikasi chatting (WhatsApp, Telegram,
+                      Facebook, dll).
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-5 pt-6">
@@ -604,7 +618,8 @@ export default function SettingsPage() {
                         }}
                       />
                       <p className="text-muted-foreground/75 text-[10px]">
-                        Rekomendasi rasio 1.91:1 (misalnya 1200x630 pixel) agar pratinjau tampil penuh dan proporsional di WhatsApp/Facebook.
+                        Rekomendasi rasio 1.91:1 (misalnya 1200x630 pixel) agar pratinjau tampil
+                        penuh dan proporsional di WhatsApp/Facebook.
                       </p>
                     </div>
                   </CardContent>
@@ -648,17 +663,16 @@ export default function SettingsPage() {
                             {watchSEO('share_title') || 'Undangan Pernikahan'}
                           </div>
                           <div className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
-                            {watchSEO('share_description') || 'Klik link untuk melihat detail acara pernikahan kami.'}
+                            {watchSEO('share_description') ||
+                              'Klik link untuk melihat detail acara pernikahan kami.'}
                           </div>
                           <div className="text-[9px] text-muted-foreground/80 uppercase tracking-wider font-medium pt-1">
                             {invitationPrefix.replace(/\/$/, '')}
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="text-right text-[10px] text-muted-foreground mt-1">
-                        12.00
-                      </div>
+
+                      <div className="text-right text-[10px] text-muted-foreground mt-1">12.00</div>
                     </div>
                   </CardContent>
                 </Card>

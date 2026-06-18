@@ -461,25 +461,26 @@ export default function SendInvitationPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="px-4 py-3 text-right">
-                      {hasPhone ? (
-                        <Button
-                          size="sm"
-                          onClick={() => handleSendWhatsApp(guest)}
-                          disabled={sendInvitationMutation.isPending}
-                          className="h-8 rounded-md bg-[#25D366] px-3 font-semibold text-white shadow-sm transition-all hover:bg-[#22c35e] active:scale-[0.98]"
-                          aria-label={`Kirim ke ${guest.name} via WhatsApp`}
-                        >
-                          {isSendingThis ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <>
-                              <MessageSquare className="mr-1.5 h-3.5 w-3.5" /> Kirim WA
-                            </>
-                          )}
-                        </Button>
-                      ) : (
-                        <span className="text-muted-foreground pr-2 text-xs">—</span>
-                      )}
+                      <Button
+                        size="sm"
+                        onClick={() => handleSendWhatsApp(guest)}
+                        disabled={sendInvitationMutation.isPending}
+                        className={`h-8 rounded-md px-3 font-semibold shadow-sm transition-all active:scale-[0.98] ${
+                          hasPhone
+                            ? 'bg-[#25D366] text-white hover:bg-[#22c35e]'
+                            : 'border-[#25D366]/60 text-[#25D366] hover:bg-[#25D366]/10 border bg-transparent'
+                        }`}
+                        aria-label={`Kirim ke ${guest.name} via WhatsApp`}
+                      >
+                        {isSendingThis ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <MessageSquare className="mr-1.5 h-3.5 w-3.5" />
+                            {hasPhone ? 'Kirim WA' : 'Kirim WA'}
+                          </>
+                        )}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );
