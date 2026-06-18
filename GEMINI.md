@@ -191,7 +191,8 @@
 
 ### Invitations (No auth — public)
 
-- `GET /invitations/:eventSlug` — Get invitation data
+- `GET /invitations/:eventSlug/:guestSlug` — Get personalized invitation (event, guest, theme, sections, share metadata)
+- `GET /invitations/:eventSlug` — Get event data with share_title, share_description, share_image_url
 
 ### Messages (No auth — public)
 

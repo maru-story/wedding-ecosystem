@@ -69,12 +69,13 @@ _Note: The guest-facing `apps/invitation` frontend has been migrated to its own 
 
 ## Key Environment Variables (Frontend)
 
-| Variable                     | Used By            | Description                                                                                                        |
-| ---------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_API_URL`        | All frontend       | Backend API base URL (`http://localhost:4000` / `https://api.maruplanner.my.id`)                                   |
-| `NEXT_PUBLIC_WS_URL`         | Dashboard, Scanner | WebSocket server URL                                                                                               |
-| `NEXT_PUBLIC_INVITATION_URL` | Dashboard          | Invitation app base URL — used for CMS live preview iframe (`http://localhost:3001` / `https://maruplanner.my.id`) |
-| `NEXT_PUBLIC_CDN_URL`        | All frontend       | CDN for media assets (`https://cdn.maruplanner.my.id`)                                                             |
+| Variable                          | Used By            | Description                                                                                                             |
+| --------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`             | All frontend       | Backend API base URL (`http://localhost:4000` / `https://api.maruplanner.my.id`)                                        |
+| `NEXT_PUBLIC_WS_URL`              | Dashboard, Scanner | WebSocket server URL                                                                                                    |
+| `NEXT_PUBLIC_INVITATION_URL`      | Dashboard          | Invitation app base URL — used for CMS live preview iframe (`http://localhost:3001` / `https://maruplanner.my.id`)      |
+| `NEXT_PUBLIC_REVALIDATION_SECRET` | Dashboard          | Secret for purging invitation ISR cache after CMS/settings save (must match `REVALIDATION_SECRET` in invitation Vercel) |
+| `NEXT_PUBLIC_CDN_URL`             | All frontend       | CDN for media assets (`https://cdn.maruplanner.my.id`)                                                                  |
 
 ## Domain Rules (Must Not Violate)
 
