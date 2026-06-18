@@ -80,6 +80,21 @@ export default function SectionEditPage({ params }: { params: Promise<{ sectionI
         content,
       });
       toast.success('Perubahan berhasil disimpan');
+
+      // Purge invitation cache after save
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_INVITATION_URL}/api/revalidate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventSlug: event.slug,
+            secret: process.env.NEXT_PUBLIC_REVALIDATION_SECRET,
+          }),
+        });
+      } catch (e) {
+        // Non-blocking — don't fail save if revalidation fails
+        console.warn('Revalidation failed:', e);
+      }
     } catch (err: any) {
       toast.error(err.data?.error?.message || 'Gagal menyimpan perubahan');
     } finally {
