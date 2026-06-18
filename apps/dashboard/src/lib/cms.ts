@@ -84,7 +84,8 @@ export interface MediaValidationError {
 
 export function validateMediaFile(
   file: File,
-  mediaType: 'image' | 'video' | 'audio'
+  mediaType: 'image' | 'video' | 'audio',
+  maxSizeOverride?: number
 ): MediaValidationError | null {
   let allowedFormats: string[];
   let maxSize: number;
@@ -94,21 +95,21 @@ export function validateMediaFile(
   switch (mediaType) {
     case 'image':
       allowedFormats = ALLOWED_IMAGE_FORMATS;
-      maxSize = MAX_IMAGE_SIZE;
+      maxSize = maxSizeOverride ?? MAX_IMAGE_SIZE;
       formatNames = 'JPEG, PNG, WebP, atau SVG';
-      maxSizeLabel = '5MB';
+      maxSizeLabel = `${Math.round(maxSize / (1024 * 1024))}MB`;
       break;
     case 'video':
       allowedFormats = ALLOWED_VIDEO_FORMATS;
-      maxSize = MAX_VIDEO_SIZE;
+      maxSize = maxSizeOverride ?? MAX_VIDEO_SIZE;
       formatNames = 'MP4';
-      maxSizeLabel = '50MB';
+      maxSizeLabel = `${Math.round(maxSize / (1024 * 1024))}MB`;
       break;
     case 'audio':
       allowedFormats = ALLOWED_AUDIO_FORMATS;
-      maxSize = MAX_AUDIO_SIZE;
+      maxSize = maxSizeOverride ?? MAX_AUDIO_SIZE;
       formatNames = 'MP3';
-      maxSizeLabel = '10MB';
+      maxSizeLabel = `${Math.round(maxSize / (1024 * 1024))}MB`;
       break;
   }
 

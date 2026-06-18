@@ -92,10 +92,11 @@ export function GalleryForm({ content, onChange, event }: GalleryFormProps) {
         return;
       }
 
-      // Validate all files first
+      // Validate all files first (gallery allows 10MB per file)
       const validFiles: File[] = [];
+      const GALLERY_MAX_SIZE = 10 * 1024 * 1024; // 10MB
       for (const file of fileArray) {
-        const err = validateMediaFile(file, 'image');
+        const err = validateMediaFile(file, 'image', GALLERY_MAX_SIZE);
         if (err) {
           toast.error(`${file.name}: ${err.message}`);
         } else {
@@ -203,7 +204,7 @@ export function GalleryForm({ content, onChange, event }: GalleryFormProps) {
                 Klik untuk upload beberapa foto sekaligus
               </p>
               <p className="text-muted-foreground mt-1 text-xs">
-                Format: JPEG, PNG, WebP, SVG. Maks 5MB per file. Sisa kuota: {remaining} foto.
+                Format: JPEG, PNG, WebP, SVG. Maks 10MB per file. Sisa kuota: {remaining} foto.
               </p>
             </>
           )}
