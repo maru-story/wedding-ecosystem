@@ -181,23 +181,15 @@ export class InvitationDeliveryService {
       };
     }
 
-    // 2. Check contact completeness
-    const contactCheck = this.checkContactCompleteness(guest);
-    if (!contactCheck.can_send) {
-      return {
-        code: ErrorCode.CONTACT_MISSING,
-        message: contactCheck.message!,
-      };
-    }
-
-    if (!contactCheck.available_channels.includes(input.channel)) {
-      return {
-        code: ErrorCode.CONTACT_MISSING,
-        message:
-          input.channel === 'whatsapp'
-            ? 'Nomor phone tamu belum dilengkapi untuk pengiriman WhatsApp'
-            : 'Alamat email tamu belum dilengkapi untuk pengiriman Email',
-      };
+    // 2. Check contact completeness for email channel
+    if (input.channel === 'email') {
+      const contactCheck = this.checkContactCompleteness(guest);
+      if (!contactCheck.available_channels.includes('email')) {
+        return {
+          code: ErrorCode.CONTACT_MISSING,
+          message: 'Alamat email tamu belum dilengkapi untuk pengiriman Email',
+        };
+      }
     }
 
     if (!guest.invitation_url) {
@@ -224,7 +216,12 @@ export class InvitationDeliveryService {
 
       if (input.channel === 'whatsapp') {
         // Run mock provider for backward compatibility & test compliance
-        result = await this.whatsappProvider.send(guest.phone!, compiledMessage);
+        if (guest.phone) {
+          result = await this.whatsappProvider.send(guest.phone, compiledMessage);
+        } else {
+          // No phone — skip provider call, just generate URL
+          result = { success: true };
+        }
       } else {
         result = await this.emailProvider.send(
           guest.email!,
@@ -245,9 +242,14 @@ export class InvitationDeliveryService {
 
         if (input.channel === 'whatsapp') {
           // Construct the WhatsApp Web redirect URL
-          const sanitizedPhone = guest.phone!.replace(/[^0-9]/g, '');
           const encodedMessage = encodeURIComponent(compiledMessage);
-          finalResult.whatsapp_url = `https://api.whatsapp.com/send?phone=${sanitizedPhone}&text=${encodedMessage}`;
+          if (guest.phone) {
+            const sanitizedPhone = guest.phone.replace(/[^0-9]/g, '');
+            finalResult.whatsapp_url = `https://api.whatsapp.com/send?phone=${sanitizedPhone}&text=${encodedMessage}`;
+          } else {
+            // No phone — open WhatsApp with message only, user picks contact
+            finalResult.whatsapp_url = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+          }
         }
 
         return finalResult;
