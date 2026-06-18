@@ -114,7 +114,7 @@ export function GalleryForm({ content, onChange, event }: GalleryFormProps) {
       setUploadProgress({ current: 0, total: validFiles.length });
 
       const newPhotos: Photo[] = [];
-      let startOrder = photos.length + 1;
+      const startOrder = photos.length + 1;
 
       for (let i = 0; i < validFiles.length; i++) {
         setUploadProgress({ current: i + 1, total: validFiles.length });
