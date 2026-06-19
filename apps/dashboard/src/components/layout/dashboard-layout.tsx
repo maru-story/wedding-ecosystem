@@ -111,7 +111,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <Sidebar.Item href="/wishes" label="Ucapan Tamu" icon={MessageSquare} />
             <Sidebar.Item href="/cms" label="Edit Undangan" icon={FileText} />
             <Sidebar.Item href="/settings" label="Pengaturan Acara" icon={Settings} />
-            <Sidebar.Item href="/scanner" label="Scan QR Tamu" icon={QrCode} />
+            <Sidebar.Item
+              href={process.env.NEXT_PUBLIC_SCANNER_URL || 'http://scanner.maruplanner.my.id'}
+              target="_blank"
+              label="Scan QR Tamu"
+              icon={QrCode}
+            />
           </Sidebar.Group>
         )}
 
