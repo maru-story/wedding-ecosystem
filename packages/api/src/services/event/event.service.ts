@@ -166,6 +166,8 @@ export interface EventRepository {
 
   findTenantPlan(tenantId: string): Promise<string | null>;
 
+  updateGuestInvitationUrls(eventId: string, tenantId: string, newSlug: string): Promise<number>;
+
   updateEvent(
     eventId: string,
     tenantId: string,
@@ -364,6 +366,11 @@ export class EventService {
         code: ErrorCode.NOT_FOUND,
         message: 'Gagal memperbarui event',
       };
+    }
+
+    // 4. If slug changed, update all guest invitation_urls
+    if (input.slug && input.slug !== existingEvent.slug) {
+      await this.repository.updateGuestInvitationUrls(eventId, tenantId, input.slug);
     }
 
     return updatedEvent;

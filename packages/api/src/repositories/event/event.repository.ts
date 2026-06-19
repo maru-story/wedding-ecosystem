@@ -183,4 +183,29 @@ export class PrismaEventRepository implements EventRepository {
         }
       : null;
   }
+
+  async updateGuestInvitationUrls(
+    eventId: string,
+    tenantId: string,
+    newSlug: string
+  ): Promise<number> {
+    // Fetch all guests for this event and update their invitation_url with the new slug
+    const guests = await this.prisma.guest.findMany({
+      where: { event_id: eventId, tenant_id: tenantId },
+      select: { id: true, slug: true },
+    });
+
+    if (guests.length === 0) return 0;
+
+    // Batch update all guests with new invitation_url
+    const updates = guests.map((guest) =>
+      this.prisma.guest.update({
+        where: { id: guest.id },
+        data: { invitation_url: `/${newSlug}?to=${guest.slug}` },
+      })
+    );
+
+    await this.prisma.$transaction(updates);
+    return guests.length;
+  }
 }
