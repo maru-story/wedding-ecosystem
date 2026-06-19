@@ -208,8 +208,13 @@ export const createEventSchema = z.object({
   share_image_url: z.string().optional().nullable().or(z.literal('')),
 });
 
-/** Event update input */
-export const updateEventSchema = createEventSchema.partial();
+/** Event update input — no defaults applied (prevents accidental status/field reset) */
+export const updateEventSchema = createEventSchema
+  .omit({ status: true })
+  .partial()
+  .extend({
+    status: z.nativeEnum(EventStatus).optional(),
+  });
 
 /** Guest creation input (Req 3.1) */
 export const createGuestSchema = z.object({
