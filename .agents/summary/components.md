@@ -58,20 +58,20 @@ graph TB
 
 #### Services
 
-| Service                     | File                                                 | Responsibility                                                                       |
-| --------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `AuthService`               | `auth/auth.service.ts`                               | Login, JWT generation/verification, password hashing, token refresh, account lockout |
-| `GuestService`              | `guest/guest.service.ts`                             | CRUD guests, QR code generation, encrypted payloads, slug generation                 |
-| `CheckInService`            | `checkin/checkin.service.ts`                         | QR verification, manual check-in, go-show registration, duplicate detection          |
-| `RsvpService`               | `rsvp/rsvp.service.ts`                               | RSVP submission and retrieval                                                        |
-| `CMSService`                | `cms/cms.service.ts`                                 | Section CRUD, sort order management, toggle active state                             |
-| `EventService`              | `event/event.service.ts`                             | Event creation with default sections and theme                                       |
-| `InvitationDeliveryService` | `invitation-delivery/invitation-delivery.service.ts` | Single invitation sending (WhatsApp), message template and delivery status tracking  |
-| `ScannerDeviceService`      | `scanner-device/scanner-device.service.ts`           | Device registration, lane assignment, heartbeat, max 2 per event                     |
-| `MediaUploadService`        | `media-upload/media-upload.service.ts`               | File validation, virus scanning, cloud storage upload                                |
-| `StorageService`            | `storage/storage.ts`                                 | R2 client, signed URLs, tenant storage quota enforcement                             |
-| `GuestImportService`        | `guest-import/guest-import.service.ts`               | CSV parsing, bulk import (max 2000 rows), deduplication                              |
-| `AdminService`              | `admin/admin.service.ts`                             | Platform admin: platform KPIs, tenant management, user listing, password resets      |
+| Service                     | File                                                 | Responsibility                                                                                                                                     |
+| --------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AuthService`               | `auth/auth.service.ts`                               | Login, JWT generation/verification, password hashing, token refresh, account lockout                                                               |
+| `GuestService`              | `guest/guest.service.ts`                             | CRUD guests, QR code generation, encrypted payloads, slug generation                                                                               |
+| `CheckInService`            | `checkin/checkin.service.ts`                         | QR verification, manual check-in, go-show registration, duplicate detection                                                                        |
+| `RsvpService`               | `rsvp/rsvp.service.ts`                               | RSVP submission and retrieval                                                                                                                      |
+| `CMSService`                | `cms/cms.service.ts`                                 | Section CRUD, sort order management, toggle active state                                                                                           |
+| `EventService`              | `event/event.service.ts`                             | Event creation with default sections and theme                                                                                                     |
+| `InvitationDeliveryService` | `invitation-delivery/invitation-delivery.service.ts` | Single invitation sending (WhatsApp — phone optional, generates URL without phone param if missing), message template and delivery status tracking |
+| `ScannerDeviceService`      | `scanner-device/scanner-device.service.ts`           | Device registration, lane assignment, heartbeat, max 2 per event                                                                                   |
+| `MediaUploadService`        | `media-upload/media-upload.service.ts`               | File validation, virus scanning, cloud storage upload                                                                                              |
+| `StorageService`            | `storage/storage.ts`                                 | R2 client, signed URLs, tenant storage quota enforcement                                                                                           |
+| `GuestImportService`        | `guest-import/guest-import.service.ts`               | CSV parsing, bulk import (max 2000 rows), deduplication                                                                                            |
+| `AdminService`              | `admin/admin.service.ts`                             | Platform admin: platform KPIs, tenant management, user listing, password resets                                                                    |
 
 #### Repositories
 

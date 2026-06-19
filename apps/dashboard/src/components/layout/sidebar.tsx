@@ -91,11 +91,13 @@ Sidebar.Item = function SidebarItem({
   label,
   icon: Icon,
   roles,
+  target,
 }: {
   href: string;
   label: string;
   icon: any;
   roles?: string[];
+  target?: string;
 }) {
   const pathname = usePathname();
   const { onClose } = useSidebarContext();
@@ -119,6 +121,7 @@ Sidebar.Item = function SidebarItem({
             : 'text-muted-foreground hover:bg-accent/40 hover:text-foreground border-transparent'
         )}
         aria-current={isActive ? 'page' : undefined}
+        target={target}
       >
         <Icon
           className={cn(

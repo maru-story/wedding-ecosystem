@@ -96,10 +96,10 @@ Base URL: `http://localhost:4000` (dev) / `https://api.domain.railway.app` (prod
 
 ### Invitations (prefix: `/invitations`)
 
-| Method | Endpoint                             | Auth | Description                 |
-| ------ | ------------------------------------ | ---- | --------------------------- |
-| GET    | `/invitations/:eventSlug/:guestSlug` | None | Get personalized invitation |
-| GET    | `/invitations/:eventSlug`            | None | Get event invitation data   |
+| Method | Endpoint                             | Auth | Description                                                                            |
+| ------ | ------------------------------------ | ---- | -------------------------------------------------------------------------------------- |
+| GET    | `/invitations/:eventSlug/:guestSlug` | None | Get personalized invitation (includes share_title, share_description, share_image_url) |
+| GET    | `/invitations/:eventSlug`            | None | Get event invitation data (includes share metadata)                                    |
 
 ### Health
 

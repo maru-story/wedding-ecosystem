@@ -55,20 +55,7 @@ export default function SettingsPage() {
     resolver: zodResolver(updateEventSchema),
   });
 
-  const [invitationPrefix, setInvitationPrefix] = useState('undangan.com/');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const host = window.location.host;
-      if (host.includes('localhost') || host.includes('127.0.0.1')) {
-        setInvitationPrefix('localhost:3001/');
-      } else if (host.includes('dashboard')) {
-        setInvitationPrefix(host.replace('dashboard', 'invitation') + '/');
-      } else {
-        setInvitationPrefix('invitation.wedding-ecosystem.com/');
-      }
-    }
-  }, []);
+  const invitationPrefix = process.env.NEXT_PUBLIC_INVITATION_URL;
 
   useEffect(() => {
     if (event) {
@@ -667,7 +654,7 @@ export default function SettingsPage() {
                               'Klik link untuk melihat detail acara pernikahan kami.'}
                           </div>
                           <div className="text-[9px] text-muted-foreground/80 uppercase tracking-wider font-medium pt-1">
-                            {invitationPrefix.replace(/\/$/, '')}
+                            {invitationPrefix}
                           </div>
                         </div>
                       </div>

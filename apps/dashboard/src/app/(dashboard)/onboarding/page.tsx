@@ -44,20 +44,7 @@ export default function OnboardingPage() {
     },
   });
 
-  const [invitationPrefix, setInvitationPrefix] = useState('undangan.com/');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const host = window.location.host;
-      if (host.includes('localhost') || host.includes('127.0.0.1')) {
-        setInvitationPrefix('localhost:3001/');
-      } else if (host.includes('dashboard')) {
-        setInvitationPrefix(host.replace('dashboard', 'invitation') + '/');
-      } else {
-        setInvitationPrefix('invitation.wedding-ecosystem.com/');
-      }
-    }
-  }, []);
+  const invitationPrefix = process.env.NEXT_PUBLIC_INVITATION_URL;
 
   const createEventMutation = useMutation({
     mutationFn: (data: CreateEventInput) =>

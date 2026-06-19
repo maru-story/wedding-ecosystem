@@ -30,7 +30,7 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
 
     // Find event by slug
     const event = await prisma.event.findFirst({
-      where: isPreview 
+      where: isPreview
         ? { slug: params.eventSlug }
         : { slug: params.eventSlug, status: 'published' },
     });
@@ -84,9 +84,7 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
         where: { event_id: event.id },
       }),
       prisma.invitationSection.findMany({
-        where: isPreview 
-          ? { event_id: event.id }
-          : { event_id: event.id, is_active: true },
+        where: isPreview ? { event_id: event.id } : { event_id: event.id, is_active: true },
         orderBy: { sort_order: 'asc' },
       }),
     ]);
@@ -119,6 +117,9 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
         resepsi_start: event.resepsi_start,
         resepsi_end: event.resepsi_end,
         status: event.status,
+        share_title: event.share_title || null,
+        share_description: event.share_description || null,
+        share_image_url: event.share_image_url || null,
       },
       guest: {
         id: guest.id,
@@ -127,12 +128,15 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
         group: guest.group,
         plus_one_count: guest.plus_one_count,
         qr_payload: guest.qr_codes[0]?.qr_payload || null,
-        rsvp: guest.rsvps && guest.rsvps[0] ? {
-          id: guest.rsvps[0].id,
-          attendance: guest.rsvps[0].attendance,
-          guest_count: guest.rsvps[0].guest_count,
-          submitted_at: guest.rsvps[0].submitted_at.toISOString(),
-        } : null,
+        rsvp:
+          guest.rsvps && guest.rsvps[0]
+            ? {
+                id: guest.rsvps[0].id,
+                attendance: guest.rsvps[0].attendance,
+                guest_count: guest.rsvps[0].guest_count,
+                submitted_at: guest.rsvps[0].submitted_at.toISOString(),
+              }
+            : null,
       },
       theme: invitationTheme,
       sections: sections.map((s) => ({
@@ -181,6 +185,9 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
       resepsi_start: event.resepsi_start,
       resepsi_end: event.resepsi_end,
       status: event.status,
+      share_title: event.share_title || null,
+      share_description: event.share_description || null,
+      share_image_url: event.share_image_url || null,
     });
   });
 }
