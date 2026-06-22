@@ -54,9 +54,9 @@ vi.mock('../../repositories', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../repositories')>();
   return {
     ...actual,
-    PrismaGuestRepository: vi.fn().mockImplementation(class {
+    PrismaGuestRepository: class {
       findGuestNamesByEvent = vi.fn().mockResolvedValue([]);
-    }),
+    },
     getCurrentTenantEvent: vi.fn(),
     replyEventNotFound: vi.fn((reply: any) =>
       reply

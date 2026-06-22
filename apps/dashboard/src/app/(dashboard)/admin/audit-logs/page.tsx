@@ -13,13 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import {
   Select,
   SelectContent,
@@ -329,75 +323,75 @@ export default function AdminAuditLogsPage() {
       )}
 
       {/* JSON Metadata Detail Dialog */}
-      <Dialog open={selectedLog !== null} onOpenChange={(open) => !open && setSelectedLog(null)}>
-        <DialogContent className="bg-card border-border/40 max-w-2xl rounded-xl border shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-foreground flex items-center gap-2 text-xl font-bold">
-              <Cpu className="text-primary h-5 w-5" />
-              Detail Log Aktivitas & Payload Metadata
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground text-xs">
-              Berikut detail lengkap data operasional audit log beserta metadata payload yang
-              tersimpan.
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedLog && (
-            <div className="my-2 space-y-4">
-              <div className="bg-muted/20 border-border/40 grid grid-cols-2 gap-4 rounded-lg border p-3 text-xs">
-                <div>
-                  <span className="text-muted-foreground mb-0.5 block font-medium">
-                    WAKTU EKSEKUSI
-                  </span>
-                  <span className="text-foreground font-semibold">
-                    {formatDate(selectedLog.timestamp)}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground mb-0.5 block font-medium">JENIS AKSI</span>
-                  <Badge
-                    className={`border text-[9px] font-bold uppercase ${getActionBadgeColor(selectedLog.action)}`}
-                    variant="outline"
-                  >
-                    {getActionNameInIndonesian(selectedLog.action)}
-                  </Badge>
-                </div>
-                <div>
-                  <span className="text-muted-foreground mb-0.5 block font-medium">
-                    OPERATOR ID
-                  </span>
-                  <span className="text-foreground font-mono text-[10px] font-semibold">
-                    {selectedLog.user_id || 'SISTEM'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground mb-0.5 block font-medium">REQUEST ID</span>
-                  <span className="text-foreground font-mono text-[10px] font-semibold">
-                    {selectedLog.request_id}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <span className="text-muted-foreground block text-xs font-bold tracking-wider uppercase">
-                  Payload JSON Metadata
+      <ResponsiveDialog
+        open={selectedLog !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedLog(null);
+        }}
+        title={
+          <div className="flex items-center gap-2">
+            <Cpu className="text-primary h-5 w-5" />
+            <span>Detail Log Aktivitas & Payload Metadata</span>
+          </div>
+        }
+        description="Berikut detail lengkap data operasional audit log beserta metadata payload yang tersimpan."
+        className="max-w-2xl"
+      >
+        {selectedLog && (
+          <div className="space-y-4">
+            <div className="bg-muted/20 border-border/40 grid grid-cols-2 gap-4 rounded-lg border p-3 text-xs text-foreground">
+              <div>
+                <span className="text-muted-foreground mb-0.5 block font-medium">
+                  WAKTU EKSEKUSI
                 </span>
-                <div className="border-border/40 max-h-64 overflow-auto rounded-lg border bg-zinc-950/80 p-4 font-mono text-xs text-slate-100 shadow-inner">
-                  {selectedLog.metadata ? (
-                    <pre className="whitespace-pre-wrap">
-                      {JSON.stringify(selectedLog.metadata, null, 2)}
-                    </pre>
-                  ) : (
-                    <span className="text-slate-500 italic">
-                      Tidak ada metadata tambahan yang terasosiasi.
-                    </span>
-                  )}
-                </div>
+                <span className="text-foreground font-semibold">
+                  {formatDate(selectedLog.timestamp)}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground mb-0.5 block font-medium">JENIS AKSI</span>
+                <Badge
+                  className={`border text-[9px] font-bold uppercase ${getActionBadgeColor(selectedLog.action)}`}
+                  variant="outline"
+                >
+                  {getActionNameInIndonesian(selectedLog.action)}
+                </Badge>
+              </div>
+              <div>
+                <span className="text-muted-foreground mb-0.5 block font-medium">
+                  OPERATOR ID
+                </span>
+                <span className="text-foreground font-mono text-[10px] font-semibold">
+                  {selectedLog.user_id || 'SISTEM'}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground mb-0.5 block font-medium">REQUEST ID</span>
+                <span className="text-foreground font-mono text-[10px] font-semibold">
+                  {selectedLog.request_id}
+                </span>
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+
+            <div className="space-y-2">
+              <span className="text-muted-foreground block text-xs font-bold tracking-wider uppercase text-foreground">
+                Payload JSON Metadata
+              </span>
+              <div className="border-border/40 max-h-64 overflow-auto rounded-lg border bg-zinc-950/80 p-4 font-mono text-xs text-slate-100 shadow-inner">
+                {selectedLog.metadata ? (
+                  <pre className="whitespace-pre-wrap">
+                    {JSON.stringify(selectedLog.metadata, null, 2)}
+                  </pre>
+                ) : (
+                  <span className="text-slate-500 italic">
+                    Tidak ada metadata tambahan yang terasosiasi.
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </ResponsiveDialog>
     </div>
   );
 }

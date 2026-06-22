@@ -61,7 +61,7 @@ graph TB
 | Service                     | File                                                 | Responsibility                                                                                                                                     |
 | --------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `AuthService`               | `auth/auth.service.ts`                               | Login, JWT generation/verification, password hashing, token refresh, account lockout                                                               |
-| `GuestService`              | `guest/guest.service.ts`                             | CRUD guests, QR code generation, encrypted payloads, slug generation                                                                               |
+| `GuestService`              | `guest/guest.service.ts`                             | CRUD guests, QR code generation, encrypted payloads, slug generation; `bulkAddGuests()` for batch import (5 DB queries for any N rows) |
 | `CheckInService`            | `checkin/checkin.service.ts`                         | QR verification, manual check-in, go-show registration, duplicate detection                                                                        |
 | `RsvpService`               | `rsvp/rsvp.service.ts`                               | RSVP submission and retrieval                                                                                                                      |
 | `CMSService`                | `cms/cms.service.ts`                                 | Section CRUD, sort order management, toggle active state                                                                                           |
@@ -70,18 +70,18 @@ graph TB
 | `ScannerDeviceService`      | `scanner-device/scanner-device.service.ts`           | Device registration, lane assignment, heartbeat, max 2 per event                                                                                   |
 | `MediaUploadService`        | `media-upload/media-upload.service.ts`               | File validation, virus scanning, cloud storage upload                                                                                              |
 | `StorageService`            | `storage/storage.ts`                                 | R2 client, signed URLs, tenant storage quota enforcement                                                                                           |
-| `GuestImportService`        | `guest-import/guest-import.service.ts`               | CSV parsing, bulk import (max 2000 rows), deduplication                                                                                            |
+| `GuestImportService`        | `guest-import/guest-import.service.ts`               | CSV parsing, two-pass bulk import (max 2000 rows): pass 1 = in-memory validation, pass 2 = single `bulkAddGuests` batch (~5 DB queries total) |
 | `AdminService`              | `admin/admin.service.ts`                             | Platform admin: platform KPIs, tenant management, user listing, password resets                                                                    |
 
 #### Repositories
 
-| Repository                | File                        | Responsibility                                   |
-| ------------------------- | --------------------------- | ------------------------------------------------ |
-| `PrismaGuestRepository`   | `guest/guest.repository.ts` | Type-safe Prisma adapter for guests and QR codes |
-| `PrismaCheckInRepository` | `checkin.repository.ts`     | Manual and QR-based check-in persistence         |
-| `PrismaCMSRepository`     | `cms.repository.ts`         | Section content and sort-order management        |
-| `PrismaRsvpRepository`    | `rsvp.repository.ts`        | Guest RSVP state persistence                     |
-| `PrismaAdminRepository`   | `admin.repository.ts`       | Platform-wide stats and tenant/user management   |
+| Repository                | File                        | Responsibility                                                                                                         |
+| ------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `PrismaGuestRepository`   | `guest/guest.repository.ts` | Type-safe Prisma adapter for guests and QR codes; includes `bulkCreateGuestsAndQRCodes` (single `$transaction` insert) |
+| `PrismaCheckInRepository` | `checkin.repository.ts`     | Manual and QR-based check-in persistence                                                                               |
+| `PrismaCMSRepository`     | `cms.repository.ts`         | Section content and sort-order management                                                                              |
+| `PrismaRsvpRepository`    | `rsvp.repository.ts`        | Guest RSVP state persistence                                                                                           |
+| `PrismaAdminRepository`   | `admin.repository.ts`       | Platform-wide stats and tenant/user management                                                                         |
 
 #### Middleware Stack
 
@@ -186,8 +186,7 @@ graph TB
 
 Guest groups are **event-scoped free-text strings** (not a DB enum). The dashboard uses an inline `CreatableGroupSelect` component inside `add-guest-modal.tsx` that:
 
-- Loads existing groups via `useGuestGroups()` → `GET /guests/groups`
-- Merges them with 4 preset defaults: `Keluarga`, `Teman`, `Rekan Kerja`, `VIP`
+- Loads existing groups dynamically via `useGuestGroups()` → `GET /guests/groups` (with no static presets in the UI to make it fully database-driven)
 - Lets the couple type a new group name on-the-fly ("Buat grup: ...") without any prior setup
 - `GuestFilters` sources its group options from the same `useGuestGroups()` hook
 - `ManageGroupsModal` (`guests/components/manage-groups-modal.tsx`) allows bulk reassign of all guests from one group to another via `PATCH /guests/groups/reassign`. Accessible from the page header "Kelola Grup" button.

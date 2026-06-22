@@ -14,12 +14,7 @@ import { Search } from 'lucide-react';
 import { useGuestGroups } from '@/hooks/queries';
 
 /** Default preset groups always shown in the filter. */
-const DEFAULT_GROUPS: string[] = [
-  GuestGroup.FAMILY,
-  GuestGroup.FRIEND,
-  GuestGroup.COLLEAGUE,
-  GuestGroup.VIP,
-];
+const DEFAULT_GROUPS: string[] = [];
 
 type GuestStatusFilter = 'belum_rsvp' | 'confirmed' | 'declined' | 'checked_in';
 

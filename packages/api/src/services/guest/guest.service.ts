@@ -177,6 +177,38 @@ export interface GuestRepository {
     fromGroup: string,
     toGroup: string
   ): Promise<number>;
+
+  /**
+   * Fetch all existing slugs for an event — used to seed the in-memory
+   * slug deduplication set before a bulk import.
+   */
+  findSlugsByEvent(eventId: string, tenantId: string): Promise<string[]>;
+
+  /**
+   * Atomically insert many guests and their QR codes in a single transaction.
+   * Returns the count of successfully inserted guests.
+   */
+  bulkCreateGuestsAndQRCodes(
+    guests: Array<{
+      id: string;
+      event_id: string;
+      tenant_id: string;
+      name: string;
+      slug: string;
+      phone: string | null;
+      group: string;
+      type: GuestType;
+      plus_one_count: number;
+      invitation_url: string | null;
+      delivery_status: DeliveryStatus;
+    }>,
+    qrCodes: Array<{
+      id: string;
+      guest_id: string;
+      qr_payload: string;
+      is_active: boolean;
+    }>
+  ): Promise<number>;
 }
 
 // --- Guest Service ---
@@ -207,7 +239,8 @@ export class GuestService {
   async addGuest(
     eventId: string,
     tenantId: string,
-    input: CreateGuestInput
+    input: CreateGuestInput,
+    existingBatchSlugs?: Set<string>
   ): Promise<GuestWithQR | GuestServiceError> {
     // Verify event exists and belongs to tenant
     const event = await this.repository.findEventById(eventId, tenantId);
@@ -229,7 +262,7 @@ export class GuestService {
     }
 
     // Generate unique slug for the guest
-    const slug = await this.generateUniqueSlug(eventId, input.name);
+    const slug = await this.generateUniqueSlug(eventId, input.name, undefined, existingBatchSlugs);
 
     // Create guest record
     const guestId = randomUUID();
@@ -577,39 +610,205 @@ export class GuestService {
     return { updatedCount };
   }
 
+  // --- Bulk Add Guests ---
+
+  /**
+   * Prepare and insert a batch of guests atomically.
+   *
+   * Unlike calling `addGuest` N times (N×4 DB round-trips), this method:
+   *   1. Verifies event + capacity once.
+   *   2. Fetches all existing slugs once.
+   *   3. Generates slugs entirely in-memory.
+   *   4. Builds encrypted QR payloads in-memory (CPU only, no DB per row).
+   *   5. Inserts all guests + QR codes in a single transaction (2 queries).
+   *
+   * Returns the number of rows actually inserted.
+   */
+  async bulkAddGuests(
+    eventId: string,
+    tenantId: string,
+    rows: Array<{
+      name: string;
+      group: string;
+      phone: string | undefined;
+      plus_one_count: number;
+    }>
+  ): Promise<{ insertedCount: number } | GuestServiceError> {
+    if (rows.length === 0) return { insertedCount: 0 };
+
+    // 1. Single event + capacity check
+    const event = await this.repository.findEventById(eventId, tenantId);
+    if (!event) {
+      return { code: ErrorCode.NOT_FOUND, message: 'Event tidak ditemukan' };
+    }
+
+    const currentCount = await this.repository.countGuestsByEvent(eventId, tenantId);
+    const maxGuests = event.max_guests ?? 2000;
+    const remaining = maxGuests - currentCount;
+    if (remaining <= 0) {
+      return {
+        code: ErrorCode.GUEST_LIMIT_EXCEEDED,
+        message: 'Kapasitas tamu untuk acara ini telah penuh.',
+      };
+    }
+
+    // Clamp to remaining capacity
+    const rowsToInsert = rows.slice(0, remaining);
+
+    // 2. Fetch all existing slugs once
+    const existingSlugs = await this.repository.findSlugsByEvent(eventId, tenantId);
+    const slugSet = new Set<string>(existingSlugs);
+
+    // 3. Generate all slugs in-memory
+    const guestData: Array<{
+      id: string;
+      event_id: string;
+      tenant_id: string;
+      name: string;
+      slug: string;
+      phone: string | null;
+      group: string;
+      type: GuestType;
+      plus_one_count: number;
+      invitation_url: string | null;
+      delivery_status: DeliveryStatus;
+    }> = [];
+
+    const qrData: Array<{
+      id: string;
+      guest_id: string;
+      qr_payload: string;
+      is_active: boolean;
+    }> = [];
+
+    for (const row of rowsToInsert) {
+      const slug = this.generateSlugInMemory(row.name, slugSet);
+      slugSet.add(slug); // prevent collision within same batch
+
+      const guestId = randomUUID();
+      const invitationUrl = `/${event.slug}?to=${slug}`;
+      const encryptedPhone = this.piiEncryption.encrypt(row.phone || null);
+
+      // Build QR payload in-memory (AES-256 — CPU only, no DB check per row)
+      const qrPayload = this.createEncryptedPayloadSync(guestId, eventId);
+
+      guestData.push({
+        id: guestId,
+        event_id: eventId,
+        tenant_id: tenantId,
+        name: row.name,
+        slug,
+        phone: encryptedPhone,
+        group: row.group,
+        type: GuestType.INVITED,
+        plus_one_count: row.plus_one_count,
+        invitation_url: invitationUrl,
+        delivery_status: DeliveryStatus.NOT_SENT,
+      });
+
+      qrData.push({
+        id: randomUUID(),
+        guest_id: guestId,
+        qr_payload: qrPayload,
+        is_active: true,
+      });
+    }
+
+    // 4. Single atomic transaction — 2 queries total
+    const insertedCount = await this.repository.bulkCreateGuestsAndQRCodes(guestData, qrData);
+
+    return { insertedCount };
+  }
+
+  /**
+   * Generate a unique slug from a name using an in-memory slug set.
+   * Adds numeric suffix until unique. Does NOT hit the database.
+   */
+  private generateSlugInMemory(name: string, existingSlugs: Set<string>): string {
+    const baseSlug = this.nameToSlug(name);
+    if (!existingSlugs.has(baseSlug)) return baseSlug;
+
+    let suffix = 2;
+    let candidate = `${baseSlug}-${suffix}`;
+    while (existingSlugs.has(candidate)) {
+      suffix++;
+      candidate = `${baseSlug}-${suffix}`;
+    }
+    return candidate;
+  }
+
+  /**
+   * Synchronous AES-256-CBC encryption for batch QR payload generation.
+   * Randomness comes from IV + nonce — no DB uniqueness check needed because
+   * the IV (16 bytes) + nonce (16 bytes) collision probability is negligible.
+   */
+  private createEncryptedPayloadSync(guestId: string, eventId: string): string {
+    const nonce = randomBytes(16).toString('hex');
+    const plaintext = `${guestId}|${eventId}|${Date.now()}|${nonce}`;
+    const iv = randomBytes(IV_LENGTH);
+    const cipher = createCipheriv(AES_ALGORITHM, this.encryptionKey, iv);
+    let encrypted = cipher.update(plaintext, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return `${iv.toString('hex')}:${encrypted}`;
+  }
+
   // --- Slug Generation ---
 
   /**
    * Generate a unique slug for the guest within the event
    * Format: kebab-case name with optional numeric suffix
    */
-  async generateUniqueSlug(eventId: string, name: string, currentSlug?: string): Promise<string> {
+  async generateUniqueSlug(
+    eventId: string,
+    name: string,
+    currentSlug?: string,
+    existingBatchSlugs?: Set<string>
+  ): Promise<string> {
     const baseSlug = this.nameToSlug(name);
 
     // If the slug hasn't changed, keep it
     if (currentSlug && currentSlug === baseSlug) {
+      if (existingBatchSlugs) {
+        existingBatchSlugs.add(currentSlug);
+      }
       return currentSlug;
     }
 
+    const isSlugTaken = async (slug: string) => {
+      if (existingBatchSlugs && existingBatchSlugs.has(slug)) {
+        return true;
+      }
+      return this.repository.checkSlugExists(eventId, slug);
+    };
+
     // Check if base slug is available
-    const exists = await this.repository.checkSlugExists(eventId, baseSlug);
+    const exists = await isSlugTaken(baseSlug);
     if (!exists) {
+      if (existingBatchSlugs) {
+        existingBatchSlugs.add(baseSlug);
+      }
       return baseSlug;
     }
 
     // If it's the same as current slug, it's fine (updating same guest)
     if (currentSlug === baseSlug) {
+      if (existingBatchSlugs) {
+        existingBatchSlugs.add(baseSlug);
+      }
       return baseSlug;
     }
 
     // Add numeric suffix until unique
     let suffix = 2;
     let candidateSlug = `${baseSlug}-${suffix}`;
-    while (await this.repository.checkSlugExists(eventId, candidateSlug)) {
+    while (await isSlugTaken(candidateSlug)) {
       suffix++;
       candidateSlug = `${baseSlug}-${suffix}`;
     }
 
+    if (existingBatchSlugs) {
+      existingBatchSlugs.add(candidateSlug);
+    }
     return candidateSlug;
   }
 
@@ -638,6 +837,7 @@ export function isGuestError(
     | GuestRecord
     | PaginatedGuestList
     | { success: boolean }
+    | { insertedCount: number }
     | GuestServiceError
     | string[]
 ): result is GuestServiceError {
@@ -646,7 +846,8 @@ export function isGuestError(
     'message' in result &&
     !('id' in result) &&
     !('data' in result) &&
-    !('success' in result)
+    !('success' in result) &&
+    !('insertedCount' in result)
   );
 }
 

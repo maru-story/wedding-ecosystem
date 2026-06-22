@@ -5,20 +5,13 @@ import { useEvent, useAdminWishes, useToggleWishVisibility, useDeleteWish } from
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { TableCell, TableHead, TableRow } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { FadeIn } from '@/components/ui/motion-wrapper';
-import { MessageSquare, Download, Trash2, Loader2, RefreshCw } from 'lucide-react';
+import { MessageSquare, Download, Trash2, Loader2, RefreshCw, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiFetch } from '@/lib/api';
 import { useTableState } from '@/hooks/use-table-state';
 import { DataTable } from '@/components/ui/data-table';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 
 interface WishItem {
   id: string;
@@ -67,6 +60,7 @@ export default function WishesPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [pendingDeleteWish, setPendingDeleteWish] = useState<WishItem | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [selectedWish, setSelectedWish] = useState<WishItem | null>(null);
 
   const handleToggleVisibility = async (wish: WishItem) => {
     setTogglingId(wish.id);
@@ -260,7 +254,12 @@ export default function WishesPage() {
           )}
         >
           {wishes.map((w: WishItem) => (
-            <TableRow key={w.id} className="hover:bg-muted/30 transition-colors">
+            <TableRow
+              key={w.id}
+              className="hover:bg-muted/30 cursor-pointer transition-colors"
+              onClick={() => setSelectedWish(w)}
+              title="Klik untuk melihat detail ucapan"
+            >
               <TableCell
                 className="text-foreground max-w-[150px] truncate font-semibold"
                 title={w.sender_name}
@@ -274,7 +273,7 @@ export default function WishesPage() {
                   <span className="text-muted-foreground text-xs italic">Bukan tamu terdaftar</span>
                 )}
               </TableCell>
-              <TableCell className="text-muted-foreground max-w-md break-words">
+              <TableCell className="text-muted-foreground max-w-xs md:max-w-md truncate">
                 {w.message_text}
               </TableCell>
               <TableCell className="text-muted-foreground text-xs">
@@ -286,7 +285,7 @@ export default function WishesPage() {
                   minute: '2-digit',
                 })}
               </TableCell>
-              <TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-center">
                   <Switch
                     checked={w.is_visible}
@@ -295,17 +294,28 @@ export default function WishesPage() {
                   />
                 </div>
               </TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setPendingDeleteWish(w)}
-                  disabled={deleteMutation.isPending}
-                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 transition-colors"
-                  title="Hapus Ucapan"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-end gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSelectedWish(w)}
+                    className="text-muted-foreground hover:text-foreground hover:bg-accent h-8 w-8 transition-colors hidden md:inline-flex"
+                    title="Lihat Detail"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setPendingDeleteWish(w)}
+                    disabled={deleteMutation.isPending}
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 transition-colors"
+                    title="Hapus Ucapan"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
@@ -313,36 +323,35 @@ export default function WishesPage() {
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
+      <ResponsiveDialog
         open={!!pendingDeleteWish}
         onOpenChange={(open) => {
           if (!open) setPendingDeleteWish(null);
         }}
-      >
-        <DialogContent className="bg-card border-border/40 sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-foreground text-xl">Hapus Ucapan</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Apakah Anda yakin ingin menghapus ucapan dari{' '}
-              <span className="text-foreground font-semibold">
-                "{pendingDeleteWish?.sender_name}"
+        title="Hapus Ucapan"
+        description={
+          <>
+            Apakah Anda yakin ingin menghapus ucapan dari{' '}
+            <span className="text-foreground font-semibold">
+              "{pendingDeleteWish?.sender_name}"
+            </span>
+            ?{' '}
+            {pendingDeleteWish?.message_text && (
+              <span className="mt-1 block truncate text-xs italic">
+                "{pendingDeleteWish.message_text.slice(0, 80)}
+                {pendingDeleteWish.message_text.length > 80 ? '...' : ''}"
               </span>
-              ?{' '}
-              {pendingDeleteWish?.message_text && (
-                <span className="mt-1 block truncate text-xs italic">
-                  "{pendingDeleteWish.message_text.slice(0, 80)}
-                  {pendingDeleteWish.message_text.length > 80 ? '...' : ''}"
-                </span>
-              )}
-              <span className="mt-2 block">Tindakan ini tidak dapat dibatalkan.</span>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
+            )}
+            <span className="mt-2 block">Tindakan ini tidak dapat dibatalkan.</span>
+          </>
+        }
+        footer={
+          <>
             <Button
               variant="outline"
               onClick={() => setPendingDeleteWish(null)}
               disabled={deleteMutation.isPending}
-              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground"
+              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground w-full sm:w-auto"
             >
               Batal
             </Button>
@@ -350,12 +359,76 @@ export default function WishesPage() {
               variant="destructive"
               onClick={handleConfirmDelete}
               disabled={deleteMutation.isPending}
+              className="w-full sm:w-auto"
             >
               {deleteMutation.isPending ? 'Menghapus...' : 'Hapus Ucapan'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+        className="sm:max-w-sm"
+      >
+        <div />
+      </ResponsiveDialog>
+
+      {/* Wish Detail Dialog/Drawer */}
+      <ResponsiveDialog
+        open={!!selectedWish}
+        onOpenChange={(open) => {
+          if (!open) setSelectedWish(null);
+        }}
+        title="Detail Ucapan Tamu"
+        description="Detail ucapan dan doa dari tamu undangan"
+      >
+        {selectedWish && (
+          <div className="space-y-4 text-foreground">
+            <div className="grid grid-cols-3 gap-2 border-b border-border/40 pb-3 text-sm">
+              <span className="text-muted-foreground font-medium">Pengirim</span>
+              <span className="col-span-2 font-semibold">{selectedWish.sender_name}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 border-b border-border/40 pb-3 text-sm">
+              <span className="text-muted-foreground font-medium">Tamu Terdaftar</span>
+              <span className="col-span-2 font-semibold">
+                {selectedWish.guest ? (
+                  selectedWish.guest.name
+                ) : (
+                  <span className="text-muted-foreground text-xs italic">Bukan tamu terdaftar</span>
+                )}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 border-b border-border/40 pb-3 text-sm">
+              <span className="text-muted-foreground font-medium">Tanggal Kirim</span>
+              <span className="col-span-2">
+                {new Date(selectedWish.created_at).toLocaleString('id-ID', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 border-b border-border/40 pb-3 text-sm">
+              <span className="text-muted-foreground font-medium">Tampilkan</span>
+              <div className="col-span-2 flex items-center gap-2">
+                <Switch
+                  checked={selectedWish.is_visible}
+                  disabled={togglingId === selectedWish.id}
+                  onCheckedChange={() => handleToggleVisibility(selectedWish)}
+                />
+                <span className="text-xs text-muted-foreground">
+                  {selectedWish.is_visible ? 'Tampil di undangan' : 'Disembunyikan'}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-1.5 pt-2">
+              <span className="text-muted-foreground block text-sm font-medium">Pesan Ucapan & Doa</span>
+              <div className="bg-accent/40 border-l-4 border-primary p-4 rounded-r-md text-sm leading-relaxed whitespace-pre-wrap wrap-break-word italic">
+                "{selectedWish.message_text}"
+              </div>
+            </div>
+          </div>
+        )}
+      </ResponsiveDialog>
     </FadeIn>
   );
 }

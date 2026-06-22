@@ -16,6 +16,7 @@ export default function SectionEditPage({ params }: { params: Promise<{ sectionI
     data: section,
     isLoading: sectionLoading,
     error: fetchError,
+    isSuccess: sectionSuccess,
   } = useCmsSection(event?.id, sectionId);
   const updateContentMutation = useUpdateCmsSectionContent();
 
@@ -102,13 +103,27 @@ export default function SectionEditPage({ params }: { params: Promise<{ sectionI
     }
   };
 
-  if (eventLoading || sectionLoading) {
+  if (eventLoading || (event && !sectionSuccess && !fetchError)) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
           <Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
           <p className="text-muted-foreground mt-3 text-sm">Memuat section...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="mx-auto max-w-3xl py-8 text-center">
+        <h2 className="text-destructive text-lg font-semibold">Gagal memuat detail acara</h2>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Acara tidak ditemukan untuk akun ini.
+        </p>
+        <Link href="/cms" className="text-primary mt-4 inline-block text-sm underline">
+          Kembali ke daftar section
+        </Link>
       </div>
     );
   }

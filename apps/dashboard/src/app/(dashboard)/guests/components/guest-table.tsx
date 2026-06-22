@@ -7,15 +7,14 @@ import { TableCell, TableHead, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
+import { Edit2, QrCode, Trash2, MoreVertical } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Edit2, QrCode, Trash2 } from 'lucide-react';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useDeleteGuest, useBulkDeleteGuests } from '@/hooks/queries';
 import { toast } from 'sonner';
 import { DataTable } from '@/components/ui/data-table';
@@ -196,6 +195,7 @@ export function GuestTable({
       >
         {guests.map((guest) => {
           const rsvp = getRsvpLabel(guest.rsvp_status);
+          const groupBadge = getGroupBadge(guest.group);
           return (
             <TableRow key={guest.id} className="hover:bg-muted/30 transition-colors">
               <TableCell className="px-4 py-3">
@@ -212,8 +212,8 @@ export function GuestTable({
                 </div>
               </TableCell>
               <TableCell className="px-4 py-3">
-                <Badge variant="outline" className={getGroupBadge(guest.group).className}>
-                  {getGroupBadge(guest.group).label}
+                <Badge variant="outline" className={groupBadge.className}>
+                  {groupBadge.label}
                 </Badge>
               </TableCell>
               <TableCell className="px-4 py-3">
@@ -243,7 +243,8 @@ export function GuestTable({
                 </span>
               </TableCell>
               <TableCell className="px-4 py-3 text-right">
-                <div className="flex items-center justify-end gap-1">
+                {/* Desktop: inline buttons */}
+                <div className="hidden md:flex items-center justify-end gap-1">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -276,6 +277,39 @@ export function GuestTable({
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
+
+                {/* Mobile: Dropdown Menu */}
+                <div className="md:hidden flex justify-end">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
+                      >
+                        <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-36 bg-card border-border/40">
+                      <DropdownMenuItem onClick={() => onShowQr(guest)} className="cursor-pointer">
+                        <QrCode className="mr-2 h-4 w-4" />
+                        <span>QR Code</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onEdit(guest)} className="cursor-pointer">
+                        <Edit2 className="mr-2 h-4 w-4" />
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setPendingDeleteGuest(guest)}
+                        className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+                        disabled={deleteGuest.isPending}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <span>Hapus</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </TableCell>
             </TableRow>
           );
@@ -283,79 +317,75 @@ export function GuestTable({
       </DataTable>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
+      <ResponsiveDialog
         open={!!pendingDeleteGuest}
         onOpenChange={(open) => {
           if (!open) setPendingDeleteGuest(null);
         }}
+        title="Hapus Tamu"
+        description={
+          <>
+            Apakah Anda yakin ingin menghapus tamu{' '}
+            <span className="text-foreground font-semibold">"{pendingDeleteGuest?.name}"</span>?
+            Tindakan ini tidak dapat dibatalkan.
+          </>
+        }
+        className="sm:max-w-sm"
       >
-        <DialogContent className="bg-card border-border/40 sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-foreground text-xl">Hapus Tamu</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Apakah Anda yakin ingin menghapus tamu{' '}
-              <span className="text-foreground font-semibold">"{pendingDeleteGuest?.name}"</span>?
-              Tindakan ini tidak dapat dibatalkan.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setPendingDeleteGuest(null)}
-              disabled={deleteGuest.isPending}
-              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground"
-            >
-              Batal
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmDelete}
-              disabled={deleteGuest.isPending}
-            >
-              {deleteGuest.isPending ? 'Menghapus...' : 'Hapus Tamu'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setPendingDeleteGuest(null)}
+            disabled={deleteGuest.isPending}
+            className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground"
+          >
+            Batal
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleConfirmDelete}
+            disabled={deleteGuest.isPending}
+          >
+            {deleteGuest.isPending ? 'Menghapus...' : 'Hapus Tamu'}
+          </Button>
+        </div>
+      </ResponsiveDialog>
 
       {/* Bulk Delete Confirmation Dialog */}
-      <Dialog
+      <ResponsiveDialog
         open={showBulkDeleteDialog}
         onOpenChange={(open) => {
           if (!open) setShowBulkDeleteDialog(false);
         }}
+        title="Hapus Beberapa Tamu"
+        description={
+          <>
+            Apakah Anda yakin ingin menghapus{' '}
+            <span className="text-foreground font-semibold">{selectedIds.length} tamu</span>{' '}
+            terpilih? Tindakan ini akan menghapus semua data terkait tamu-tamu tersebut dan tidak
+            dapat dibatalkan.
+          </>
+        }
+        className="sm:max-w-sm"
       >
-        <DialogContent className="bg-card border-border/40 sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-foreground text-xl">
-              Hapus Beberapa Tamu
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Apakah Anda yakin ingin menghapus{' '}
-              <span className="text-foreground font-semibold">{selectedIds.length} tamu</span>{' '}
-              terpilih? Tindakan ini akan menghapus semua data terkait tamu-tamu tersebut dan tidak
-              dapat dibatalkan.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setShowBulkDeleteDialog(false)}
-              disabled={bulkDeleteGuests.isPending}
-              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground"
-            >
-              Batal
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmBulkDelete}
-              disabled={bulkDeleteGuests.isPending}
-            >
-              {bulkDeleteGuests.isPending ? 'Menghapus...' : 'Hapus Terpilih'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowBulkDeleteDialog(false)}
+            disabled={bulkDeleteGuests.isPending}
+            className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground"
+          >
+            Batal
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleConfirmBulkDelete}
+            disabled={bulkDeleteGuests.isPending}
+          >
+            {bulkDeleteGuests.isPending ? 'Menghapus...' : 'Hapus Terpilih'}
+          </Button>
+        </div>
+      </ResponsiveDialog>
     </>
   );
 }

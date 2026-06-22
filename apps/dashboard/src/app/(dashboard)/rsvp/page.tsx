@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSocket, type ConnectionStatus } from '@/hooks/use-socket';
 import { useRealtimeStats } from '@/hooks/use-realtime-stats';
-import { useEvent, useRsvpList, useGuestGroups } from '@/hooks/queries';
+import { useEvent, useRsvpList, useGuestGroups, useGuests } from '@/hooks/queries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,18 +18,23 @@ import {
 } from '@/components/ui/select';
 import { DataTable } from '@/components/ui/data-table';
 import { TableCell, TableHead, TableRow } from '@/components/ui/table';
-import { Users, CalendarCheck, CheckSquare, UserPlus, Search, RefreshCw } from 'lucide-react';
+import {
+  Users,
+  CalendarCheck,
+  CheckSquare,
+  UserPlus,
+  Search,
+  RefreshCw,
+  UserCheck,
+  Phone,
+} from 'lucide-react';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { FadeIn } from '@/components/ui/motion-wrapper';
 
 import { GuestGroup } from '@wedding/shared';
 
 /** Default preset groups always shown in the filter. */
-const DEFAULT_GROUPS: string[] = [
-  GuestGroup.FAMILY,
-  GuestGroup.FRIEND,
-  GuestGroup.COLLEAGUE,
-  GuestGroup.VIP,
-];
+const DEFAULT_GROUPS: string[] = [];
 
 /** Merge presets + any custom groups from API. */
 function mergeGroups(apiGroups: string[] = []): string[] {
@@ -148,6 +153,8 @@ export default function RsvpTrackingPage() {
 
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
+  const [isRsvpDialogOpen, setIsRsvpDialogOpen] = useState(false);
 
   const { isLoading: isRsvpListLoading } = useRsvpList(eventId);
 
@@ -242,7 +249,7 @@ export default function RsvpTrackingPage() {
         </div>
 
         {/* Real-time statistics panel */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Card className="bg-card border-border/40 shadow-sm transition-shadow duration-200 hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-muted-foreground text-sm font-medium">
@@ -255,25 +262,56 @@ export default function RsvpTrackingPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border/40 shadow-sm transition-shadow duration-200 hover:shadow-md">
+          <Card className="bg-card border-border/40 shadow-sm transition-shadow duration-200 hover:shadow-md relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-muted-foreground text-sm font-medium">
                 RSVP Masuk
               </CardTitle>
               <CalendarCheck className="text-copper h-4 w-4" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex items-baseline justify-between">
               <div className="text-copper text-2xl font-bold">{stats.total_rsvp}</div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-copper hover:text-copper/85 hover:bg-copper/10 h-7 px-2 text-xs font-semibold"
+                onClick={() => setIsRsvpDialogOpen(true)}
+              >
+                Lihat Detail
+              </Button>
             </CardContent>
           </Card>
 
           <Card className="bg-card border-border/40 shadow-sm transition-shadow duration-200 hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-muted-foreground text-sm font-medium">
+                Kemungkinan Hadir
+              </CardTitle>
+              <UserCheck className="text-primary h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-foreground text-2xl font-bold">
+                {stats.total_pax_confirmed ?? 0}{' '}
+                <span className="text-muted-foreground text-sm font-normal">pax</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border/40 shadow-sm transition-shadow duration-200 hover:shadow-md relative overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-muted-foreground text-sm font-medium">Check-in</CardTitle>
               <CheckSquare className="text-success h-4 w-4" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex items-baseline justify-between">
               <div className="text-success text-2xl font-bold">{stats.total_checked_in}</div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-success hover:text-success/85 hover:bg-success/10 h-7 px-2 text-xs font-semibold"
+                onClick={() => setIsCheckInDialogOpen(true)}
+              >
+                Lihat Detail
+              </Button>
             </CardContent>
           </Card>
 
@@ -432,7 +470,206 @@ export default function RsvpTrackingPage() {
             </TableRow>
           ))}
         </DataTable>
+
+        {/* Dialogs */}
+        <CheckedInDialog open={isCheckInDialogOpen} onOpenChange={setIsCheckInDialogOpen} />
+        <RsvpedDialog
+          open={isRsvpDialogOpen}
+          onOpenChange={setIsRsvpDialogOpen}
+          rsvpList={rsvpList}
+        />
       </div>
     </FadeIn>
+  );
+}
+
+function CheckedInDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Fetch checked-in guests
+  const { data: guestsResponse, isLoading } = useGuests({
+    status: 'checked_in',
+    q: debouncedSearch || undefined,
+    perPage: 100,
+  });
+
+  const checkedInGuests = guestsResponse?.data || [];
+
+  return (
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Daftar Hadir (Check-in)"
+      description="Daftar tamu yang telah melakukan scan QR check-in atau check-in manual di lokasi acara."
+      className="sm:max-w-lg"
+    >
+      <div className="space-y-4">
+        {/* Search */}
+        <div className="relative">
+          <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
+          <Input
+            type="text"
+            placeholder="Cari nama tamu..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        {/* List container */}
+        <div className="max-h-[350px] overflow-y-auto space-y-2 pr-1">
+          {isLoading ? (
+            <div className="text-muted-foreground py-8 text-center text-sm animate-pulse">
+              Memuat data kehadiran...
+            </div>
+          ) : checkedInGuests.length === 0 ? (
+            <div className="text-muted-foreground py-8 text-center text-sm">
+              Tidak ada tamu checked-in yang cocok.
+            </div>
+          ) : (
+            checkedInGuests.map((guest: any) => (
+              <div
+                key={guest.id}
+                className="bg-muted/10 border-border/40 flex items-center justify-between rounded-lg border p-3"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-foreground">{guest.name}</span>
+                    {guest.group && (
+                      <Badge variant="secondary" className="text-[10px] px-2 py-0">
+                        {guest.group}
+                      </Badge>
+                    )}
+                  </div>
+                  {guest.phone && (
+                    <div className="text-muted-foreground flex items-center gap-1 text-xs">
+                      <Phone className="h-3 w-3" />
+                      <span>{guest.phone}</span>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <Badge className="bg-success/20 text-success border-transparent hover:bg-success/30 font-medium">
+                    Checked-in
+                  </Badge>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </ResponsiveDialog>
+  );
+}
+
+function RsvpedDialog({
+  open,
+  onOpenChange,
+  rsvpList,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  rsvpList: any[];
+}) {
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    return rsvpList.filter((item) => {
+      const nameMatch = item.guest_name.toLowerCase().includes(search.toLowerCase());
+      const groupMatch = item.group?.toLowerCase().includes(search.toLowerCase());
+      return nameMatch || groupMatch;
+    });
+  }, [rsvpList, search]);
+
+  return (
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Daftar RSVP Masuk"
+      description="Daftar seluruh tamu yang telah mengisi konfirmasi kehadiran (RSVP)."
+      className="sm:max-w-lg"
+    >
+      <div className="space-y-4">
+        {/* Search */}
+        <div className="relative">
+          <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
+          <Input
+            type="text"
+            placeholder="Cari nama tamu..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        {/* List container */}
+        <div className="max-h-[350px] overflow-y-auto space-y-2 pr-1">
+          {filtered.length === 0 ? (
+            <div className="text-muted-foreground py-8 text-center text-sm">
+              Tidak ada data RSVP yang cocok.
+            </div>
+          ) : (
+            filtered.map((item: any) => (
+              <div
+                key={item.guest_id}
+                className="bg-muted/10 border-border/40 flex items-center justify-between rounded-lg border p-3"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-foreground">{item.guest_name}</span>
+                    {item.group && (
+                      <Badge variant="secondary" className="text-[10px] px-2 py-0">
+                        {item.group}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                    {item.phone && (
+                      <span className="flex items-center gap-0.5">
+                        <Phone className="h-3 w-3" />
+                        {item.phone}
+                      </span>
+                    )}
+                    <span>• {formatTimestamp(item.submitted_at)}</span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <Badge
+                    variant="outline"
+                    className={
+                      item.attendance === 'decline'
+                        ? 'bg-destructive/15 text-destructive border-transparent'
+                        : 'bg-success/20 text-success border-transparent'
+                    }
+                  >
+                    {item.attendance === 'decline' ? 'Menolak' : 'Hadir'}
+                  </Badge>
+                  {item.attendance !== 'decline' && (
+                    <span className="text-muted-foreground text-[10px] font-mono">
+                      {item.guest_count} pax
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </ResponsiveDialog>
   );
 }

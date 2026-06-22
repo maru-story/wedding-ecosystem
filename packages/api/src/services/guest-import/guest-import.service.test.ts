@@ -31,7 +31,11 @@ function createMockRepository(): GuestRepository {
     findEventById: vi.fn(),
     countGuestsByEvent: vi.fn(async () => 0),
     findGuestNamesByEvent: vi.fn(),
+    findSlugsByEvent: vi.fn(async () => []),
+    bulkCreateGuestsAndQRCodes: vi.fn(async (guests) => guests.length),
     searchGuestsByName: vi.fn(),
+    findUniqueGroupsByEvent: vi.fn(),
+    reassignGroup: vi.fn(),
   };
 }
 
@@ -84,6 +88,10 @@ function setupMockService(): { service: GuestService; repository: GuestRepositor
     ...data,
     generated_at: new Date(),
   }));
+  vi.mocked(repository.findSlugsByEvent).mockResolvedValue([]);
+  vi.mocked(repository.bulkCreateGuestsAndQRCodes).mockImplementation(
+    async (guests) => guests.length
+  );
 
   return { service, repository };
 }
@@ -494,19 +502,35 @@ describe('Guest CSV Import Service', () => {
     it('should generate QR code for each valid guest (Req 3.3)', async () => {
       const csv = 'nama,grup\nGuest One,friend\nGuest Two,vip';
 
+      const capturedQRCodes: Array<{ guest_id: string }> = [];
+      vi.mocked(repository.bulkCreateGuestsAndQRCodes).mockImplementation(
+        async (guests, qrCodes) => {
+          capturedQRCodes.push(...qrCodes);
+          return guests.length;
+        }
+      );
+
       await bulkImportGuests(
         { eventId: 'event-001', tenantId: 'tenant-001', csvText: csv },
         service,
         []
       );
 
-      // createQRCode should be called for each successful guest
-      expect(repository.createQRCode).toHaveBeenCalledTimes(2);
+      // One QR code per guest must be prepared and submitted in the batch
+      expect(capturedQRCodes).toHaveLength(2);
     });
 
     it('should handle all optional columns in CSV', async () => {
       // 'teman' is an Indonesian synonym → normalizes to 'Teman' (GuestGroup.FRIEND)
       const csv = 'nama,grup,phone,plus_one_count\nJohn Doe,teman,+6281234567890,2';
+
+      const capturedGuests: Array<{ name: string; group: string; plus_one_count: number; phone: string | null }> = [];
+      vi.mocked(repository.bulkCreateGuestsAndQRCodes).mockImplementation(
+        async (guests) => {
+          capturedGuests.push(...guests);
+          return guests.length;
+        }
+      );
 
       const report = await bulkImportGuests(
         { eventId: 'event-001', tenantId: 'tenant-001', csvText: csv },
@@ -515,14 +539,13 @@ describe('Guest CSV Import Service', () => {
       );
 
       expect(report.successCount).toBe(1);
-      expect(repository.createGuest).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'John Doe',
-          group: GuestGroup.FRIEND, // 'Teman'
-          phone: expect.any(String),
-          plus_one_count: 2,
-        })
-      );
+      expect(capturedGuests[0]).toMatchObject({
+        name: 'John Doe',
+        group: GuestGroup.FRIEND, // 'Teman'
+        plus_one_count: 2,
+      });
+      // Phone should be encrypted (non-null, non-empty string)
+      expect(capturedGuests[0].phone).toBeTruthy();
     });
 
     it('should report row numbers correctly (1-indexed, header is row 1)', async () => {
@@ -539,11 +562,10 @@ describe('Guest CSV Import Service', () => {
       expect(report.failedRows[1].row).toBe(5); // 5th line in file (4th data row)
     });
 
-    it('should handle service errors gracefully', async () => {
-      // Make the event not found for the second call
-      vi.mocked(repository.findEventById)
-        .mockResolvedValueOnce({ id: 'event-001', slug: 'wedding' })
-        .mockResolvedValueOnce(null);
+    it('should report a service-level error when bulkAddGuests cannot find the event', async () => {
+      // With batch approach, findEventById is called once for the entire batch.
+      // If the event is not found, all rows are reported as failed.
+      vi.mocked(repository.findEventById).mockResolvedValueOnce(null);
 
       const csv = 'nama,grup\nGuest One,friend\nGuest Two,family';
 
@@ -553,9 +575,10 @@ describe('Guest CSV Import Service', () => {
         []
       );
 
-      // First guest succeeds, second fails because event not found
-      expect(report.successCount).toBe(1);
+      // Whole batch fails — event not found means 0 inserted, 1 service error row
+      expect(report.successCount).toBe(0);
       expect(report.failedRows).toHaveLength(1);
+      expect(report.failedRows[0].row).toBe(0); // row 0 = service-level error
       expect(report.failedRows[0].reason).toContain('Event tidak ditemukan');
     });
 
@@ -615,6 +638,52 @@ describe('Guest CSV Import Service', () => {
       expect(report.successCount).toBe(1);
       expect(report.failedRows).toHaveLength(1);
       expect(report.failedRows[0].reason).toContain('Duplikat nama');
+    });
+
+    it('should report a service-level error when bulkCreateGuestsAndQRCodes throws', async () => {
+      const csv = 'nama,grup\nJohn Doe,friend\nJane Smith,family\nBob,vip';
+
+      // Simulate a database-level failure for the whole batch transaction
+      vi.mocked(repository.bulkCreateGuestsAndQRCodes).mockRejectedValueOnce(
+        new Error('connection timeout')
+      );
+
+      await expect(
+        bulkImportGuests(
+          { eventId: 'event-001', tenantId: 'tenant-001', csvText: csv },
+          service,
+          []
+        )
+      ).rejects.toThrow('connection timeout');
+    });
+
+    it('should prevent slug collisions for different names that generate identical base slugs in the same batch', async () => {
+      const csv = 'nama,grup\nJohn Doe,friend\nJohn-Doe,family\nJohn  Doe,vip';
+
+      // No existing slugs in the DB
+      vi.mocked(repository.findSlugsByEvent).mockResolvedValue([]);
+
+      const capturedGuests: Array<{ slug: string }> = [];
+      vi.mocked(repository.bulkCreateGuestsAndQRCodes).mockImplementation(
+        async (guests) => {
+          capturedGuests.push(...guests);
+          return guests.length;
+        }
+      );
+
+      const report = await bulkImportGuests(
+        { eventId: 'event-001', tenantId: 'tenant-001', csvText: csv },
+        service,
+        []
+      );
+
+      expect(report.successCount).toBe(3);
+      expect(report.failedRows).toHaveLength(0);
+
+      // All three names reduce to "john-doe" base slug — in-memory deduplication
+      // must produce unique slugs without hitting the DB per row.
+      const slugs = capturedGuests.map((g) => g.slug);
+      expect(slugs).toEqual(['john-doe', 'john-doe-2', 'john-doe-3']);
     });
   });
 });

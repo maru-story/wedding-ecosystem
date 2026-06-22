@@ -1,6 +1,5 @@
 import {
   GuestGroup,
-  GuestType,
   MAX_CSV_ROWS,
   normalizePhoneNumber,
   isValidPhoneNumber,
@@ -288,45 +287,73 @@ export async function bulkImportGuests(
     return report;
   }
 
-  // Build set of existing names for duplicate detection within event
+  // Build set of existing names for duplicate detection (in-memory, no DB)
   const existingNamesSet = new Set(existingGuestNames.map((n) => n.toLowerCase()));
 
-  // Process each row
+  // --- Pass 1: validate all rows in memory ---
+  const validRows: Array<{
+    rowNumber: number;
+    name: string;
+    group: string;
+    phone: string | undefined;
+    plus_one_count: number;
+  }> = [];
+
   for (let i = 0; i < rows.length; i++) {
-    const rowNumber = i + 2; // +2 because row 1 is header, data starts at row 2
+    const rowNumber = i + 2; // row 1 is header
     const row = rows[i];
 
-    // Validate row
     const validationResult = validateRow(row, existingNamesSet);
 
     if (typeof validationResult === 'string') {
-      // Validation failed - skip row, log error (Req 3.4)
-      report.failedRows.push({
-        row: rowNumber,
-        reason: validationResult,
-      });
+      report.failedRows.push({ row: rowNumber, reason: validationResult });
       continue;
     }
 
-    // Add to existing names set to detect duplicates within the batch
+    // Track name for within-batch duplicate detection
     existingNamesSet.add(validationResult.name.toLowerCase());
 
-    // Create guest with QR code generation (Req 3.3)
-    const result = await guestService.addGuest(eventId, tenantId, {
+    validRows.push({
+      rowNumber,
       name: validationResult.name,
       group: validationResult.group,
-      type: GuestType.INVITED,
-      phone: validationResult.phone ?? '',
+      phone: validationResult.phone,
       plus_one_count: validationResult.plus_one_count,
     });
+  }
 
-    if (isGuestError(result)) {
+  if (validRows.length === 0) return report;
+
+  // --- Pass 2: single batch insert (5 DB queries for any N rows) ---
+  const result = await guestService.bulkAddGuests(
+    eventId,
+    tenantId,
+    validRows.map((r) => ({
+      name: r.name,
+      group: r.group,
+      phone: r.phone,
+      plus_one_count: r.plus_one_count,
+    }))
+  );
+
+  if (isGuestError(result)) {
+    // Service-level failure (e.g. event not found, capacity exceeded)
+    report.failedRows.push({
+      row: 0,
+      reason: result.message,
+    });
+    return report;
+  }
+
+  report.successCount = result.insertedCount;
+
+  // If capacity clamp reduced the inserted count, mark remaining rows as skipped
+  if (result.insertedCount < validRows.length) {
+    for (let i = result.insertedCount; i < validRows.length; i++) {
       report.failedRows.push({
-        row: rowNumber,
-        reason: result.message,
+        row: validRows[i].rowNumber,
+        reason: 'Kapasitas tamu penuh. Baris ini tidak diimpor.',
       });
-    } else {
-      report.successCount++;
     }
   }
 
