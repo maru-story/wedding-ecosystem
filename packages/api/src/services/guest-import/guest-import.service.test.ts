@@ -616,5 +616,67 @@ describe('Guest CSV Import Service', () => {
       expect(report.failedRows).toHaveLength(1);
       expect(report.failedRows[0].reason).toContain('Duplikat nama');
     });
+
+    it('should handle database / prisma errors gracefully without failing the entire batch', async () => {
+      const csv = 'nama,grup\nJohn Doe,friend\nJane Smith,family\nBob,vip';
+
+      // Mock createGuest to throw a database constraint error for Jane Smith
+      vi.mocked(repository.createGuest).mockImplementation(async (data) => {
+        if (data.name === 'Jane Smith') {
+          const prismaError = new Error('Unique constraint failed on the fields: (event_id, slug)');
+          (prismaError as any).code = 'P2002';
+          throw prismaError;
+        }
+        return {
+          ...data,
+          created_at: new Date(),
+        };
+      });
+
+      const report = await bulkImportGuests(
+        { eventId: 'event-001', tenantId: 'tenant-001', csvText: csv },
+        service,
+        []
+      );
+
+      // John Doe and Bob succeed; Jane Smith fails due to database error
+      expect(report.successCount).toBe(2);
+      expect(report.failedRows).toHaveLength(1);
+      expect(report.failedRows[0].row).toBe(3); // Line 3 is Jane Smith
+      expect(report.failedRows[0].reason).toContain('Nama tamu atau slug undangan sudah digunakan');
+    });
+
+    it('should prevent slug collisions for different names that generate identical base slugs in the same batch', async () => {
+      const csv = 'nama,grup\nJohn Doe,friend\nJohn-Doe,family\nJohn  Doe,vip';
+
+      // Mock checkSlugExists to check repository calls count or track checkSlugExists dynamically
+      const checkedSlugs: string[] = [];
+      vi.mocked(repository.checkSlugExists).mockImplementation(async (eventId, slug) => {
+        checkedSlugs.push(slug);
+        // Pretend none exist in the database yet
+        return false;
+      });
+
+      const createdSlugs: string[] = [];
+      vi.mocked(repository.createGuest).mockImplementation(async (data) => {
+        createdSlugs.push(data.slug);
+        return {
+          ...data,
+          created_at: new Date(),
+        };
+      });
+
+      const report = await bulkImportGuests(
+        { eventId: 'event-001', tenantId: 'tenant-001', csvText: csv },
+        service,
+        []
+      );
+
+      expect(report.successCount).toBe(3);
+      expect(report.failedRows).toHaveLength(0);
+
+      // Slugs generated should be unique
+      expect(createdSlugs).toEqual(['john-doe', 'john-doe-2', 'john-doe-3']);
+    });
   });
 });

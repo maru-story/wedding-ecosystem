@@ -33,7 +33,6 @@ const SECTION_TYPES = [
   'countdown',
   'akad_resepsi',
   'rsvp',
-  'attire',
   'gallery',
   'video',
   'gift',
@@ -137,7 +136,7 @@ async function main() {
   });
   console.log(`✅ Event created: ${event.groom_name} & ${event.bride_name} (${event.slug})`);
 
-  // 4. Create 14 invitation sections
+  // 4. Create 15 invitation sections
   for (let i = 0; i < SECTION_TYPES.length; i++) {
     await prisma.invitationSection.create({
       data: {
@@ -150,7 +149,7 @@ async function main() {
       },
     });
   }
-  console.log(`✅ 14 invitation sections created`);
+  console.log(`✅ 15 invitation sections created`);
 
   // 5. Create 5 sample guests with QR codes
   const guestData = [

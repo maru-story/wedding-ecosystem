@@ -1,13 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import {
   Select,
   SelectContent,
@@ -23,12 +17,7 @@ import { toast } from 'sonner';
 import { ArrowRight, Loader2, Trash2 } from 'lucide-react';
 
 /** Default preset groups */
-const DEFAULT_GROUPS: string[] = [
-  GuestGroup.FAMILY,
-  GuestGroup.FRIEND,
-  GuestGroup.COLLEAGUE,
-  GuestGroup.VIP,
-];
+const DEFAULT_GROUPS: string[] = [];
 
 interface ManageGroupsModalProps {
   open: boolean;
@@ -142,115 +131,109 @@ export function ManageGroupsModal({ open, onClose }: ManageGroupsModalProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="bg-card border-border/40 sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-heading text-foreground text-xl tracking-wide">
-            Kelola Grup
-          </DialogTitle>
-          <DialogDescription className="text-muted-foreground text-sm">
-            Pindahkan semua tamu dari satu grup ke grup lain. Grup yang kosong akan otomatis
-            hilang.
-          </DialogDescription>
-        </DialogHeader>
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={(isOpen) => !isOpen && onClose()}
+      title="Kelola Grup"
+      description="Pindahkan semua tamu dari satu grup ke grup lain. Grup yang kosong akan otomatis hilang."
+      className="sm:max-w-md"
+    >
+      <div className="space-y-2">
+        {groupCounts.length === 0 && (
+          <p className="text-muted-foreground py-4 text-center text-sm">
+            Belum ada grup. Tambahkan tamu untuk membuat grup.
+          </p>
+        )}
 
-        <div className="mt-2 space-y-2">
-          {groupCounts.length === 0 && (
-            <p className="text-muted-foreground py-4 text-center text-sm">
-              Belum ada grup. Tambahkan tamu untuk membuat grup.
-            </p>
-          )}
-
-          {groupCounts.map((group) => (
-            <div
-              key={group.name}
-              className="border-border/40 bg-muted/20 flex items-center justify-between rounded-lg border px-4 py-3"
-            >
-              {reassigning === group.name ? (
-                // Reassign mode for this group
-                <div className="flex w-full flex-col gap-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Pindahkan</span>
-                    <span className="text-foreground font-medium">{group.name}</span>
-                    <ArrowRight className="text-muted-foreground h-3.5 w-3.5" />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={targetGroup}
-                      onValueChange={(val) => {
-                        setTargetGroup(val);
-                        if (val !== '__custom__') setCustomTarget('');
-                      }}
-                    >
-                      <SelectTrigger className="bg-card border-border/60 h-9 flex-1">
-                        <SelectValue placeholder="Pilih grup tujuan" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {getTargetOptions(group.name).map((g) => (
-                          <SelectItem key={g} value={g}>
-                            {g}
-                          </SelectItem>
-                        ))}
-                        <SelectItem value="__custom__">Buat grup baru...</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {targetGroup === '__custom__' && (
-                    <Input
-                      value={customTarget}
-                      onChange={(e) => setCustomTarget(e.target.value)}
-                      placeholder="Nama grup baru"
-                      className="bg-card border-border/60 h-9"
-                      maxLength={100}
-                    />
-                  )}
-
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" onClick={handleCancel}>
-                      Batal
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={handleConfirmReassign}
-                      disabled={
-                        reassignGroup.isPending ||
-                        (!targetGroup || (targetGroup === '__custom__' && !customTarget.trim()))
-                      }
-                    >
-                      {reassignGroup.isPending && (
-                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                      )}
-                      Pindahkan
-                    </Button>
-                  </div>
+        {groupCounts.map((group) => (
+          <div
+            key={group.name}
+            className="border-border/40 bg-muted/20 flex items-center justify-between rounded-lg border px-4 py-3"
+          >
+            {reassigning === group.name ? (
+              // Reassign mode for this group
+              <div className="flex w-full flex-col gap-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Pindahkan</span>
+                  <span className="text-foreground font-medium">{group.name}</span>
+                  <ArrowRight className="text-muted-foreground h-3.5 w-3.5" />
                 </div>
-              ) : (
-                // Normal display
-                <>
-                  <div className="flex items-center gap-2">
-                    <span className="text-foreground text-sm font-medium">{group.name}</span>
-                    <span className="text-muted-foreground text-xs">
-                      ({group.count} tamu)
-                    </span>
-                  </div>
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleStartReassign(group.name)}
-                    className="text-muted-foreground hover:text-destructive h-8 px-2"
-                    title={`Hapus grup "${group.name}" (pindahkan tamu ke grup lain)`}
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={targetGroup}
+                    onValueChange={(val) => {
+                      setTargetGroup(val);
+                      if (val !== '__custom__') setCustomTarget('');
+                    }}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <SelectTrigger className="bg-card border-border/60 h-9 flex-1">
+                      <SelectValue placeholder="Pilih grup tujuan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getTargetOptions(group.name).map((g) => (
+                        <SelectItem key={g} value={g}>
+                          {g}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="__custom__">Buat grup baru...</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {targetGroup === '__custom__' && (
+                  <Input
+                    value={customTarget}
+                    onChange={(e) => setCustomTarget(e.target.value)}
+                    placeholder="Nama grup baru"
+                    className="bg-card border-border/60 h-9"
+                    maxLength={100}
+                  />
+                )}
+
+                <div className="flex justify-end gap-2">
+                  <Button variant="ghost" size="sm" onClick={handleCancel}>
+                    Batal
                   </Button>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
+                  <Button
+                    size="sm"
+                    onClick={handleConfirmReassign}
+                    disabled={
+                      reassignGroup.isPending ||
+                      (!targetGroup || (targetGroup === '__custom__' && !customTarget.trim()))
+                    }
+                  >
+                    {reassignGroup.isPending && (
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    )}
+                    Pindahkan
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              // Normal display
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="text-foreground text-sm font-medium">{group.name}</span>
+                  <span className="text-muted-foreground text-xs">
+                    ({group.count} tamu)
+                  </span>
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleStartReassign(group.name)}
+                  className="text-muted-foreground hover:text-destructive h-8 px-2"
+                  title={`Hapus grup "${group.name}" (pindahkan tamu ke grup lain)`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </ResponsiveDialog>
   );
 }

@@ -117,7 +117,20 @@ describe('useRealtimeStats hook tests', () => {
 
     mockSocket.emit('stats_updated', newStats);
 
-    expect(mockQueryClient.setQueryData).toHaveBeenCalledWith(['rsvp-stats', eventId], newStats);
+    expect(mockQueryClient.setQueryData).toHaveBeenCalledWith(
+      ['rsvp-stats', eventId],
+      expect.any(Function)
+    );
+
+    const updater = mockQueryClient.setQueryData.mock.calls[0][1] as (old: any) => any;
+    const result = updater({ total_pax_confirmed: 12 });
+    expect(result).toEqual({
+      total_guests: 100,
+      total_rsvp: 50,
+      total_checked_in: 30,
+      total_go_show: 5,
+      total_pax_confirmed: 12,
+    });
   });
 
   it('should update rsvp-list cache (upsert) when rsvp_updated event is received', () => {
@@ -138,8 +151,11 @@ describe('useRealtimeStats hook tests', () => {
       expect.any(Function)
     );
 
-    // Test the updater callback logic
-    const updater = mockQueryClient.setQueryData.mock.calls[0][1] as (old: any) => any;
+    // Test the updater callback logic (which is the first call to setQueryData here)
+    const rsvpListCallIndex = mockQueryClient.setQueryData.mock.calls.findIndex(
+      (call) => call[0][0] === 'rsvp-list'
+    );
+    const updater = mockQueryClient.setQueryData.mock.calls[rsvpListCallIndex][1] as (old: any) => any;
 
     // Case 1: Initial empty list
     const result1 = updater({ data: [] });
@@ -175,6 +191,9 @@ describe('useRealtimeStats hook tests', () => {
     expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ['rsvp-list', eventId],
     });
+    expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['guests'],
+    });
   });
 
   it('should invalidate stats queries when guest_checked_in event is received', () => {
@@ -184,6 +203,12 @@ describe('useRealtimeStats hook tests', () => {
 
     expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ['rsvp-stats', eventId],
+    });
+    expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['rsvp-list', eventId],
+    });
+    expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['guests'],
     });
   });
 });

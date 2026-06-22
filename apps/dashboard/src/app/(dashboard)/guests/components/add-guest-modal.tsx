@@ -6,25 +6,14 @@ import { ApiError } from '@/lib/api';
 import type { GuestListItem } from '../page';
 import { useCreateGuest, useUpdateGuest, useGuestGroups } from '@/hooks/queries';
 import { toast } from 'sonner';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Check, Plus } from 'lucide-react';
 
 /** Default preset groups always available in the dropdown. */
-const DEFAULT_GROUPS: string[] = [
-  GuestGroup.FAMILY,    // 'Keluarga'
-  GuestGroup.FRIEND,    // 'Teman'
-  GuestGroup.COLLEAGUE, // 'Rekan Kerja'
-  GuestGroup.VIP,       // 'VIP'
-];
+const DEFAULT_GROUPS: string[] = [];
 
 interface AddGuestModalProps {
   guest: GuestListItem | null;
@@ -174,7 +163,7 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
   const isEditing = !!guest;
 
   const [name, setName] = useState(guest?.name || '');
-  const [group, setGroup] = useState<string>(guest?.group || GuestGroup.FAMILY);
+  const [group, setGroup] = useState<string>(guest?.group || '');
   const [phone, setPhone] = useState(() => {
     if (guest?.phone?.startsWith('+62')) {
       return guest.phone.slice(3);
@@ -222,120 +211,117 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
   }
 
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-card border-border/40 sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-heading text-foreground text-xl tracking-wide">
-            {isEditing ? 'Edit Tamu' : 'Tambah Tamu Baru'}
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            {isEditing
-              ? 'Edit informasi tamu yang sudah terdaftar.'
-              : 'Tambahkan tamu baru ke dalam daftar undangan.'}
-          </DialogDescription>
-        </DialogHeader>
+    <ResponsiveDialog
+      open={true}
+      onOpenChange={(open) => !open && onClose()}
+      title={isEditing ? 'Edit Tamu' : 'Tambah Tamu Baru'}
+      description={
+        isEditing
+          ? 'Edit informasi tamu yang sudah terdaftar.'
+          : 'Tambahkan tamu baru ke dalam daftar undangan.'
+      }
+      className="sm:max-w-md"
+    >
+      {error && (
+        <div
+          className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-sm mb-4"
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
 
-        {error && (
-          <div
-            className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-sm"
-            role="alert"
-          >
-            {error}
-          </div>
-        )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="guest-name" className="text-foreground">
+            Nama <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="guest-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Nama lengkap tamu"
+            required
+            className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
+          />
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="guest-name" className="text-foreground">
-              Nama <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="guest-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nama lengkap tamu"
-              required
-              className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="guest-group" className="text-foreground">
-              Grup <span className="text-destructive">*</span>
-            </Label>
-            <CreatableGroupSelect value={group} onChange={setGroup} groups={allGroups} />
-            {group && !DEFAULT_GROUPS.includes(group) && (
-              <p className="text-muted-foreground text-[11px]">
-                Grup kustom &ldquo;{group}&rdquo; akan dibuat untuk event ini.
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="guest-phone" className="text-foreground">
-              Nomor Telepon
-            </Label>
-            <div className="border-border/60 bg-card focus-within:ring-ring focus-within:border-ring flex items-center rounded-lg border pl-3 transition-colors focus-within:ring-1">
-              <span className="text-muted-foreground pr-1 text-sm font-semibold select-none">
-                +62
-              </span>
-              <Input
-                id="guest-phone"
-                type="text"
-                value={phone}
-                onChange={(e) => {
-                  let val = e.target.value.replace(/\D/g, '');
-                  if (val.startsWith('0')) {
-                    val = val.slice(1);
-                  } else if (val.startsWith('62')) {
-                    val = val.slice(2);
-                  }
-                  setPhone(val);
-                }}
-                placeholder="8xxxxxxxxxx"
-                className="border-0 bg-transparent px-1 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="guest-plus-one" className="text-foreground">
-              Jumlah Tamu Tambahan (Plus One)
-            </Label>
-            <Input
-              id="guest-plus-one"
-              type="number"
-              min={0}
-              max={10}
-              value={plusOneCount}
-              onChange={(e) => setPlusOneCount(parseInt(e.target.value, 10) || 0)}
-              className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
-            />
+        <div className="space-y-1.5">
+          <Label htmlFor="guest-group" className="text-foreground">
+            Grup <span className="text-destructive">*</span>
+          </Label>
+          <CreatableGroupSelect value={group} onChange={setGroup} groups={allGroups} />
+          {group && !DEFAULT_GROUPS.includes(group) && (
             <p className="text-muted-foreground text-[11px]">
-              Jumlah orang tambahan yang boleh dibawa tamu (0–10)
+              Grup kustom &ldquo;{group}&rdquo; akan dibuat untuk event ini.
             </p>
-          </div>
+          )}
+        </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground"
-            >
-              Batal
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || !name.trim() || !group.trim()}
-              className="bg-primary hover:bg-primary/95 text-primary-foreground font-medium"
-            >
-              {isSubmitting ? 'Menyimpan...' : isEditing ? 'Simpan Perubahan' : 'Tambah Tamu'}
-            </Button>
+        <div className="space-y-1.5">
+          <Label htmlFor="guest-phone" className="text-foreground">
+            Nomor Telepon
+          </Label>
+          <div className="border-border/60 bg-card focus-within:ring-ring focus-within:border-ring flex items-center rounded-lg border pl-3 transition-colors focus-within:ring-1">
+            <span className="text-muted-foreground pr-1 text-sm font-semibold select-none">
+              +62
+            </span>
+            <Input
+              id="guest-phone"
+              type="text"
+              value={phone}
+              onChange={(e) => {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.startsWith('0')) {
+                  val = val.slice(1);
+                } else if (val.startsWith('62')) {
+                  val = val.slice(2);
+                }
+                setPhone(val);
+              }}
+              placeholder="8xxxxxxxxxx"
+              className="border-0 bg-transparent px-1 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            />
           </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="guest-plus-one" className="text-foreground">
+            Jumlah Tamu Tambahan (Plus One)
+          </Label>
+          <Input
+            id="guest-plus-one"
+            type="number"
+            min={0}
+            max={10}
+            value={plusOneCount}
+            onChange={(e) => setPlusOneCount(parseInt(e.target.value, 10) || 0)}
+            className="bg-card border-border/60 hover:bg-muted/10 transition-colors"
+          />
+          <p className="text-muted-foreground text-[11px]">
+            Jumlah orang tambahan yang boleh dibawa tamu (0–10)
+          </p>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground"
+          >
+            Batal
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting || !name.trim() || !group.trim()}
+            className="bg-primary hover:bg-primary/95 text-primary-foreground font-medium"
+          >
+            {isSubmitting ? 'Menyimpan...' : isEditing ? 'Simpan Perubahan' : 'Tambah Tamu'}
+          </Button>
+        </div>
+      </form>
+    </ResponsiveDialog>
   );
 }

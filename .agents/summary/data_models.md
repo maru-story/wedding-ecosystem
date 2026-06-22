@@ -104,7 +104,7 @@ Guest record within an event, directly tenant-scoped for query performance.
 | `name`            | String         | Required            | Guest full name                                                                                                                     |
 | `slug`            | String         | Required            | URL-friendly name                                                                                                                   |
 | `phone`           | String?        | Optional            | Phone (encrypted at rest)                                                                                                           |
-| `group`           | **String**     | Required            | Guest category — free text. Default presets: `Keluarga`, `Teman`, `Rekan Kerja`, `VIP`. Couples may define custom groups per event. |
+| `group`           | **String**     | Required            | Guest category — free text. Couples define custom groups per event dynamically in the UI. |
 | `type`            | GuestType      | Default: `invited`  | Invited vs go-show                                                                                                                  |
 | `plus_one_count`  | Int            | Default: `0`        | Additional guests                                                                                                                   |
 | `invitation_url`  | String?        | Optional            | Generated invitation link                                                                                                           |
@@ -113,7 +113,7 @@ Guest record within an event, directly tenant-scoped for query performance.
 
 **Indexes**: `[tenant_id]`, `[event_id]`, `[slug]`, Unique `[event_id, slug]`
 
-> **Note**: `group` was migrated from a PostgreSQL `GuestGroup` enum to a plain `TEXT` column (migration: `20260617043307_change_guest_group_to_string`). Custom group names are event-scoped and do not bleed across tenants. The `GuestGroup` TypeScript enum in `@wedding/shared` now contains the Indonesian display-name presets (`Keluarga`, `Teman`, `Rekan Kerja`, `VIP`) and is used only as a UI constant, not as a DB constraint.
+> **Note**: `group` was migrated from a PostgreSQL `GuestGroup` enum to a plain `TEXT` column (migration: `20260617043307_change_guest_group_to_string`). Custom group names are event-scoped and do not bleed across tenants. The static preset values in the UI were removed to allow a fully database-driven dynamic experience, making group creation and assignments entirely client-defined.
 
 ### QRCode
 
