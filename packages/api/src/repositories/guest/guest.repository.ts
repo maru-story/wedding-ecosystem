@@ -304,6 +304,67 @@ export class PrismaGuestRepository implements GuestRepository {
     return guests.map((g) => g.name);
   }
 
+  async findSlugsByEvent(eventId: string, tenantId: string): Promise<string[]> {
+    const guests = await this.prisma.guest.findMany({
+      where: { event_id: eventId, tenant_id: tenantId },
+      select: { slug: true },
+    });
+
+    return guests.map((g) => g.slug);
+  }
+
+  async bulkCreateGuestsAndQRCodes(
+    guests: Array<{
+      id: string;
+      event_id: string;
+      tenant_id: string;
+      name: string;
+      slug: string;
+      phone: string | null;
+      group: string;
+      type: GuestType;
+      plus_one_count: number;
+      invitation_url: string | null;
+      delivery_status: DeliveryStatus;
+    }>,
+    qrCodes: Array<{
+      id: string;
+      guest_id: string;
+      qr_payload: string;
+      is_active: boolean;
+    }>
+  ): Promise<number> {
+    if (guests.length === 0) return 0;
+
+    const guestCreateData: Prisma.GuestCreateManyInput[] = guests.map((g) => ({
+      id: g.id,
+      event_id: g.event_id,
+      tenant_id: g.tenant_id,
+      name: g.name,
+      slug: g.slug,
+      phone: g.phone,
+      group: g.group,
+      type: g.type,
+      plus_one_count: g.plus_one_count,
+      invitation_url: g.invitation_url,
+      delivery_status: g.delivery_status,
+    }));
+
+    const qrCreateData: Prisma.QRCodeCreateManyInput[] = qrCodes.map((q) => ({
+      id: q.id,
+      guest_id: q.guest_id,
+      qr_payload: q.qr_payload,
+      is_active: q.is_active,
+    }));
+
+    const [guestResult] = await this.prisma.$transaction([
+      this.prisma.guest.createMany({ data: guestCreateData, skipDuplicates: true }),
+      this.prisma.qRCode.createMany({ data: qrCreateData, skipDuplicates: true }),
+    ]);
+
+    return guestResult.count;
+  }
+
   async searchGuestsByName(
     query: string,
     eventId: string,
