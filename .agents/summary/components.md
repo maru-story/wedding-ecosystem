@@ -186,8 +186,7 @@ graph TB
 
 Guest groups are **event-scoped free-text strings** (not a DB enum). The dashboard uses an inline `CreatableGroupSelect` component inside `add-guest-modal.tsx` that:
 
-- Loads existing groups via `useGuestGroups()` → `GET /guests/groups`
-- Merges them with 4 preset defaults: `Keluarga`, `Teman`, `Rekan Kerja`, `VIP`
+- Loads existing groups dynamically via `useGuestGroups()` → `GET /guests/groups` (with no static presets in the UI to make it fully database-driven)
 - Lets the couple type a new group name on-the-fly ("Buat grup: ...") without any prior setup
 - `GuestFilters` sources its group options from the same `useGuestGroups()` hook
 - `ManageGroupsModal` (`guests/components/manage-groups-modal.tsx`) allows bulk reassign of all guests from one group to another via `PATCH /guests/groups/reassign`. Accessible from the page header "Kelola Grup" button.

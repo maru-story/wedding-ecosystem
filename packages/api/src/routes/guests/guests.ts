@@ -35,6 +35,7 @@ interface GuestRouteOptions extends FastifyPluginOptions {
 
 export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions) {
   const { prisma } = opts;
+  const activeImports = new Set<string>();
 
   // --- Wire up GuestService with its Prisma adapter ---
   const repository = new PrismaGuestRepository(prisma);
@@ -324,19 +325,35 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
       eventId = event.id;
     }
 
-    // Pre-fetch existing guest names
-    const existingNames = await repository.findGuestNamesByEvent(eventId, user.tenant_id);
+    if (activeImports.has(eventId)) {
+      return reply.status(409).send({
+        success: false,
+        error: {
+          code: 'IMPORT_IN_PROGRESS',
+          message: 'Proses import tamu sedang berjalan untuk event ini. Harap tunggu beberapa detik lalu coba lagi.',
+        },
+      });
+    }
 
-    const report = await bulkImportGuests(
-      { eventId, tenantId: user.tenant_id, csvText: body.csv_text },
-      guestService,
-      existingNames
-    );
+    activeImports.add(eventId);
 
-    return reply.send({
-      imported: report.successCount,
-      errors: report.failedRows.length,
-      details: report.failedRows,
-    });
+    try {
+      // Pre-fetch existing guest names
+      const existingNames = await repository.findGuestNamesByEvent(eventId, user.tenant_id);
+
+      const report = await bulkImportGuests(
+        { eventId, tenantId: user.tenant_id, csvText: body.csv_text },
+        guestService,
+        existingNames
+      );
+
+      return reply.send({
+        imported: report.successCount,
+        errors: report.failedRows.length,
+        details: report.failedRows,
+      });
+    } finally {
+      activeImports.delete(eventId);
+    }
   });
 }

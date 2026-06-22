@@ -26,14 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import {
   Select,
   SelectContent,
@@ -592,343 +585,238 @@ export default function AdminTenantsPage() {
       </Sheet>
 
       {/* Add Tenant Dialog */}
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="border-border/40 bg-card max-w-xl rounded-2xl p-6 shadow-xl">
-          <form onSubmit={handleCreateTenant}>
-            <DialogHeader className="mb-6">
-              <DialogTitle className="text-foreground flex items-center gap-2 text-2xl font-bold">
-                <Sparkles className="text-primary h-6 w-6 animate-pulse" />
-                Tambah Tenant Baru
-              </DialogTitle>
-              <DialogDescription className="text-muted-foreground">
-                Isi detail tenant baru dan buat akun pengelola utamanya secara otomatis.
-              </DialogDescription>
-            </DialogHeader>
+      <ResponsiveDialog
+        open={isAddOpen}
+        onOpenChange={setIsAddOpen}
+        title={
+          <span className="flex items-center gap-2">
+            <Sparkles className="text-primary h-6 w-6 animate-pulse" />
+            Tambah Tenant Baru
+          </span>
+        }
+        description="Isi detail tenant baru dan buat akun pengelola utamanya secara otomatis."
+        footer={
+          <>
+            <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)} className="w-full sm:w-auto">
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              form="create-tenant-form"
+              disabled={createTenantMutation.isPending}
+              className="flex items-center justify-center gap-1.5 w-full sm:w-auto"
+            >
+              {createTenantMutation.isPending ? 'Menyimpan...' : 'Simpan Tenant'}
+            </Button>
+          </>
+        }
+        className="sm:max-w-xl"
+      >
+        <form id="create-tenant-form" onSubmit={handleCreateTenant} className="space-y-5">
+          {/* Tenant Section */}
+          <div className="bg-muted/30 border-border/40 space-y-4 rounded-xl border p-4">
+            <h3 className="text-foreground border-border/40 flex items-center gap-2 border-b pb-2 text-sm font-bold">
+              <Building2 className="h-4 w-4 text-indigo-500" />
+              Detail Tenant
+            </h3>
 
-            <div className="space-y-5">
-              {/* Tenant Section */}
-              <div className="bg-muted/30 border-border/40 space-y-4 rounded-xl border p-4">
-                <h3 className="text-foreground border-border/40 flex items-center gap-2 border-b pb-2 text-sm font-bold">
-                  <Building2 className="h-4 w-4 text-indigo-500" />
-                  Detail Tenant
-                </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2 space-y-1.5 sm:col-span-1">
+                <Label
+                  htmlFor="tenant_name"
+                  className="text-muted-foreground text-xs font-bold"
+                >
+                  Nama Tenant
+                </Label>
+                <Input
+                  id="tenant_name"
+                  placeholder="Nama mempelai / acara"
+                  value={newTenant.name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  required
+                  className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg transition-colors"
+                />
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2 space-y-1.5 sm:col-span-1">
-                    <Label
-                      htmlFor="tenant_name"
-                      className="text-muted-foreground text-xs font-bold"
-                    >
-                      Nama Tenant
-                    </Label>
-                    <Input
-                      id="tenant_name"
-                      placeholder="Nama mempelai / acara"
-                      value={newTenant.name}
-                      onChange={(e) => handleNameChange(e.target.value)}
-                      required
-                      className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg transition-colors"
-                    />
-                  </div>
-
-                  <div className="col-span-2 space-y-1.5 sm:col-span-1">
-                    <Label
-                      htmlFor="tenant_slug"
-                      className="text-muted-foreground text-xs font-bold"
-                    >
-                      Slug URL
-                    </Label>
-                    <div className="relative">
-                      <span className="text-muted-foreground/60 absolute top-2.5 left-3 text-sm font-medium">
-                        /
-                      </span>
-                      <Input
-                        id="tenant_slug"
-                        placeholder="slug-url"
-                        value={newTenant.slug}
-                        onChange={(e) =>
-                          setNewTenant((prev) => ({ ...prev, slug: e.target.value }))
-                        }
-                        required
-                        className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-6 transition-colors"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="plan_type" className="text-muted-foreground text-xs font-bold">
-                    Tipe Paket
-                  </Label>
-                  <Select
-                    value={newTenant.plan_type}
-                    onValueChange={(val) =>
-                      setNewTenant((prev) => ({ ...prev, plan_type: val as PlanType }))
+              <div className="col-span-2 space-y-1.5 sm:col-span-1">
+                <Label
+                  htmlFor="tenant_slug"
+                  className="text-muted-foreground text-xs font-bold"
+                >
+                  Slug URL
+                </Label>
+                <div className="relative">
+                  <span className="text-muted-foreground/60 absolute top-2.5 left-3 text-sm font-medium">
+                    /
+                  </span>
+                  <Input
+                    id="tenant_slug"
+                    placeholder="slug-url"
+                    value={newTenant.slug}
+                    onChange={(e) =>
+                      setNewTenant((prev) => ({ ...prev, slug: e.target.value }))
                     }
-                  >
-                    <SelectTrigger id="plan_type" className="border-border/60 rounded-lg">
-                      <SelectValue placeholder="Pilih paket" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={PlanType.BASIC}>Basic (Maks 100 Tamu)</SelectItem>
-                      <SelectItem value={PlanType.PREMIUM}>Premium (Maks 500 Tamu)</SelectItem>
-                      <SelectItem value={PlanType.ENTERPRISE}>Enterprise (Kustom)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    required
+                    className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-6 transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="plan_type" className="text-muted-foreground text-xs font-bold">
+                Tipe Paket
+              </Label>
+              <Select
+                value={newTenant.plan_type}
+                onValueChange={(val) =>
+                  setNewTenant((prev) => ({ ...prev, plan_type: val as PlanType }))
+                }
+              >
+                <SelectTrigger id="plan_type" className="border-border/60 rounded-lg">
+                  <SelectValue placeholder="Pilih paket" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={PlanType.BASIC}>Basic (Maks 100 Tamu)</SelectItem>
+                  <SelectItem value={PlanType.PREMIUM}>Premium (Maks 500 Tamu)</SelectItem>
+                  <SelectItem value={PlanType.ENTERPRISE}>Enterprise (Kustom)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Admin Client User Section */}
+          <div className="bg-muted/30 border-border/40 space-y-4 rounded-xl border p-4">
+            <h3 className="text-foreground border-border/40 flex items-center gap-2 border-b pb-2 text-sm font-bold">
+              <User className="h-4 w-4 text-emerald-500" />
+              Detail Akun Client (Pengelola)
+            </h3>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="client_name" className="text-muted-foreground text-xs font-bold">
+                Nama Lengkap Client
+              </Label>
+              <div className="relative">
+                <User className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
+                <Input
+                  id="client_name"
+                  placeholder="Nama lengkap pengelola"
+                  value={newTenant.client_name}
+                  onChange={(e) =>
+                    setNewTenant((prev) => ({ ...prev, client_name: e.target.value }))
+                  }
+                  required
+                  className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2 space-y-1.5 sm:col-span-1">
+                <Label
+                  htmlFor="client_username"
+                  className="text-muted-foreground text-xs font-bold"
+                >
+                  Username (Opsional)
+                </Label>
+                <div className="relative">
+                  <User className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
+                  <Input
+                    id="client_username"
+                    placeholder="contoh: budi_s"
+                    value={newTenant.client_username}
+                    onChange={(e) =>
+                      setNewTenant((prev) => ({ ...prev, client_username: e.target.value }))
+                    }
+                    className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
+                  />
                 </div>
               </div>
 
-              {/* Admin Client User Section */}
-              <div className="bg-muted/30 border-border/40 space-y-4 rounded-xl border p-4">
-                <h3 className="text-foreground border-border/40 flex items-center gap-2 border-b pb-2 text-sm font-bold">
-                  <User className="h-4 w-4 text-emerald-500" />
-                  Detail Akun Client (Pengelola)
-                </h3>
+              <div className="col-span-2 space-y-1.5 sm:col-span-1">
+                <Label
+                  htmlFor="client_email"
+                  className="text-muted-foreground text-xs font-bold"
+                >
+                  Email (Opsional)
+                </Label>
+                <div className="relative">
+                  <Mail className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
+                  <Input
+                    id="client_email"
+                    type="email"
+                    placeholder="client@mail.com"
+                    value={newTenant.client_email}
+                    onChange={(e) =>
+                      setNewTenant((prev) => ({ ...prev, client_email: e.target.value }))
+                    }
+                    className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
+                  />
+                </div>
+              </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="client_name" className="text-muted-foreground text-xs font-bold">
-                    Nama Lengkap Client
-                  </Label>
-                  <div className="relative">
-                    <User className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
+              <div className="col-span-2 space-y-1.5">
+                <Label
+                  htmlFor="client_password"
+                  className="text-muted-foreground text-xs font-bold"
+                >
+                  Password Akun
+                </Label>
+                <div className="relative flex gap-2">
+                  <div className="relative flex-1">
+                    <Lock className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
                     <Input
-                      id="client_name"
-                      placeholder="Nama lengkap pengelola"
-                      value={newTenant.client_name}
+                      id="client_password"
+                      type="text"
+                      placeholder="Password minimal 8 karakter"
+                      value={newTenant.client_password}
                       onChange={(e) =>
-                        setNewTenant((prev) => ({ ...prev, client_name: e.target.value }))
+                        setNewTenant((prev) => ({ ...prev, client_password: e.target.value }))
                       }
                       required
                       className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2 space-y-1.5 sm:col-span-1">
-                    <Label
-                      htmlFor="client_username"
-                      className="text-muted-foreground text-xs font-bold"
-                    >
-                      Username (Opsional)
-                    </Label>
-                    <div className="relative">
-                      <User className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
-                      <Input
-                        id="client_username"
-                        placeholder="contoh: budi_s"
-                        value={newTenant.client_username}
-                        onChange={(e) =>
-                          setNewTenant((prev) => ({ ...prev, client_username: e.target.value }))
-                        }
-                        className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-span-2 space-y-1.5 sm:col-span-1">
-                    <Label
-                      htmlFor="client_email"
-                      className="text-muted-foreground text-xs font-bold"
-                    >
-                      Email (Opsional)
-                    </Label>
-                    <div className="relative">
-                      <Mail className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
-                      <Input
-                        id="client_email"
-                        type="email"
-                        placeholder="client@mail.com"
-                        value={newTenant.client_email}
-                        onChange={(e) =>
-                          setNewTenant((prev) => ({ ...prev, client_email: e.target.value }))
-                        }
-                        className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-span-2 space-y-1.5">
-                    <Label
-                      htmlFor="client_password"
-                      className="text-muted-foreground text-xs font-bold"
-                    >
-                      Password Akun
-                    </Label>
-                    <div className="relative flex gap-2">
-                      <div className="relative flex-1">
-                        <Lock className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
-                        <Input
-                          id="client_password"
-                          type="text"
-                          placeholder="Password minimal 8 karakter"
-                          value={newTenant.client_password}
-                          onChange={(e) =>
-                            setNewTenant((prev) => ({ ...prev, client_password: e.target.value }))
-                          }
-                          required
-                          className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        onClick={generatePassword}
-                        variant="outline"
-                        title="Generate Password Acak"
-                        className="border-border hover:bg-muted flex shrink-0 items-center justify-center rounded-lg px-3"
-                      >
-                        <KeyRound className="text-muted-foreground h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                  <Button
+                    type="button"
+                    onClick={generatePassword}
+                    variant="outline"
+                    title="Generate Password Acak"
+                    className="border-border hover:bg-muted flex shrink-0 items-center justify-center rounded-lg px-3"
+                  >
+                    <KeyRound className="text-muted-foreground h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </div>
-
-            <DialogFooter className="border-border/40 mt-6 flex flex-col gap-2 border-t pt-4 sm:flex-row">
-              <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                disabled={createTenantMutation.isPending}
-                className="flex items-center justify-center gap-1.5"
-              >
-                {createTenantMutation.isPending ? 'Menyimpan...' : 'Simpan Tenant'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </form>
+      </ResponsiveDialog>
 
       {/* Manage Quota Dialog */}
-      <Dialog open={isQuotaModalOpen} onOpenChange={setIsQuotaModalOpen}>
-        <DialogContent className="border-border/40 bg-card max-w-md rounded-2xl p-6 shadow-xl">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-foreground animate-in fade-in flex items-center gap-2 text-xl font-bold duration-200">
-              <SlidersHorizontal className="h-5 w-5 text-indigo-500" />
-              Kelola Kuota Event
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Atur batas maksimal tamu, scanner, dan foto galeri untuk tenant{' '}
-              <strong>{selectedTenant?.name}</strong>.
-            </DialogDescription>
-          </DialogHeader>
-
-          {isLoadingEvents ? (
-            <div className="flex flex-col items-center justify-center space-y-2 py-8">
-              <RefreshCw className="text-primary h-8 w-8 animate-spin" />
-              <p className="text-muted-foreground text-sm">Mengambil daftar event...</p>
-            </div>
-          ) : tenantEvents.length === 0 ? (
-            <div className="text-muted-foreground py-6 text-center text-sm">
-              Tenant ini belum memiliki event aktif.
-            </div>
-          ) : (
-            <div className="max-h-[300px] space-y-4 overflow-y-auto pr-1">
-              {tenantEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="bg-muted/30 border-border/40 space-y-3 rounded-xl border p-4"
-                >
-                  <div className="border-border/40 border-b pb-1.5">
-                    <h4 className="text-foreground text-sm font-bold">
-                      {event.bride_name} & {event.groom_name}
-                    </h4>
-                    <p className="text-muted-foreground text-xs">Slug: /{event.slug}</p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <Label
-                        htmlFor={`max_guests_${event.id}`}
-                        className="text-muted-foreground text-xs font-bold"
-                      >
-                        Maksimal Jumlah Tamu (max_guests)
-                      </Label>
-                      <Input
-                        id={`max_guests_${event.id}`}
-                        type="number"
-                        min={QUOTA_MAX_GUESTS_MIN}
-                        max={QUOTA_MAX_GUESTS_MAX}
-                        value={quotaInputs[event.id]?.max_guests ?? DEFAULT_MAX_GUESTS}
-                        onChange={(e) =>
-                          handleQuotaInputChange(
-                            event.id,
-                            'max_guests',
-                            parseInt(e.target.value, 10) || 0
-                          )
-                        }
-                        required
-                        className="border-border/60 bg-card focus-visible:ring-primary/20 rounded-lg"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label
-                        htmlFor={`max_scanner_${event.id}`}
-                        className="text-muted-foreground text-xs font-bold"
-                      >
-                        Maksimal Perangkat Scanner (max_scanner_devices)
-                      </Label>
-                      <Input
-                        id={`max_scanner_${event.id}`}
-                        type="number"
-                        min={QUOTA_MAX_SCANNER_MIN}
-                        max={QUOTA_MAX_SCANNER_MAX}
-                        value={
-                          quotaInputs[event.id]?.max_scanner_devices ?? DEFAULT_MAX_SCANNER_DEVICES
-                        }
-                        onChange={(e) =>
-                          handleQuotaInputChange(
-                            event.id,
-                            'max_scanner_devices',
-                            parseInt(e.target.value, 10) || 0
-                          )
-                        }
-                        required
-                        className="border-border/60 bg-card focus-visible:ring-primary/20 rounded-lg"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label
-                        htmlFor={`max_gallery_${event.id}`}
-                        className="text-muted-foreground text-xs font-bold"
-                      >
-                        Maksimal Foto Galeri (max_gallery_photos)
-                      </Label>
-                      <Input
-                        id={`max_gallery_${event.id}`}
-                        type="number"
-                        min={QUOTA_MAX_GALLERY_PHOTOS_MIN}
-                        max={QUOTA_MAX_GALLERY_PHOTOS_MAX}
-                        value={
-                          quotaInputs[event.id]?.max_gallery_photos ?? DEFAULT_MAX_GALLERY_PHOTOS
-                        }
-                        onChange={(e) =>
-                          handleQuotaInputChange(
-                            event.id,
-                            'max_gallery_photos',
-                            parseInt(e.target.value, 10) || 0
-                          )
-                        }
-                        required
-                        className="border-border/60 bg-card focus-visible:ring-primary/20 rounded-lg"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <DialogFooter className="border-border/40 mt-6 flex flex-col gap-2 border-t pt-4 sm:flex-row">
+      <ResponsiveDialog
+        open={isQuotaModalOpen}
+        onOpenChange={setIsQuotaModalOpen}
+        title={
+          <span className="flex items-center gap-2">
+            <SlidersHorizontal className="h-5 w-5 text-indigo-500" />
+            Kelola Kuota Event
+          </span>
+        }
+        description={
+          <>
+            Atur batas maksimal tamu, scanner, dan foto galeri untuk tenant{' '}
+            <strong>{selectedTenant?.name}</strong>.
+          </>
+        }
+        footer={
+          <>
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsQuotaModalOpen(false)}
               disabled={isSavingQuota}
+              className="w-full sm:w-auto"
             >
               Batal
             </Button>
@@ -936,35 +824,148 @@ export default function AdminTenantsPage() {
               type="button"
               onClick={handleSaveQuota}
               disabled={isSavingQuota || isLoadingEvents || tenantEvents.length === 0}
-              className="flex items-center justify-center gap-1.5"
+              className="flex items-center justify-center gap-1.5 w-full sm:w-auto"
             >
               {isSavingQuota ? 'Menyimpan...' : 'Simpan Perubahan'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+        className="sm:max-w-md"
+      >
+        {isLoadingEvents ? (
+          <div className="flex flex-col items-center justify-center space-y-2 py-8">
+            <RefreshCw className="text-primary h-8 w-8 animate-spin" />
+            <p className="text-muted-foreground text-sm">Mengambil daftar event...</p>
+          </div>
+        ) : tenantEvents.length === 0 ? (
+          <div className="text-muted-foreground py-6 text-center text-sm">
+            Tenant ini belum memiliki event aktif.
+          </div>
+        ) : (
+          <div className="max-h-[300px] space-y-4 overflow-y-auto pr-1">
+            {tenantEvents.map((event) => (
+              <div
+                key={event.id}
+                className="bg-muted/30 border-border/40 space-y-3 rounded-xl border p-4"
+              >
+                <div className="border-border/40 border-b pb-1.5">
+                  <h4 className="text-foreground text-sm font-bold">
+                    {event.bride_name} & {event.groom_name}
+                  </h4>
+                  <p className="text-muted-foreground text-xs">Slug: /{event.slug}</p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <Label
+                      htmlFor={`max_guests_${event.id}`}
+                      className="text-muted-foreground text-xs font-bold"
+                    >
+                      Maksimal Jumlah Tamu (max_guests)
+                    </Label>
+                    <Input
+                      id={`max_guests_${event.id}`}
+                      type="number"
+                      min={QUOTA_MAX_GUESTS_MIN}
+                      max={QUOTA_MAX_GUESTS_MAX}
+                      value={quotaInputs[event.id]?.max_guests ?? DEFAULT_MAX_GUESTS}
+                      onChange={(e) =>
+                        handleQuotaInputChange(
+                          event.id,
+                          'max_guests',
+                          parseInt(e.target.value, 10) || 0
+                        )
+                      }
+                      required
+                      className="border-border/60 bg-card focus-visible:ring-primary/20 rounded-lg"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label
+                      htmlFor={`max_scanner_${event.id}`}
+                      className="text-muted-foreground text-xs font-bold"
+                    >
+                      Maksimal Perangkat Scanner (max_scanner_devices)
+                    </Label>
+                    <Input
+                      id={`max_scanner_${event.id}`}
+                      type="number"
+                      min={QUOTA_MAX_SCANNER_MIN}
+                      max={QUOTA_MAX_SCANNER_MAX}
+                      value={
+                        quotaInputs[event.id]?.max_scanner_devices ?? DEFAULT_MAX_SCANNER_DEVICES
+                      }
+                      onChange={(e) =>
+                        handleQuotaInputChange(
+                          event.id,
+                          'max_scanner_devices',
+                          parseInt(e.target.value, 10) || 0
+                        )
+                      }
+                      required
+                      className="border-border/60 bg-card focus-visible:ring-primary/20 rounded-lg"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label
+                      htmlFor={`max_gallery_${event.id}`}
+                      className="text-muted-foreground text-xs font-bold"
+                    >
+                      Maksimal Foto Galeri (max_gallery_photos)
+                    </Label>
+                    <Input
+                      id={`max_gallery_${event.id}`}
+                      type="number"
+                      min={QUOTA_MAX_GALLERY_PHOTOS_MIN}
+                      max={QUOTA_MAX_GALLERY_PHOTOS_MAX}
+                      value={
+                        quotaInputs[event.id]?.max_gallery_photos ?? DEFAULT_MAX_GALLERY_PHOTOS
+                      }
+                      onChange={(e) =>
+                        handleQuotaInputChange(
+                          event.id,
+                          'max_gallery_photos',
+                          parseInt(e.target.value, 10) || 0
+                        )
+                      }
+                      required
+                      className="border-border/60 bg-card focus-visible:ring-primary/20 rounded-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </ResponsiveDialog>
 
       {/* Delete Tenant Confirmation Dialog */}
-      <Dialog open={!!tenantToDelete} onOpenChange={(open) => !open && setTenantToDelete(null)}>
-        <DialogContent className="border-border/40 bg-card max-w-md rounded-2xl p-6 shadow-xl">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-destructive animate-in fade-in flex items-center gap-2 text-xl font-bold duration-200">
-              <Trash2 className="h-5 w-5" />
-              Hapus Tenant
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Apakah Anda yakin ingin menghapus tenant <strong>{tenantToDelete?.name}</strong>?
-              Tindakan ini tidak dapat dibatalkan. Semua data terkait (pengguna, event, tamu, RSVP,
-              check-in) akan dihapus secara permanen.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="border-border/40 mt-6 flex flex-col gap-2 border-t pt-4 sm:flex-row">
+      <ResponsiveDialog
+        open={!!tenantToDelete}
+        onOpenChange={(open) => !open && setTenantToDelete(null)}
+        title={
+          <span className="text-destructive flex items-center gap-2">
+            <Trash2 className="h-5 w-5" />
+            Hapus Tenant
+          </span>
+        }
+        description={
+          <>
+            Apakah Anda yakin ingin menghapus tenant <strong>{tenantToDelete?.name}</strong>?
+            Tindakan ini tidak dapat dibatalkan. Semua data terkait (pengguna, event, tamu, RSVP,
+            check-in) akan dihapus secara permanen.
+          </>
+        }
+        footer={
+          <>
             <Button
               type="button"
               variant="outline"
               onClick={() => setTenantToDelete(null)}
               disabled={deleteTenantMutation.isPending}
+              className="w-full sm:w-auto"
             >
               Batal
             </Button>
@@ -973,13 +974,16 @@ export default function AdminTenantsPage() {
               variant="destructive"
               onClick={handleDeleteTenant}
               disabled={deleteTenantMutation.isPending}
-              className="flex items-center justify-center gap-1.5"
+              className="flex items-center justify-center gap-1.5 w-full sm:w-auto"
             >
               {deleteTenantMutation.isPending ? 'Menghapus...' : 'Hapus Permanen'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+        className="sm:max-w-md"
+      >
+        <div />
+      </ResponsiveDialog>
     </div>
   );
 }

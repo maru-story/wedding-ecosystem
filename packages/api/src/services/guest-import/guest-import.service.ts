@@ -291,6 +291,9 @@ export async function bulkImportGuests(
   // Build set of existing names for duplicate detection within event
   const existingNamesSet = new Set(existingGuestNames.map((n) => n.toLowerCase()));
 
+  // Track slugs in this batch to prevent batch slug collisions
+  const batchSlugs = new Set<string>();
+
   // Process each row
   for (let i = 0; i < rows.length; i++) {
     const rowNumber = i + 2; // +2 because row 1 is header, data starts at row 2
@@ -311,22 +314,41 @@ export async function bulkImportGuests(
     // Add to existing names set to detect duplicates within the batch
     existingNamesSet.add(validationResult.name.toLowerCase());
 
-    // Create guest with QR code generation (Req 3.3)
-    const result = await guestService.addGuest(eventId, tenantId, {
-      name: validationResult.name,
-      group: validationResult.group,
-      type: GuestType.INVITED,
-      phone: validationResult.phone ?? '',
-      plus_one_count: validationResult.plus_one_count,
-    });
+    try {
+      // Create guest with QR code generation (Req 3.3)
+      const result = await guestService.addGuest(
+        eventId,
+        tenantId,
+        {
+          name: validationResult.name,
+          group: validationResult.group,
+          type: GuestType.INVITED,
+          phone: validationResult.phone ?? '',
+          plus_one_count: validationResult.plus_one_count,
+        },
+        batchSlugs
+      );
 
-    if (isGuestError(result)) {
+      if (isGuestError(result)) {
+        report.failedRows.push({
+          row: rowNumber,
+          reason: result.message,
+        });
+      } else {
+        report.successCount++;
+      }
+    } catch (error: any) {
+      // Handle unique constraint or any database error during creation
+      let reason = 'Terjadi kesalahan database saat menyimpan tamu.';
+      if (error && error.code === 'P2002') {
+        reason = `Nama tamu atau slug undangan sudah digunakan dalam event ini (${validationResult.name})`;
+      } else if (error instanceof Error) {
+        reason = error.message;
+      }
       report.failedRows.push({
         row: rowNumber,
-        reason: result.message,
+        reason,
       });
-    } else {
-      report.successCount++;
     }
   }
 

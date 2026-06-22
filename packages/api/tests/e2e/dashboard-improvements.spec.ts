@@ -51,7 +51,7 @@ test.describe('Dashboard Improvements E2E', () => {
       await tenantA.request.post('/guests', {
         data: {
           name: `Bulk Guest ${i}`,
-          group: 'family',
+          group: 'Keluarga',
           type: 'invited',
         },
       });
@@ -71,7 +71,13 @@ test.describe('Dashboard Improvements E2E', () => {
     // 3. Test filtering by group (just check it triggers a request)
     await page.click('button:has-text("Semua Grup")');
     await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes('group=family'), { timeout: 15000 }),
+      page.waitForResponse(
+        (resp) =>
+          resp.url().includes('group=Keluarga') ||
+          resp.url().includes('group=' + encodeURIComponent('Keluarga')) ||
+          resp.url().includes('group=family'),
+        { timeout: 15000 }
+      ),
       page.click('[role="option"]:has-text("Keluarga")'),
     ]);
 
@@ -177,7 +183,7 @@ test.describe('Dashboard Improvements E2E', () => {
     const guestRes = await tenantA.request.post('/guests', {
       data: {
         name: 'RSVP Guest Test',
-        group: 'family',
+        group: 'Keluarga',
         type: 'invited',
         phone: '081234567890',
         plus_one_count: 1,
@@ -187,6 +193,18 @@ test.describe('Dashboard Improvements E2E', () => {
     const guestJson = await guestRes.json();
     console.log('GUEST CREATED:', JSON.stringify(guestJson));
     const guestId = guestJson.id || guestJson.data?.id;
+
+    // Create a second guest in group "Teman" to ensure the dropdown contains "Teman"
+    const guestRes2 = await tenantA.request.post('/guests', {
+      data: {
+        name: 'RSVP Guest Test 2',
+        group: 'Teman',
+        type: 'invited',
+        phone: '081234567891',
+        plus_one_count: 0,
+      },
+    });
+    expect(guestRes2.ok()).toBe(true);
 
     // 2. Submit RSVP for this guest
     const rsvpRes = await tenantA.request.post('/rsvp', {

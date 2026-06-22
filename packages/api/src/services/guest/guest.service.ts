@@ -207,7 +207,8 @@ export class GuestService {
   async addGuest(
     eventId: string,
     tenantId: string,
-    input: CreateGuestInput
+    input: CreateGuestInput,
+    existingBatchSlugs?: Set<string>
   ): Promise<GuestWithQR | GuestServiceError> {
     // Verify event exists and belongs to tenant
     const event = await this.repository.findEventById(eventId, tenantId);
@@ -229,7 +230,7 @@ export class GuestService {
     }
 
     // Generate unique slug for the guest
-    const slug = await this.generateUniqueSlug(eventId, input.name);
+    const slug = await this.generateUniqueSlug(eventId, input.name, undefined, existingBatchSlugs);
 
     // Create guest record
     const guestId = randomUUID();
@@ -583,33 +584,57 @@ export class GuestService {
    * Generate a unique slug for the guest within the event
    * Format: kebab-case name with optional numeric suffix
    */
-  async generateUniqueSlug(eventId: string, name: string, currentSlug?: string): Promise<string> {
+  async generateUniqueSlug(
+    eventId: string,
+    name: string,
+    currentSlug?: string,
+    existingBatchSlugs?: Set<string>
+  ): Promise<string> {
     const baseSlug = this.nameToSlug(name);
 
     // If the slug hasn't changed, keep it
     if (currentSlug && currentSlug === baseSlug) {
+      if (existingBatchSlugs) {
+        existingBatchSlugs.add(currentSlug);
+      }
       return currentSlug;
     }
 
+    const isSlugTaken = async (slug: string) => {
+      if (existingBatchSlugs && existingBatchSlugs.has(slug)) {
+        return true;
+      }
+      return this.repository.checkSlugExists(eventId, slug);
+    };
+
     // Check if base slug is available
-    const exists = await this.repository.checkSlugExists(eventId, baseSlug);
+    const exists = await isSlugTaken(baseSlug);
     if (!exists) {
+      if (existingBatchSlugs) {
+        existingBatchSlugs.add(baseSlug);
+      }
       return baseSlug;
     }
 
     // If it's the same as current slug, it's fine (updating same guest)
     if (currentSlug === baseSlug) {
+      if (existingBatchSlugs) {
+        existingBatchSlugs.add(baseSlug);
+      }
       return baseSlug;
     }
 
     // Add numeric suffix until unique
     let suffix = 2;
     let candidateSlug = `${baseSlug}-${suffix}`;
-    while (await this.repository.checkSlugExists(eventId, candidateSlug)) {
+    while (await isSlugTaken(candidateSlug)) {
       suffix++;
       candidateSlug = `${baseSlug}-${suffix}`;
     }
 
+    if (existingBatchSlugs) {
+      existingBatchSlugs.add(candidateSlug);
+    }
     return candidateSlug;
   }
 

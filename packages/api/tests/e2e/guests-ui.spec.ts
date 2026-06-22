@@ -47,9 +47,10 @@ test.describe('Guests UI E2E', () => {
     await page.click('button:has-text("+ Tambah Tamu")');
     await page.fill('#guest-name', 'Guest E2E UI Test');
 
-    // Select group (VIP) using shadcn Select component selectors
-    await page.click('button:has-text("Keluarga")'); // Default trigger
-    await page.click('span:has-text("VIP")'); // Dropdown item
+    // Create group (VIP) using the CreatableGroupSelect
+    await page.click('#guest-group');
+    await page.fill('input[placeholder="Cari atau buat grup baru..."]', 'VIP');
+    await page.click('li:has-text("Buat grup:")');
 
     await page.fill('#guest-phone', '628123456789');
     await page.fill('#guest-plus-one', '2');
@@ -65,8 +66,12 @@ test.describe('Guests UI E2E', () => {
     // 3. Edit the Guest
     await row.locator('button[title="Edit tamu"]').click();
     await page.fill('#guest-name', 'Guest E2E UI Test Edited');
-    await page.click('button:has-text("VIP")');
-    await page.click('span:has-text("Teman")');
+    
+    // Change group to Teman
+    await page.click('#guest-group');
+    await page.fill('input[placeholder="Cari atau buat grup baru..."]', 'Teman');
+    await page.click('li:has-text("Buat grup:")');
+    
     await page.click('button[type="submit"]:has-text("Simpan Perubahan")');
 
     // Verify updated details
@@ -76,7 +81,7 @@ test.describe('Guests UI E2E', () => {
 
     // 4. CSV Import
     await page.click('button:has-text("Import CSV")');
-    await expect(page.locator('#import-modal-title')).toContainText('Import Tamu dari CSV');
+    await expect(page.locator('h2:has-text("Import Tamu dari CSV")')).toBeVisible();
 
     // Prepare CSV data matching Bahasa Indonesia headers
     const csvContent =

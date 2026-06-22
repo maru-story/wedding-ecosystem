@@ -148,12 +148,12 @@ export default function GuestsPage() {
               )}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 w-full sm:flex-row sm:w-auto">
             <Button
               variant="outline"
               onClick={() => refetch()}
               disabled={isLoading || isFetching}
-              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground flex items-center gap-1.5"
+              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 w-full sm:w-auto"
             >
               <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
               Perbarui
@@ -161,7 +161,7 @@ export default function GuestsPage() {
             <Button
               variant="outline"
               onClick={() => setShowManageGroups(true)}
-              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground flex items-center gap-1.5"
+              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 w-full sm:w-auto"
             >
               <Settings2 className="h-4 w-4" />
               Kelola Grup
@@ -169,13 +169,13 @@ export default function GuestsPage() {
             <Button
               variant="outline"
               onClick={() => setShowImportModal(true)}
-              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground"
+              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground w-full sm:w-auto"
             >
               Import CSV
             </Button>
             <Button
               onClick={() => setShowAddModal(true)}
-              className="bg-primary hover:bg-primary/95 text-primary-foreground font-medium"
+              className="bg-primary hover:bg-primary/95 text-primary-foreground font-medium w-full sm:w-auto"
             >
               + Tambah Tamu
             </Button>

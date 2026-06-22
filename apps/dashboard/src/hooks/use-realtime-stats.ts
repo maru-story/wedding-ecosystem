@@ -11,6 +11,7 @@ export interface EventStats {
   total_rsvp: number;
   total_checked_in: number;
   total_go_show: number;
+  total_pax_confirmed?: number;
 }
 
 /** RSVP record for tracking display (Req 4.8) */
@@ -40,6 +41,7 @@ const DEFAULT_STATS: EventStats = {
   total_rsvp: 0,
   total_checked_in: 0,
   total_go_show: 0,
+  total_pax_confirmed: 0,
 };
 
 /**
@@ -58,7 +60,13 @@ export function useRealtimeStats({
 
   const handleStatsUpdated = useCallback(
     (payload: EventStats) => {
-      queryClient.setQueryData(['rsvp-stats', eventId], payload);
+      queryClient.setQueryData<EventStats>(['rsvp-stats', eventId], (prev) => {
+        if (!prev) return payload;
+        return {
+          ...prev,
+          ...payload,
+        };
+      });
     },
     [queryClient, eventId]
   );
@@ -76,6 +84,8 @@ export function useRealtimeStats({
         }
         return { data: updatedData };
       });
+      // Invalidate stats to update total_pax_confirmed
+      queryClient.invalidateQueries({ queryKey: ['rsvp-stats', eventId] });
     },
     [queryClient, eventId]
   );
@@ -83,10 +93,13 @@ export function useRealtimeStats({
   const handleGoShowAdded = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['rsvp-stats', eventId] });
     queryClient.invalidateQueries({ queryKey: ['rsvp-list', eventId] });
+    queryClient.invalidateQueries({ queryKey: ['guests'] });
   }, [queryClient, eventId]);
 
   const handleGuestCheckedIn = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['rsvp-stats', eventId] });
+    queryClient.invalidateQueries({ queryKey: ['rsvp-list', eventId] });
+    queryClient.invalidateQueries({ queryKey: ['guests'] });
   }, [queryClient, eventId]);
 
   useEffect(() => {

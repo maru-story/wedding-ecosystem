@@ -17,14 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import {
   Select,
   SelectContent,
@@ -359,209 +352,210 @@ export default function AdminUsersPage() {
       />
 
       {/* Add Admin Dialog */}
-      <Dialog open={isAddAdminOpen} onOpenChange={setIsAddAdminOpen}>
-        <DialogContent className="border-border/40 bg-card max-w-md rounded-2xl p-6 shadow-xl">
-          <form onSubmit={handleCreateAdmin}>
-            <DialogHeader className="mb-6">
-              <DialogTitle className="text-foreground flex items-center gap-2 text-2xl font-bold">
-                <Plus className="text-primary h-6 w-6" />
-                Tambah Administrator Baru
-              </DialogTitle>
-              <DialogDescription className="text-muted-foreground">
-                Buat akun administrator platform baru. Administrator memiliki akses penuh ke seluruh
-                tenant.
-              </DialogDescription>
-            </DialogHeader>
+      <ResponsiveDialog
+        open={isAddAdminOpen}
+        onOpenChange={setIsAddAdminOpen}
+        title={
+          <span className="flex items-center gap-2">
+            <Plus className="text-primary h-6 w-6" />
+            Tambah Administrator Baru
+          </span>
+        }
+        description="Buat akun administrator platform baru. Administrator memiliki akses penuh ke seluruh tenant."
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-lg w-full sm:w-auto"
+              onClick={() => setIsAddAdminOpen(false)}
+            >
+              Batal
+            </Button>
+            <Button type="submit" form="create-admin-form" disabled={isCreatingAdmin} className="rounded-lg w-full sm:w-auto">
+              {isCreatingAdmin ? 'Menyimpan...' : 'Simpan'}
+            </Button>
+          </>
+        }
+        className="sm:max-w-md"
+      >
+        <form id="create-admin-form" onSubmit={handleCreateAdmin} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="admin_name">Nama Lengkap</Label>
+            <Input
+              id="admin_name"
+              value={newAdmin.name}
+              onChange={(e) => setNewAdmin((prev) => ({ ...prev, name: e.target.value }))}
+              placeholder="Masukkan nama lengkap"
+              required
+              className="border-border/60 focus-visible:ring-primary/20 bg-background rounded-lg"
+            />
+          </div>
 
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="admin_name">Nama Lengkap</Label>
-                <Input
-                  id="admin_name"
-                  value={newAdmin.name}
-                  onChange={(e) => setNewAdmin((prev) => ({ ...prev, name: e.target.value }))}
-                  placeholder="Masukkan nama lengkap"
-                  required
-                  className="border-border/60 focus-visible:ring-primary/20 bg-background rounded-lg"
-                />
+          <div className="space-y-1.5">
+            <Label htmlFor="admin_email">Email</Label>
+            <Input
+              id="admin_email"
+              type="email"
+              value={newAdmin.email}
+              onChange={(e) => setNewAdmin((prev) => ({ ...prev, email: e.target.value }))}
+              placeholder="admin@platform.com"
+              required
+              className="border-border/60 focus-visible:ring-primary/20 bg-background rounded-lg"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="admin_password">Password</Label>
+            <Input
+              id="admin_password"
+              type="password"
+              value={newAdmin.password}
+              onChange={(e) => setNewAdmin((prev) => ({ ...prev, password: e.target.value }))}
+              placeholder="Minimal 8 karakter"
+              required
+              className="border-border/60 focus-visible:ring-primary/20 bg-background rounded-lg"
+            />
+          </div>
+        </form>
+      </ResponsiveDialog>
+
+      {/* Reset Password Dialog */}
+      <ResponsiveDialog
+        open={resetUser !== null}
+        onOpenChange={(open) => !open && setResetUser(null)}
+        title={
+          <span className="flex items-center gap-2">
+            <KeyRound className="h-5 w-5 text-red-500" />
+            Atur Ulang Password
+          </span>
+        }
+        description="Ubah atau buat password baru untuk pengguna secara instan."
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setResetUser(null);
+                setNewPassword('');
+              }}
+              className="w-full sm:w-auto"
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              form="reset-password-form"
+              disabled={resetUserPasswordMutation.isPending || newPassword.length < 8}
+              className="flex items-center justify-center gap-1.5 rounded-lg bg-red-600 text-white transition-colors hover:bg-red-700 w-full sm:w-auto"
+            >
+              {resetUserPasswordMutation.isPending ? 'Memperbarui...' : 'Simpan Sandi Baru'}
+            </Button>
+          </>
+        }
+        className="sm:max-w-md"
+      >
+        {resetUser && (
+          <form id="reset-password-form" onSubmit={handleResetPassword} className="space-y-4">
+            {/* User info display */}
+            <div className="bg-muted/30 border-border/40 space-y-2 rounded-xl border p-4">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground font-semibold">Nama Pengguna:</span>
+                <span className="text-foreground font-bold">{resetUser.name}</span>
               </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="admin_email">Email</Label>
-                <Input
-                  id="admin_email"
-                  type="email"
-                  value={newAdmin.email}
-                  onChange={(e) => setNewAdmin((prev) => ({ ...prev, email: e.target.value }))}
-                  placeholder="admin@platform.com"
-                  required
-                  className="border-border/60 focus-visible:ring-primary/20 bg-background rounded-lg"
-                />
+              <div className="border-border/40 flex justify-between border-t pt-2 text-xs">
+                <span className="text-muted-foreground font-semibold">Email Login:</span>
+                <span className="text-foreground font-bold">{resetUser.email}</span>
               </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="admin_password">Password</Label>
-                <Input
-                  id="admin_password"
-                  type="password"
-                  value={newAdmin.password}
-                  onChange={(e) => setNewAdmin((prev) => ({ ...prev, password: e.target.value }))}
-                  placeholder="Minimal 8 karakter"
-                  required
-                  className="border-border/60 focus-visible:ring-primary/20 bg-background rounded-lg"
-                />
+              <div className="border-border/40 flex justify-between border-t pt-2 text-xs">
+                <span className="text-muted-foreground font-semibold">Tenant:</span>
+                <span className="text-foreground font-bold">
+                  {resetUser.tenant_name || 'Layanan Platform (Global)'}
+                </span>
               </div>
             </div>
 
-            <DialogFooter className="mt-6 gap-2 sm:gap-0">
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-lg"
-                onClick={() => setIsAddAdminOpen(false)}
+            <div className="space-y-2">
+              <Label
+                htmlFor="reset_password"
+                className="text-muted-foreground text-xs font-bold"
               >
-                Batal
-              </Button>
-              <Button type="submit" disabled={isCreatingAdmin} className="rounded-lg">
-                {isCreatingAdmin ? 'Menyimpan...' : 'Simpan'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reset Password Dialog */}
-      <Dialog open={resetUser !== null} onOpenChange={(open) => !open && setResetUser(null)}>
-        <DialogContent className="border-border/40 bg-card max-w-md rounded-2xl p-6 shadow-xl">
-          {resetUser && (
-            <form onSubmit={handleResetPassword}>
-              <DialogHeader className="mb-5">
-                <DialogTitle className="text-foreground flex items-center gap-2 text-xl font-bold">
-                  <KeyRound className="h-5 w-5 text-red-500" />
-                  Atur Ulang Password
-                </DialogTitle>
-                <DialogDescription className="text-muted-foreground mt-1">
-                  Ubah atau buat password baru untuk pengguna secara instan.
-                </DialogDescription>
-              </DialogHeader>
-
-              {/* User info display */}
-              <div className="bg-muted/30 border-border/40 mb-5 space-y-2 rounded-xl border p-4">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground font-semibold">Nama Pengguna:</span>
-                  <span className="text-foreground font-bold">{resetUser.name}</span>
+                Password Baru
+              </Label>
+              <div className="relative flex gap-2">
+                <div className="relative flex-1">
+                  <Lock className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
+                  <Input
+                    id="reset_password"
+                    type="text"
+                    placeholder="Password minimal 8 karakter"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
+                  />
                 </div>
-                <div className="border-border/40 flex justify-between border-t pt-2 text-xs">
-                  <span className="text-muted-foreground font-semibold">Email Login:</span>
-                  <span className="text-foreground font-bold">{resetUser.email}</span>
-                </div>
-                <div className="border-border/40 flex justify-between border-t pt-2 text-xs">
-                  <span className="text-muted-foreground font-semibold">Tenant:</span>
-                  <span className="text-foreground font-bold">
-                    {resetUser.tenant_name || 'Layanan Platform (Global)'}
-                  </span>
-                </div>
-              </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="reset_password"
-                    className="text-muted-foreground text-xs font-bold"
-                  >
-                    Password Baru
-                  </Label>
-                  <div className="relative flex gap-2">
-                    <div className="relative flex-1">
-                      <Lock className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
-                      <Input
-                        id="reset_password"
-                        type="text"
-                        placeholder="Password minimal 8 karakter"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        required
-                        className="border-border/60 focus-visible:ring-primary/20 bg-card hover:bg-muted/10 rounded-lg pl-9 transition-colors"
-                      />
-                    </div>
-
-                    <Button
-                      type="button"
-                      onClick={generatePassword}
-                      variant="outline"
-                      title="Buat Password Kuat"
-                      className="border-border hover:bg-muted flex shrink-0 items-center justify-center rounded-lg px-3"
-                    >
-                      <Sparkles className="text-primary h-4 w-4 animate-pulse" />
-                    </Button>
-
-                    {newPassword.length >= 8 && (
-                      <Button
-                        type="button"
-                        onClick={copyToClipboard}
-                        variant="outline"
-                        title="Salin Password"
-                        className="border-border hover:bg-muted flex shrink-0 items-center justify-center rounded-lg px-3"
-                      >
-                        {copied ? (
-                          <Check className="text-success animate-scale-up h-4 w-4" />
-                        ) : (
-                          <Clipboard className="text-muted-foreground h-4 w-4" />
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-muted-foreground text-[11px] italic">
-                    Gunakan tombol bintang untuk menghasilkan password aman secara acak.
-                  </p>
-                </div>
-              </div>
-
-              <DialogFooter className="border-border/40 mt-6 flex flex-col gap-2 border-t pt-4 sm:flex-row">
                 <Button
                   type="button"
+                  onClick={generatePassword}
                   variant="outline"
-                  onClick={() => {
-                    setResetUser(null);
-                    setNewPassword('');
-                  }}
+                  title="Buat Password Kuat"
+                  className="border-border hover:bg-muted flex shrink-0 items-center justify-center rounded-lg px-3"
                 >
-                  Batal
+                  <Sparkles className="text-primary h-4 w-4 animate-pulse" />
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={resetUserPasswordMutation.isPending || newPassword.length < 8}
-                  className="flex items-center justify-center gap-1.5 rounded-lg bg-red-600 text-white transition-colors hover:bg-red-700"
-                >
-                  {resetUserPasswordMutation.isPending ? 'Memperbarui...' : 'Simpan Sandi Baru'}
-                </Button>
-              </DialogFooter>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
+
+                {newPassword.length >= 8 && (
+                  <Button
+                    type="button"
+                    onClick={copyToClipboard}
+                    variant="outline"
+                    title="Salin Password"
+                    className="border-border hover:bg-muted flex shrink-0 items-center justify-center rounded-lg px-3"
+                  >
+                    {copied ? (
+                      <Check className="text-success animate-scale-up h-4 w-4" />
+                    ) : (
+                      <Clipboard className="text-muted-foreground h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+              </div>
+              <p className="text-muted-foreground text-[11px] italic">
+                Gunakan tombol bintang untuk menghasilkan password aman secara acak.
+              </p>
+            </div>
+          </form>
+        )}
+      </ResponsiveDialog>
 
       {/* Delete User Confirmation Dialog */}
-      <Dialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
-        <DialogContent className="border-border/40 bg-card max-w-md rounded-2xl p-6 shadow-xl">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-destructive animate-in fade-in flex items-center gap-2 text-xl font-bold duration-200">
-              <Trash2 className="h-5 w-5" />
-              Hapus Pengguna
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Apakah Anda yakin ingin menghapus pengguna <strong>{userToDelete?.name}</strong>?
-              Tindakan ini tidak dapat dibatalkan dan akan menghapus akses mereka secara permanen
-              dari sistem.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="border-border/40 mt-6 flex flex-col gap-2 border-t pt-4 sm:flex-row">
+      <ResponsiveDialog
+        open={!!userToDelete}
+        onOpenChange={(open) => !open && setUserToDelete(null)}
+        title={
+          <span className="text-destructive flex items-center gap-2">
+            <Trash2 className="h-5 w-5" />
+            Hapus Pengguna
+          </span>
+        }
+        description={
+          <>
+            Apakah Anda yakin ingin menghapus pengguna <strong>{userToDelete?.name}</strong>?
+            Tindakan ini tidak dapat dibatalkan dan akan menghapus akses mereka secara permanen
+            dari sistem.
+          </>
+        }
+        footer={
+          <>
             <Button
               type="button"
               variant="outline"
               onClick={() => setUserToDelete(null)}
               disabled={deleteUserMutation.isPending}
+              className="w-full sm:w-auto"
             >
               Batal
             </Button>
@@ -570,13 +564,16 @@ export default function AdminUsersPage() {
               variant="destructive"
               onClick={handleDeleteUser}
               disabled={deleteUserMutation.isPending}
-              className="flex items-center justify-center gap-1.5"
+              className="flex items-center justify-center gap-1.5 w-full sm:w-auto"
             >
               {deleteUserMutation.isPending ? 'Menghapus...' : 'Hapus Permanen'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+        className="sm:max-w-md"
+      >
+        <div />
+      </ResponsiveDialog>
     </div>
   );
 }

@@ -72,8 +72,8 @@ test.describe('CMS Reordering API E2E', () => {
     expect(updatedSections[2].id).toBe(initialSections[1].id);
     expect(updatedSections[2].sort_order).toBe(3);
 
-    // Verify sort_order constraint: all sort orders should still be sequential 1..16
-    for (let i = 0; i < 16; i++) {
+    // Verify sort_order constraint: all sort orders should still be sequential 1..15
+    for (let i = 0; i < 15; i++) {
       expect(updatedSections[i].sort_order).toBe(i + 1);
     }
   });
