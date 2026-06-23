@@ -38,6 +38,7 @@ Base URL: `http://localhost:4000` (dev) / `https://api.domain.railway.app` (prod
 | GET    | `/guests/groups`          | JWT  | Get unique group names in use for current event (returns presets + any custom groups)                  |
 | PATCH  | `/guests/groups/reassign` | JWT  | Reassign all guests from one group to another (body: `{from, to}`) — returns updated count             |
 | POST   | `/guests/import`          | JWT  | CSV bulk import (max 2000, headers: `nama`,`grup`,`telepon`,`jumlah_tamu`) — `grup` accepts any string |
+| GET    | `/guests/export`          | JWT  | Export guests to CSV file (Indonesian headers matching import format + RSVP/check-in/delivery status)  |
 | POST   | `/guests/bulk-delete`     | JWT  | Bulk delete guests and deactivate their QR codes                                                       |
 
 ### Check-in (prefix: `/checkin`)
@@ -162,10 +163,10 @@ The endpoints `GET /events/current/stats` and `GET /events/:id/stats` return a c
     { "timeSlot": "09:30", "count": 4 }
   ],
   "group_breakdown": {
-    "family": { "total": 10, "confirmed": 8, "declined": 1, "pending": 1, "checked_in": 4 },
-    "friend": { "total": 5, "confirmed": 2, "declined": 1, "pending": 2, "checked_in": 1 },
-    "colleague": { "total": 5, "confirmed": 1, "declined": 1, "pending": 3, "checked_in": 0 },
-    "vip": { "total": 5, "confirmed": 4, "declined": 0, "pending": 1, "checked_in": 2 }
+    "Keluarga": { "total": 10, "confirmed": 8, "declined": 1, "pending": 1, "checked_in": 4 },
+    "Teman": { "total": 5, "confirmed": 2, "declined": 1, "pending": 2, "checked_in": 1 },
+    "Rekan Kerja": { "total": 5, "confirmed": 1, "declined": 1, "pending": 3, "checked_in": 0 },
+    "VIP": { "total": 5, "confirmed": 4, "declined": 0, "pending": 1, "checked_in": 2 }
   }
 }
 ```

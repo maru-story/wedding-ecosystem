@@ -7,15 +7,16 @@ import { AddGuestModal } from './components/add-guest-modal';
 import { CsvImportModal } from './components/csv-import-modal';
 import { QrCodeModal } from './components/qr-code-modal';
 import { ManageGroupsModal } from './components/manage-groups-modal';
-import { ApiError } from '@/lib/api';
+import { ApiError, apiFetchRaw } from '@/lib/api';
 import { useGuests, useEvent, useDashboardStats } from '@/hooks/queries';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FadeIn } from '@/components/ui/motion-wrapper';
 import { DEFAULT_MAX_GUESTS, GUESTS_PER_PAGE } from '@/lib/constants';
 import { useTableState } from '@/hooks/use-table-state';
+import { toast } from 'sonner';
 
-import { RefreshCw, Settings2 } from 'lucide-react';
+import { RefreshCw, Settings2, Download, Upload } from 'lucide-react';
 
 export interface GuestListItem {
   id: string;
@@ -57,6 +58,30 @@ export default function GuestsPage() {
   const [showManageGroups, setShowManageGroups] = useState(false);
   const [editingGuest, setEditingGuest] = useState<GuestListItem | null>(null);
   const [qrGuest, setQrGuest] = useState<GuestListItem | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      const res = await apiFetchRaw('/guests/export');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const filename = eventData?.slug ? `export-tamu-${eventData.slug}.csv` : 'daftar-tamu.csv';
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Data tamu berhasil diekspor ke CSV');
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal mengekspor data tamu');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Fetch guests using React Query
   const {
@@ -171,7 +196,17 @@ export default function GuestsPage() {
               onClick={() => setShowImportModal(true)}
               className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground w-full sm:w-auto"
             >
+              <Upload className="h-4 w-4" />
               Import CSV
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={isExporting}
+              className="border-border/60 hover:bg-accent text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 w-full sm:w-auto"
+            >
+              <Download className={`h-4 w-4 ${isExporting ? 'animate-pulse' : ''}`} />
+              {isExporting ? 'Mengekspor...' : 'Ekspor CSV'}
             </Button>
             <Button
               onClick={() => setShowAddModal(true)}

@@ -58,6 +58,20 @@ export interface GuestListItem {
   qr_active: boolean;
 }
 
+export interface GuestExportItem {
+  id: string;
+  name: string;
+  slug: string;
+  group: string;
+  type: GuestType;
+  plus_one_count: number;
+  phone: string | null;
+  invitation_url: string | null;
+  delivery_status: DeliveryStatus;
+  rsvp_status: string | null;
+  check_in_status: boolean;
+}
+
 export interface PaginatedGuestList {
   data: GuestListItem[];
   pagination: {
@@ -177,6 +191,11 @@ export interface GuestRepository {
     fromGroup: string,
     toGroup: string
   ): Promise<number>;
+
+  /**
+   * Fetch all guests of an event for CSV export.
+   */
+  findGuestsForExport(eventId: string, tenantId: string): Promise<GuestExportItem[]>;
 
   /**
    * Fetch all existing slugs for an event — used to seed the in-memory
@@ -823,6 +842,82 @@ export class GuestService {
       .replace(/\s+/g, '-') // Replace spaces with hyphens
       .replace(/-+/g, '-') // Collapse multiple hyphens
       .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+  }
+
+  /**
+   * Export all guests of an event as a CSV string
+   */
+  async exportGuests(eventId: string, tenantId: string): Promise<string | GuestServiceError> {
+    const event = await this.repository.findEventById(eventId, tenantId);
+    if (!event) {
+      return {
+        code: ErrorCode.NOT_FOUND,
+        message: 'Event tidak ditemukan',
+      };
+    }
+
+    const guests = await this.repository.findGuestsForExport(eventId, tenantId);
+
+    // CSV Headers
+    const headers = [
+      'nama',
+      'grup',
+      'telepon',
+      'jumlah_tamu',
+      'status_rsvp',
+      'status_checkin',
+      'status_undangan',
+    ];
+
+    const escapeCsv = (str: string | null | undefined): string => {
+      if (str === null || str === undefined) return '';
+      // Escape quotes and wrap in quotes if it contains separator, quotes, or newlines
+      const escaped = str.replace(/"/g, '""');
+      if (escaped.includes(',') || escaped.includes('"') || escaped.includes('\n') || escaped.includes('\r')) {
+        return `"${escaped}"`;
+      }
+      return escaped;
+    };
+
+    const rows = guests.map((guest) => {
+      // Decrypt phone
+      const decryptedPhone = this.piiEncryption.decrypt(guest.phone);
+
+      // RSVP Status mapping to Indonesian
+      let rsvpText = 'Belum RSVP';
+      if (guest.rsvp_status === 'both') {
+        rsvpText = 'Hadir';
+      } else if (guest.rsvp_status === 'decline') {
+        rsvpText = 'Tidak Hadir';
+      } else if (guest.rsvp_status === 'akad') {
+        rsvpText = 'Hadir (Akad)';
+      } else if (guest.rsvp_status === 'resepsi') {
+        rsvpText = 'Hadir (Resepsi)';
+      }
+
+      // Checkin Status mapping to Indonesian
+      const checkinText = guest.check_in_status ? 'Hadir' : 'Belum Hadir';
+
+      // Delivery Status mapping to Indonesian
+      let deliveryText = 'Belum Dikirim';
+      if (guest.delivery_status === DeliveryStatus.SENT) {
+        deliveryText = 'Terkirim';
+      } else if (guest.delivery_status === DeliveryStatus.FAILED) {
+        deliveryText = 'Gagal';
+      }
+
+      return [
+        escapeCsv(guest.name),
+        escapeCsv(guest.group),
+        escapeCsv(decryptedPhone),
+        guest.plus_one_count,
+        escapeCsv(rsvpText),
+        escapeCsv(checkinText),
+        escapeCsv(deliveryText),
+      ].join(',');
+    });
+
+    return ['sep=,', headers.join(','), ...rows].join('\n');
   }
 }
 

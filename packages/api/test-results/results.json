@@ -10,7 +10,9 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {},
+    "metadata": {
+      "actualWorkers": 1
+    },
     "preserveOutput": "always",
     "reporter": [
       [
@@ -36,7 +38,9 @@
         "outputDir": "/home/mochrafi/wedding-project/wedding-ecosystem/packages/api/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 1
+        },
         "id": "",
         "name": "",
         "testDir": "/home/mochrafi/wedding-project/wedding-ecosystem/packages/api/tests/e2e",
@@ -54,17 +58,119 @@
     "workers": 1,
     "webServer": null
   },
-  "suites": [],
-  "errors": [
+  "suites": [
     {
-      "message": "Error: Failed to launch: Error: spawn /bin/sh ENOENT",
-      "stack": "Error: Failed to launch: Error: spawn /bin/sh ENOENT"
+      "title": "screenshot-generator.spec.ts",
+      "file": "screenshot-generator.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Release Screenshot Generator",
+          "file": "screenshot-generator.spec.ts",
+          "line": 23,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should capture screenshots for dashboard, scanner, and invitation applications using dev server",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 19704,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[Screenshot Generator] Detected versions:\n"
+                        },
+                        {
+                          "text": "- Dashboard: 1.0.1\n"
+                        },
+                        {
+                          "text": "- Scanner: 1.0.1\n"
+                        },
+                        {
+                          "text": "- API: 1.0.0\n"
+                        },
+                        {
+                          "text": "- Invitation: 1.0.1\n"
+                        },
+                        {
+                          "text": "Navigating to dashboard login page...\n"
+                        },
+                        {
+                          "text": "Seeding a mock guest via API...\n"
+                        },
+                        {
+                          "text": "Navigating to dashboard overview...\n"
+                        },
+                        {
+                          "text": "Capturing Dashboard Overview...\n"
+                        },
+                        {
+                          "text": "Capturing Dashboard Guests...\n"
+                        },
+                        {
+                          "text": "Capturing Dashboard CMS...\n"
+                        },
+                        {
+                          "text": "Retrieving event and guest details via browser fetch...\n"
+                        },
+                        {
+                          "text": "Resolved: eventSlug=romeo-juliet, guestSlug=budi-santoso\n"
+                        },
+                        {
+                          "text": "Navigating to Scanner PWA...\n"
+                        },
+                        {
+                          "text": "Capturing Scanner PWA Screen...\n"
+                        },
+                        {
+                          "text": "Navigating to Invitation Client...\n"
+                        },
+                        {
+                          "text": "Capturing Invitation Client Screen...\n"
+                        },
+                        {
+                          "text": "[Screenshot Generator] Done!\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-23T09:51:51.893Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2912d6debdda4e8938cc-72e3742f3e8a8e14d57d",
+              "file": "screenshot-generator.spec.ts",
+              "line": 24,
+              "column": 7
+            }
+          ]
+        }
+      ]
     }
   ],
+  "errors": [],
   "stats": {
-    "startTime": "2026-06-16T18:01:13.348Z",
-    "duration": 2008.7250000000004,
-    "expected": 0,
+    "startTime": "2026-06-23T09:51:44.826Z",
+    "duration": 27047.376,
+    "expected": 1,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
