@@ -37,6 +37,9 @@ function createMockRepository(): GuestRepository {
     searchGuestsByName: vi.fn(),
     findUniqueGroupsByEvent: vi.fn(async () => []),
     reassignGroup: vi.fn(async () => 0),
+    findSlugsByEvent: vi.fn(async () => []),
+    bulkCreateGuestsAndQRCodes: vi.fn(async () => 0),
+    findGuestsForExport: vi.fn(),
   };
 }
 
@@ -814,6 +817,69 @@ describe('GuestService', () => {
       expect(isGuestError(result)).toBe(false);
       if (!isGuestError(result)) {
         expect(result.updatedCount).toBe(0);
+      }
+    });
+  });
+
+  describe('exportGuests', () => {
+    it('should return error if event not found', async () => {
+      vi.mocked(repository.findEventById).mockResolvedValue(null);
+
+      const result = await service.exportGuests('nonexistent', 'tenant-001');
+
+      expect(isGuestError(result)).toBe(true);
+      if (isGuestError(result)) {
+        expect(result.code).toBe(ErrorCode.NOT_FOUND);
+        expect(result.message).toBe('Event tidak ditemukan');
+      }
+    });
+
+    it('should generate correct CSV with decrypted phone and mapped statuses', async () => {
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        slug: 'wedding',
+      });
+
+      const mockGuests = [
+        {
+          id: 'g-1',
+          name: 'Alice',
+          slug: 'alice',
+          group: 'VIP',
+          type: GuestType.INVITED,
+          plus_one_count: 2,
+          phone: service['piiEncryption'].encrypt('+628123456789'),
+          invitation_url: '/wedding?to=alice',
+          delivery_status: DeliveryStatus.SENT,
+          rsvp_status: 'both',
+          check_in_status: true,
+        },
+        {
+          id: 'g-2',
+          name: 'Bob, MD',
+          slug: 'bob',
+          group: 'Teman',
+          type: GuestType.INVITED,
+          plus_one_count: 0,
+          phone: null,
+          invitation_url: '/wedding?to=bob',
+          delivery_status: DeliveryStatus.NOT_SENT,
+          rsvp_status: null,
+          check_in_status: false,
+        },
+      ];
+
+      vi.mocked(repository.findGuestsForExport).mockResolvedValue(mockGuests);
+
+      const result = await service.exportGuests('event-001', 'tenant-001');
+
+      expect(typeof result).toBe('string');
+      if (typeof result === 'string') {
+        const lines = result.split('\n');
+        expect(lines[0]).toBe('sep=,');
+        expect(lines[1]).toBe('nama,grup,telepon,jumlah_tamu,status_rsvp,status_checkin,status_undangan');
+        expect(lines[2]).toBe('Alice,VIP,+628123456789,2,Hadir,Hadir,Terkirim');
+        expect(lines[3]).toBe('"Bob, MD",Teman,,0,Belum RSVP,Belum Hadir,Belum Dikirim');
       }
     });
   });

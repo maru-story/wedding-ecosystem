@@ -173,4 +173,41 @@ test.describe('Guests API E2E', () => {
     // Clean up
     await tenantA.request.delete(`/guests/${guestId}`);
   });
+
+  test('should export guests as CSV with correct headers and content', async ({ tenantA }) => {
+    // 1. Create a guest to ensure there's at least one guest in the event
+    const createResponse = await tenantA.request.post('/guests', {
+      data: {
+        name: 'Export Guest E2E',
+        group: 'Keluarga',
+        type: 'invited',
+        phone: '6281234567890',
+        plus_one_count: 3,
+      },
+    });
+    expect(createResponse.status()).toBe(201);
+    const guest = await createResponse.json();
+
+    // 2. Fetch the CSV export
+    const exportResponse = await tenantA.request.get('/guests/export');
+    expect(exportResponse.status()).toBe(200);
+    expect(exportResponse.headers()['content-type']).toContain('text/csv');
+    expect(exportResponse.headers()['content-disposition']).toContain('attachment');
+
+    const csvContent = await exportResponse.text();
+    const lines = csvContent.split('\n');
+    expect(lines[0]).toBe('sep=,');
+    expect(lines[1]).toBe('nama,grup,telepon,jumlah_tamu,status_rsvp,status_checkin,status_undangan');
+
+    // Find the line containing the created guest
+    const guestLine = lines.find((l) => l.startsWith('Export Guest E2E'));
+    expect(guestLine).toBeDefined();
+    expect(guestLine).toContain('Keluarga');
+    expect(guestLine).toContain('6281234567890');
+    expect(guestLine).toContain(',3,'); // plus_one_count
+    expect(guestLine).toContain('Belum RSVP,Belum Hadir,Belum Dikirim');
+
+    // Clean up
+    await tenantA.request.delete(`/guests/${guest.id}`);
+  });
 });

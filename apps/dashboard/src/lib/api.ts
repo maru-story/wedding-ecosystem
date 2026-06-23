@@ -76,6 +76,62 @@ export async function apiFetch<T>(endpoint: string, options: ApiOptions = {}): P
   return response.json();
 }
 
+/**
+ * Fetch wrapper returning the raw Response (for blobs/text download) with auth token injection
+ */
+export async function apiFetchRaw(endpoint: string, options: ApiOptions = {}): Promise<Response> {
+  const { method = 'GET', body, headers = {}, skipAuth = false } = options;
+
+  const requestHeaders: Record<string, string> = {
+    ...headers,
+  };
+
+  if (body !== undefined) {
+    requestHeaders['Content-Type'] = 'application/json';
+  }
+
+  if (!skipAuth) {
+    const token = getAccessToken();
+    if (token) {
+      requestHeaders['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method,
+    headers: requestHeaders,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (response.status === 401 && !skipAuth) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      requestHeaders['Authorization'] = `Bearer ${getAccessToken()}`;
+      const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method,
+        headers: requestHeaders,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      if (!retryResponse.ok) {
+        throw new ApiError(retryResponse.status, await retryResponse.json());
+      }
+      return retryResponse;
+    } else {
+      clearTokens();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+      throw new ApiError(401, { message: 'Sesi telah berakhir. Silakan login ulang.' });
+    }
+  }
+
+  if (!response.ok) {
+    throw new ApiError(response.status, await response.json());
+  }
+
+  return response;
+}
+
 export class ApiError extends Error {
   status: number;
   data: unknown;

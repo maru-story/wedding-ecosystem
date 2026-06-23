@@ -201,3 +201,9 @@ The `Guest` domain has been migrated to a **3-layer architecture**: thin route �
 | **`DELETE /guests/:id`**            | Exists in the route file and is tenant-scoped. Was missing from Postman collection until June 2026 — now present.                                                                                                                                                                         |
 | **`searchGuestsByName`**            | Minimum 2 characters enforced in the route. Below that, the route returns 400, not an empty array.                                                                                                                                                                                        |
 | **PrismaClient import**             | Always import `PrismaClient` from `@wedding/db`, never from `@prisma/client` directly — the latter is not exported from the package root.                                                                                                                                                 |
+
+### Automated Release Report Generation (Mandatory — June 2026)
+
+Whenever you detect a version bump in any package (e.g. `package.json` version changes in `apps/dashboard`, `apps/scanner`, `packages/api`, or the sibling `wedding-ecosystem-invitation` project) during a commit preparation or release workflow:
+1. You **MUST** proactively ask the user: *"Saya melihat ada kenaikan versi aplikasi. Apakah Anda ingin saya membuat laporan pembaruan PDF otomatis untuk versi ini?"*
+2. If the user agrees, execute the `wedding-report-generator` skill to draft the report from git logs, run the Playwright screenshot tests, update the JSON file, and compile the final PDF.

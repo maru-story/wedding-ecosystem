@@ -325,12 +325,7 @@ export function DashboardCharts() {
     visible_wishes: 0,
     rsvp_trend: [],
     checkin_peak: [],
-    group_breakdown: {
-      family: { total: 0, confirmed: 0, declined: 0, pending: 0, checked_in: 0 },
-      friend: { total: 0, confirmed: 0, declined: 0, pending: 0, checked_in: 0 },
-      colleague: { total: 0, confirmed: 0, declined: 0, pending: 0, checked_in: 0 },
-      vip: { total: 0, confirmed: 0, declined: 0, pending: 0, checked_in: 0 },
-    },
+    group_breakdown: {},
   };
 
   // 1. RSVP Donut Data
@@ -581,81 +576,84 @@ export function DashboardCharts() {
             </Card>
 
             {/* Card 6: Guest Distribution by Group */}
-            <Card className="border-border/60 bg-card shadow-xs md:col-span-2 lg:col-span-3">
-              <CardHeader>
-                <CardTitle className="text-sm font-bold">
-                  Rasio Kehadiran Berdasarkan Grup Relasi
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Perbandingan status konfirmasi per kategori relasi
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-2">
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                  {Object.entries(safeStats.group_breakdown).map(
-                    ([group, groupStats]: [string, any]) => {
-                      const pct = Math.round(
-                        (groupStats.confirmed / Math.max(groupStats.total, 1)) * 100
-                      );
-                      return (
-                        <div
-                          key={group}
-                          className="border-border/50 bg-muted/10 flex flex-col justify-between space-y-3 rounded-xl border p-4"
-                        >
-                          <div className="border-border/40 flex items-center justify-between border-b pb-2">
-                            <span className="text-foreground text-xs font-semibold tracking-wider uppercase">
-                              {groupLabelMap[group] || group}
-                            </span>
-                            <Badge
-                              variant="secondary"
-                              className="rounded-full px-1.5 py-0.5 font-mono text-[9px] font-bold"
-                            >
-                              {groupStats.total} Tamu
-                            </Badge>
-                          </div>
+            {safeStats.group_breakdown &&
+              Object.values(safeStats.group_breakdown).some((g: any) => g.total > 0) && (
+              <Card className="border-border/60 bg-card shadow-xs md:col-span-2 lg:col-span-3">
+                <CardHeader>
+                  <CardTitle className="text-sm font-bold">
+                    Rasio Kehadiran Berdasarkan Grup Relasi
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Perbandingan status konfirmasi per kategori relasi
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-2">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    {Object.entries(safeStats.group_breakdown).map(
+                      ([group, groupStats]: [string, any]) => {
+                        const pct = Math.round(
+                          (groupStats.confirmed / Math.max(groupStats.total, 1)) * 100
+                        );
+                        return (
+                          <div
+                            key={group}
+                            className="border-border/50 bg-muted/10 flex flex-col justify-between space-y-3 rounded-xl border p-4"
+                          >
+                            <div className="border-border/40 flex items-center justify-between border-b pb-2">
+                              <span className="text-foreground text-xs font-semibold tracking-wider uppercase">
+                                {groupLabelMap[group] || group}
+                              </span>
+                              <Badge
+                                variant="secondary"
+                                className="rounded-full px-1.5 py-0.5 font-mono text-[9px] font-bold"
+                              >
+                                {groupStats.total} Tamu
+                              </Badge>
+                            </div>
 
-                          <div className="space-y-1.5">
-                            <div className="text-muted-foreground flex items-center justify-between text-[10px] font-semibold">
-                              <span>RSVP Hadir:</span>
-                              <span className="text-success font-mono">
-                                {groupStats.confirmed} ({pct}%)
-                              </span>
+                            <div className="space-y-1.5">
+                              <div className="text-muted-foreground flex items-center justify-between text-[10px] font-semibold">
+                                <span>RSVP Hadir:</span>
+                                <span className="text-success font-mono">
+                                  {groupStats.confirmed} ({pct}%)
+                                </span>
+                              </div>
+                              <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
+                                <div
+                                  className="bg-success h-full rounded-full transition-all duration-300"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
                             </div>
-                            <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
-                              <div
-                                className="bg-success h-full rounded-full transition-all duration-300"
-                                style={{ width: `${pct}%` }}
-                              />
-                            </div>
-                          </div>
 
-                          <div className="text-muted-foreground border-border/30 grid grid-cols-3 gap-1 border-t pt-1 text-center text-[9px]">
-                            <div>
-                              <span className="text-foreground block font-mono text-xs font-bold">
-                                {groupStats.confirmed}
-                              </span>
-                              <span>Hadir</span>
-                            </div>
-                            <div>
-                              <span className="text-foreground block font-mono text-xs font-bold">
-                                {groupStats.declined}
-                              </span>
-                              <span>Tolak</span>
-                            </div>
-                            <div>
-                              <span className="text-foreground block font-mono text-xs font-bold">
-                                {groupStats.pending}
-                              </span>
-                              <span>Pending</span>
+                            <div className="text-muted-foreground border-border/30 grid grid-cols-3 gap-1 border-t pt-1 text-center text-[9px]">
+                              <div>
+                                <span className="text-foreground block font-mono text-xs font-bold">
+                                  {groupStats.confirmed}
+                                </span>
+                                <span>Hadir</span>
+                              </div>
+                              <div>
+                                <span className="text-foreground block font-mono text-xs font-bold">
+                                  {groupStats.declined}
+                                </span>
+                                <span>Tolak</span>
+                              </div>
+                              <div>
+                                <span className="text-foreground block font-mono text-xs font-bold">
+                                  {groupStats.pending}
+                                </span>
+                                <span>Pending</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    }
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                        );
+                      }
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
@@ -663,7 +661,7 @@ export function DashboardCharts() {
         {/* TAB 2: EVENT DAY (LIVE EXECUTION)                            */}
         {/* ============================================================ */}
         <TabsContent value="event-day" className="space-y-6 outline-none">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className={`grid grid-cols-1 gap-6 md:grid-cols-2 ${safeStats.vip_total > 0 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
             {/* Card 1: Live Check-in Ring */}
             <Card className="border-border/60 bg-card shadow-xs">
               <CardHeader className="pb-2">
@@ -707,51 +705,53 @@ export function DashboardCharts() {
             </Card>
 
             {/* Card 2: VIP Attendance Ring */}
-            <Card className="border-border/60 bg-card flex flex-col justify-between shadow-xs">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-bold">
-                  <Crown className="h-4.5 w-4.5 text-amber-500" />
-                  Monitoring Tamu VIP
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Kehadiran khusus tamu VIP terdaftar
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6 pt-2">
-                <div className="flex flex-col items-center rounded-xl border border-amber-500/10 bg-amber-500/5 p-5 text-center">
-                  <span className="text-xs font-semibold tracking-wider text-amber-600 uppercase">
-                    VIP Sudah Tiba di Venue
-                  </span>
-                  <span className="mt-1.5 font-mono text-4xl font-extrabold text-amber-600">
-                    {safeStats.vip_checked_in}{' '}
-                    <span className="text-muted-foreground text-lg">/ {safeStats.vip_total}</span>
-                  </span>
-                  <span className="text-muted-foreground mt-1.5 text-[10px]">
-                    Tamu penting terdaftar dengan tag VIP
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-muted-foreground">Persentase Kehadiran VIP</span>
-                    <span className="font-mono text-amber-600">
-                      {safeStats.vip_total > 0
-                        ? Math.round((safeStats.vip_checked_in / safeStats.vip_total) * 100)
-                        : 0}
-                      %
+            {safeStats.vip_total > 0 && (
+              <Card className="border-border/60 bg-card flex flex-col justify-between shadow-xs">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-bold">
+                    <Crown className="h-4.5 w-4.5 text-amber-500" />
+                    Monitoring Tamu VIP
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Kehadiran khusus tamu VIP terdaftar
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6 pt-2">
+                  <div className="flex flex-col items-center rounded-xl border border-amber-500/10 bg-amber-500/5 p-5 text-center">
+                    <span className="text-xs font-semibold tracking-wider text-amber-600 uppercase">
+                      VIP Sudah Tiba di Venue
+                    </span>
+                    <span className="mt-1.5 font-mono text-4xl font-extrabold text-amber-600">
+                      {safeStats.vip_checked_in}{' '}
+                      <span className="text-muted-foreground text-lg">/ {safeStats.vip_total}</span>
+                    </span>
+                    <span className="text-muted-foreground mt-1.5 text-[10px]">
+                      Tamu penting terdaftar dengan tag VIP
                     </span>
                   </div>
-                  <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
-                    <div
-                      className="h-full rounded-full bg-amber-500 transition-all duration-500"
-                      style={{
-                        width: `${safeStats.vip_total > 0 ? (safeStats.vip_checked_in / safeStats.vip_total) * 100 : 0}%`,
-                      }}
-                    />
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs font-semibold">
+                      <span className="text-muted-foreground">Persentase Kehadiran VIP</span>
+                      <span className="font-mono text-amber-600">
+                        {safeStats.vip_total > 0
+                          ? Math.round((safeStats.vip_checked_in / safeStats.vip_total) * 100)
+                          : 0}
+                        %
+                      </span>
+                    </div>
+                    <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
+                      <div
+                        className="h-full rounded-full bg-amber-500 transition-all duration-500"
+                        style={{
+                          width: `${safeStats.vip_total > 0 ? (safeStats.vip_checked_in / safeStats.vip_total) * 100 : 0}%`,
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Card 3: Wishes sentiment */}
             <Card className="border-border/60 bg-card flex flex-col justify-between shadow-xs">
@@ -795,7 +795,7 @@ export function DashboardCharts() {
             </Card>
 
             {/* Card 4: Peak Check-in Hours */}
-            <Card className="border-border/60 bg-card shadow-xs md:col-span-3 lg:col-span-3">
+            <Card className="border-border/60 bg-card shadow-xs col-span-full">
               <CardHeader>
                 <CardTitle className="text-foreground flex items-center gap-1.5 text-sm font-bold">
                   <Clock className="text-primary h-4.5 w-4.5" />

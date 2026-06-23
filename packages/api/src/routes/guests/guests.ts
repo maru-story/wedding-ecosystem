@@ -134,6 +134,27 @@ export async function guestRoutes(app: FastifyInstance, opts: GuestRouteOptions)
     return reply.send({ data: result });
   });
 
+  // GET /guests/export
+  app.get('/export', async (request, reply) => {
+    const user = request.user!;
+    const event = await getCurrentTenantEvent(prisma, user.tenant_id);
+    if (!event) return replyEventNotFound(reply);
+
+    const csvResult = await guestService.exportGuests(event.id, user.tenant_id);
+
+    if (typeof csvResult !== 'string' && isGuestError(csvResult)) {
+      return reply.status(404).send({
+        success: false,
+        error: { code: csvResult.code, message: csvResult.message },
+      });
+    }
+
+    return reply
+      .header('Content-Type', 'text/csv; charset=utf-8')
+      .header('Content-Disposition', `attachment; filename="export-tamu-${event.slug}.csv"`)
+      .send(csvResult);
+  });
+
   // PATCH /guests/groups/reassign
   app.patch('/groups/reassign', async (request, reply) => {
     const user = request.user!;

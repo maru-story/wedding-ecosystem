@@ -186,27 +186,79 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
     const delivery_not_sent = guests.filter((g) => g.delivery_status === 'not_sent').length;
     const delivery_failed = guests.filter((g) => g.delivery_status === 'failed').length;
 
-    const vip_total = guests.filter((g) => g.group === 'vip').length;
+    const vip_total = guests.filter((g) => g.group?.toLowerCase() === 'vip').length;
     const vip_confirmed = guests.filter(
-      (g) => g.group === 'vip' && g.rsvps.length > 0 && g.rsvps[0].attendance !== 'decline'
+      (g) => g.group?.toLowerCase() === 'vip' && g.rsvps.length > 0 && g.rsvps[0].attendance !== 'decline'
     ).length;
-    const vip_checked_in = guests.filter((g) => g.group === 'vip' && g.check_ins.length > 0).length;
+    const vip_checked_in = guests.filter((g) => g.group?.toLowerCase() === 'vip' && g.check_ins.length > 0).length;
 
-    // Group breakdown
-    const groups = ['family', 'friend', 'colleague', 'vip'] as const;
+    // Group breakdown — dynamic based on all groups present in the guest list,
+    // plus default to the standard ones to ensure the dashboard looks complete.
+    const standardGroups = ['Keluarga', 'Teman', 'Rekan Kerja', 'VIP'];
+
+    // Normalize group keys to avoid duplicates (like 'vip' and 'VIP') when grouping.
+    // If a guest group matches any of the legacy English ones, we can group it under the standard Indonesian name.
+    const normalizeGroup = (grp: string): string => {
+      const normalized = grp.trim();
+      const lower = normalized.toLowerCase();
+      if (lower === 'family') return 'Keluarga';
+      if (['friend', 'teman', 'kawan', 'sahabat'].includes(lower)) return 'Teman';
+      if (['colleague', 'rekan', 'kerja', 'kantor', 'rekan kerja'].includes(lower)) return 'Rekan Kerja';
+      if (lower === 'vip') return 'VIP';
+      return normalized;
+    };
+
     const group_breakdown: Record<string, any> = {};
-    groups.forEach((grp) => {
-      const grpGuests = guests.filter((g) => g.group === grp);
+
+    // Initialize standard groups
+    standardGroups.forEach((grp) => {
       group_breakdown[grp] = {
-        total: grpGuests.length,
-        confirmed: grpGuests.filter(
-          (g) => g.rsvps.length > 0 && g.rsvps[0].attendance !== 'decline'
-        ).length,
-        declined: grpGuests.filter((g) => g.rsvps.length > 0 && g.rsvps[0].attendance === 'decline')
-          .length,
-        pending: grpGuests.filter((g) => g.rsvps.length === 0).length,
-        checked_in: grpGuests.filter((g) => grpGuests.some((g) => g.check_ins.length > 0)).length,
+        total: 0,
+        confirmed: 0,
+        declined: 0,
+        pending: 0,
+        checked_in: 0,
       };
+    });
+
+    guests.forEach((g) => {
+      if (!g.group || g.group.trim() === '') {
+        return;
+      }
+      const grp = normalizeGroup(g.group);
+      if (!group_breakdown[grp]) {
+        group_breakdown[grp] = {
+          total: 0,
+          confirmed: 0,
+          declined: 0,
+          pending: 0,
+          checked_in: 0,
+        };
+      }
+
+      const stats = group_breakdown[grp];
+      stats.total += 1;
+
+      if (g.rsvps.length > 0) {
+        if (g.rsvps[0].attendance === 'decline') {
+          stats.declined += 1;
+        } else {
+          stats.confirmed += 1;
+        }
+      } else {
+        stats.pending += 1;
+      }
+
+      if (g.check_ins.length > 0) {
+        stats.checked_in += 1;
+      }
+    });
+
+    // Remove empty groups (total === 0) from the breakdown
+    Object.keys(group_breakdown).forEach((grp) => {
+      if (group_breakdown[grp].total === 0) {
+        delete group_breakdown[grp];
+      }
     });
 
     // RSVP Trend (cumulative)

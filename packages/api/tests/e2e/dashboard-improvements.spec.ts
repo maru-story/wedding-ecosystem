@@ -148,7 +148,20 @@ test.describe('Dashboard Improvements E2E', () => {
 
   test('Dashboard Homepage: Should display stats cards, tabs, and interactive charts', async ({
     page,
+    tenantA,
   }) => {
+    // 1. Create a VIP guest to ensure the VIP monitoring card is rendered
+    const guestRes = await tenantA.request.post('/guests', {
+      data: {
+        name: 'VIP Guest Test E2E',
+        group: 'VIP',
+        type: 'invited',
+      },
+    });
+    expect(guestRes.ok()).toBe(true);
+    const guestJson = await guestRes.json();
+    const guestId = guestJson.id || guestJson.data?.id;
+
     // Navigate to homepage
     await page.goto('http://localhost:3000/');
     await expect(page.locator('h1:has-text("Dashboard Klien")')).toBeVisible({ timeout: 15000 });
@@ -173,6 +186,11 @@ test.describe('Dashboard Improvements E2E', () => {
     await expect(page.getByText('Monitoring Tamu VIP')).toBeVisible();
     await expect(page.getByText('Pesan Ucapan & Doa Tamu')).toBeVisible();
     await expect(page.getByText('Grafik Waktu Puncak Check-In Tamu')).toBeVisible();
+
+    // Clean up
+    if (guestId) {
+      await tenantA.request.delete(`/guests/${guestId}`);
+    }
   });
 
   test('RSVP Tracking: Should display table, pagination, search, group, and status filters', async ({

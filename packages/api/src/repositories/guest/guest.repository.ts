@@ -7,6 +7,7 @@ import type {
   GuestListItem,
   PaginatedGuestList,
   GuestFilterOptions,
+  GuestExportItem,
 } from '../../services/guest/guest.service';
 import type { PaginationInput } from '@wedding/shared';
 
@@ -405,6 +406,31 @@ export class PrismaGuestRepository implements GuestRepository {
       data: { group: toGroup },
     });
     return result.count;
+  }
+
+  async findGuestsForExport(eventId: string, tenantId: string): Promise<GuestExportItem[]> {
+    const guestsRaw = await this.prisma.guest.findMany({
+      where: { event_id: eventId, tenant_id: tenantId },
+      orderBy: { name: 'asc' },
+      include: {
+        rsvps: { take: 1, orderBy: { submitted_at: 'desc' } },
+        check_ins: { take: 1 },
+      },
+    });
+
+    return guestsRaw.map((guest) => ({
+      id: guest.id,
+      name: guest.name,
+      slug: guest.slug,
+      group: guest.group,
+      type: guest.type as GuestType,
+      plus_one_count: guest.plus_one_count,
+      phone: guest.phone ?? null,
+      invitation_url: guest.invitation_url ?? null,
+      delivery_status: guest.delivery_status as DeliveryStatus,
+      rsvp_status: (guest.rsvps[0]?.attendance as AttendanceType) ?? null,
+      check_in_status: guest.check_ins.length > 0,
+    }));
   }
 
   // --- Private Helpers ---

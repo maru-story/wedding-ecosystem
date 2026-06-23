@@ -164,6 +164,7 @@
 - `GET /guests/groups` — Unique group names in current event
 - `PATCH /guests/groups/reassign` — Reassign all guests from one group to another (body: `{from, to}`)
 - `POST /guests/import` — Bulk import from CSV
+- `GET /guests/export` — Export guests to CSV file
 - `POST /guests/bulk-delete` — Bulk delete guests and deactivate their QR codes
 
 ### Check-in (Auth required)
@@ -392,6 +393,7 @@ CI/CD via GitHub Actions:
 12. **Handle offline gracefully** — Scanner features must work without network.
 13. **Frontend Component & Library Consistency** — When building new pages, sections, or form fields in the frontend, first inspect `apps/*/src/components/ui/` to see what shadcn/UI components exist (e.g., `Button`, `Input`, `Label`, `Textarea`, `Dialog`). Always import and use these shared components rather than fallback HTML tags (`<button>`, `<input>`, `<textarea>`, etc.). If a shadcn component does not exist but fits the standard, create the shadcn-compliant component in the workspace's UI folder following existing patterns, then use it consistently. Check `package.json` for installed packages (e.g. framer-motion, lucide-react) to prevent writing custom implementations or installing redundant packages.
 14. **Mandatory E2E Check** — Every time a new feature is added or a new capability is implemented, always write/update E2E tests and run them (`npm run test:e2e --workspace=packages/api`). If the improvement or feature doesn't need the E2E test (e.g. documentation, minor text adjustments, or formatting changes), you may skip the test.
+15. **Release Report Generation Prompt** — Whenever you detect a version bump in any package (e.g., changes to `"version"` in `package.json` for dashboard, scanner, api, or invitation client) during commit preparation, release preparation, or version tags creation, you **MUST** proactively ask the user: *"Saya melihat ada kenaikan versi aplikasi. Apakah Anda ingin saya membuat laporan pembaruan PDF otomatis untuk versi ini?"*. If approved, invoke the `wedding-report-generator` skill.
 
 ### MUST NOT DO
 
@@ -437,10 +439,10 @@ CI/CD via GitHub Actions:
 
 ## Demo Credentials (Local Development)
 
-| Role   | Email             | Password      | Tenant / Scope |
+| Role   | Email / Username  | Password      | Tenant / Scope |
 | ------ | ----------------- | ------------- | -------------- |
-| Admin  | `admin@demo.com`  | `password123` | System Admin   |
-| Client | `client@demo.com` | `password123` | Wedding Demo   |
+| Admin  | `admin`           | `password123` | System Admin   |
+| Client | `demo`            | `123123123`   | Wedding Demo   |
 
 **Tenant (Wedding Demo)**: Wedding Demo
 **Event (Romeo & Juliet)**: Romeo & Juliet (slug: `romeo-juliet`)
