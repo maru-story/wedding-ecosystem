@@ -407,6 +407,7 @@ CI/CD via GitHub Actions:
 8. **DO NOT** add new dependencies without checking if existing ones cover the use case.
 9. **DO NOT** modify `.env` or `.env.local` files (they contain secrets).
 10. **DO NOT** use interactive commands (`--watch`, editors) in terminal.
+11. **DO NOT** bump the version of any package or application that does not have any code changes during a hotfix or release.
 
 ### Code Style
 
