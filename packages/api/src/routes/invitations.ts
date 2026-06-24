@@ -190,4 +190,27 @@ export async function invitationRoutes(app: FastifyInstance, opts: InvitationRou
       share_image_url: event.share_image_url || null,
     });
   });
+
+  // POST /invitations/logs
+  // Endpoint to capture and log client-side hydration/rendering errors
+  app.post('/logs', async (request: FastifyRequest, reply) => {
+    const errorSchema = z.object({
+      message: z.string().optional(),
+      stack: z.string().optional(),
+      digest: z.string().optional(),
+      url: z.string().optional(),
+      userAgent: z.string().optional(),
+      timestamp: z.string().optional(),
+    });
+
+    const parsedBody = errorSchema.safeParse(request.body);
+    
+    if (parsedBody.success) {
+      request.log.error({ clientError: parsedBody.data }, 'Client-side error captured from web invitation');
+    } else {
+      request.log.error({ rawBody: request.body }, 'Client-side error captured (invalid payload structure)');
+    }
+
+    return reply.status(200).send({ success: true });
+  });
 }
