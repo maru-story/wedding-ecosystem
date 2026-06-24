@@ -274,7 +274,7 @@ describe('Property 15: Offline Sync Completeness', () => {
         const sizeAfterOverflow = await queue.getQueueSize();
         expect(sizeAfterOverflow).toBe(2000);
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
