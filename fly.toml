@@ -1,0 +1,47 @@
+# fly.toml
+# Fly.io configuration for @wedding/api (Fastify Backend + Socket.io Server)
+#
+# Deploy command: fly deploy --config fly.toml
+
+app = "wedding-ecosystem-api"
+primary_region = "cgk" # Jakarta, Indonesia (Ultra-low latency)
+
+[build]
+  builder = "nixpacks"
+
+[build.args]
+  NIXPACKS_BUILD_CMD = "npm ci && npx prisma generate --schema=packages/db/prisma/schema.prisma && npx turbo build --filter=@wedding/api..."
+
+[env]
+  PORT = "4000"
+  NODE_ENV = "production"
+
+[processes]
+  app = "node packages/api/dist/index.js"
+
+[[services]]
+  internal_port = 4000
+  processes = ["app"]
+  protocol = "tcp"
+
+  [services.concurrency]
+    hard_limit = 250
+    soft_limit = 200
+    type = "connections"
+
+  [[services.ports]]
+    force_https = true
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [[services.http_checks]]
+    interval = "10s"
+    grace_period = "15s"
+    method = "get"
+    path = "/health"
+    protocol = "http"
+    timeout = "2s"
