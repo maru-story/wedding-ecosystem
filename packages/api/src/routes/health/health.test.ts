@@ -174,7 +174,7 @@ describe('healthRoutes', () => {
       await app.ready();
 
       const response = await app.inject({ method: 'GET', url: '/health' });
-      expect(response.statusCode).toBe(503);
+      expect(response.statusCode).toBe(200);
 
       const body = JSON.parse(response.body);
       expect(body.status).toBe('degraded');
@@ -199,7 +199,7 @@ describe('healthRoutes', () => {
       const response = await app.inject({ method: 'GET', url: '/health' });
       const body = JSON.parse(response.body);
 
-      expect(response.statusCode).toBe(503);
+      expect(response.statusCode).toBe(200);
       expect(body.status).toBe('degraded');
       expect(body.dependencies.redis_cache.status).toBe('down');
       expect(body.dependencies.redis_pubsub.status).toBe('down');

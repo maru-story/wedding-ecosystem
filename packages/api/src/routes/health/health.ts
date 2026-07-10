@@ -128,7 +128,7 @@ export async function healthRoutes(app: FastifyInstance, opts: HealthRouteOption
         dependencies,
       };
 
-      return reply.status(status === 'healthy' ? 200 : 503).send(response);
+      return reply.status(status !== 'unhealthy' ? 200 : 503).send(response);
     } catch {
       const uptimeSeconds = Math.floor((Date.now() - START_TIME) / 1000);
       const errorStatus: DependencyStatus = { status: 'down', latency: HEALTH_CHECK_TIMEOUT_MS };
