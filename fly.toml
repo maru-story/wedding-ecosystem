@@ -1,7 +1,7 @@
-# fly.toml
-# Fly.io configuration for @wedding/api (Fastify Backend + Socket.io Server)
+# fly.toml app configuration file generated for wedding-ecosystem-api on 2026-07-10T09:29:09Z
 #
-# Deploy command: fly deploy --config fly.toml
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
 app = "wedding-ecosystem-api"
 primary_region = "cgk" # Jakarta, Indonesia (Ultra-low latency)
@@ -17,7 +17,7 @@ primary_region = "cgk" # Jakarta, Indonesia (Ultra-low latency)
   NODE_ENV = "production"
 
 [processes]
-  app = "node packages/api/dist/index.js"
+  app = 'node packages/api/dist/index.js'
 
 [[services]]
   internal_port = 4000
@@ -45,3 +45,11 @@ primary_region = "cgk" # Jakarta, Indonesia (Ultra-low latency)
     path = "/health"
     protocol = "http"
     timeout = "2s"
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory = '512mb'
+  memory_mb = 512
+  processes = ['app']
+  size = 'shared-cpu-1x'
