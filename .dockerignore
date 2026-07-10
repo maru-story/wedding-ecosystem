@@ -1,0 +1,21 @@
+# .dockerignore
+# Ignore local build artifacts, cache, and node_modules when deploying using Dockerfile
+
+node_modules
+**/node_modules
+.next
+**/dist
+coverage
+**/coverage
+.turbo
+.git
+.agents
+.gemini
+.env.local
+.env.test
+apps/dashboard/.next
+apps/scanner/.next
+packages/api/dist
+packages/shared/dist
+packages/db/dist
+packages/realtime/dist
