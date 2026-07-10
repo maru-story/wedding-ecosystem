@@ -2,7 +2,7 @@
 
 ## REST API Endpoints
 
-Base URL: `http://localhost:4000` (dev) / `https://api.domain.railway.app` (prod)
+Base URL: `http://localhost:4000` (dev) / `https://api.maruplanner.my.id` (prod)
 
 ### Authentication (prefix: `/auth`)
 
