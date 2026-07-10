@@ -1,0 +1,44 @@
+# fly.staging.toml
+# Fly.io configuration for @wedding/api (Staging/Preview Environment)
+#
+# Deploy command: fly deploy --config fly.staging.toml
+
+app = "wedding-ecosystem-api-staging"
+primary_region = "sin" # Singapore
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "4000"
+  NODE_ENV = "development" # Staging runs in development mode for logs/debugging
+
+[processes]
+  app = "node packages/api/dist/index.js"
+
+[[services]]
+  internal_port = 4000
+  processes = ["app"]
+  protocol = "tcp"
+
+  [services.concurrency]
+    hard_limit = 50
+    soft_limit = 40
+    type = "connections"
+
+  [[services.ports]]
+    force_https = true
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [[services.http_checks]]
+    interval = "10s"
+    grace_period = "15s"
+    method = "get"
+    path = "/health"
+    protocol = "http"
+    timeout = "2s"
