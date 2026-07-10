@@ -225,7 +225,7 @@ graph TB
     CI["CI Pipeline<br/>(tests, lint, security audit, type-check)"]
     Gate{CI Pass?}
     FE["Frontend Deploy<br/>(Vercel per changed app)"]
-    BE["Backend Deploy<br/>(Railway blue-green)"]
+    BE["Backend Deploy<br/>(Fly.io rolling)"]
     Migrate["DB Migration<br/>(prisma migrate deploy)"]
     Health["Health Check<br/>(3 min, 3 consecutive)"]
     Swap["Swap Traffic"]

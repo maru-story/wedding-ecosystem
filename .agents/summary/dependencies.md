@@ -131,7 +131,7 @@ graph LR
 
     subgraph "Build/Deploy Services"
         Vercel["Vercel<br/>Frontend hosting"]
-        Railway["Railway<br/>Backend hosting"]
+        FlyIO["Fly.io<br/>Backend hosting"]
         GH["GitHub Actions<br/>CI/CD"]
     end
 

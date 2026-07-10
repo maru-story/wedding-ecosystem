@@ -61,11 +61,11 @@ _Note: The guest-facing `apps/invitation` frontend has been migrated to its own 
 | `.eslintrc.json`                        | TS recommended + prettier, warns on `no-console` and `no-explicit-any`       |
 | `.prettierrc`                           | Single quotes, 100 width, trailing commas (es5), LF line endings             |
 | `.husky/pre-commit`                     | Runs `scripts/detect-secrets.sh` — blocks commits with potential secrets     |
-| `railway.toml`                          | Backend deploy config: nixpacks build, health check at `/health`, blue-green |
+| `fly.toml` & `fly.staging.toml`         | Backend deploy config: Dockerfile build, health check at `/health`, Fly.io   |
 | `apps/*/vercel.json`                    | Per-app Vercel config with security headers                                  |
 | `packages/db/prisma/schema.prisma`      | Database schema source of truth                                              |
 | `.github/workflows/ci.yml`              | Tests + lint + security audit + type-check gate                              |
-| `.github/workflows/deploy-backend.yml`  | Railway blue-green deploy with auto-rollback                                 |
+| `.github/workflows/deploy-backend.yml`  | Fly.io deploy with tests and auto-rollback                                   |
 | `.github/workflows/deploy-frontend.yml` | Vercel deploy per changed app (detects via git diff)                         |
 
 ## Key Environment Variables (Frontend)

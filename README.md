@@ -34,7 +34,7 @@ Platform multi-tenant untuk manajemen undangan pernikahan digital, menargetkan p
          └───────────────┬─────────────┘
                          │ REST + WebSocket
 ┌────────────────────────────┴────────────────────────────────┐
-│              Backend API + WebSocket (Railway)                │
+│              Backend API + WebSocket (Fly.io)                 │
 │                   Fastify 5 + Socket.io 4.8                  │
 │                        Port: 4000                            │
 ├──────────────────────────────────────────────────────────────┤
@@ -375,7 +375,7 @@ Kredensial demo:
 | Service                 | Platform      | Keterangan                            |
 | ----------------------- | ------------- | ------------------------------------- |
 | Frontend (2 apps)       | Vercel        | Auto-deploy dari branch `main`        |
-| Backend API + WebSocket | Railway       | Single service, blue-green deployment |
+| Backend API + WebSocket | Fly.io        | Single service, native rolling update |
 | Database                | Supabase      | Managed PostgreSQL + PgBouncer        |
 | Cache/PubSub            | Upstash       | Serverless Redis                      |
 | CDN/Storage             | Cloudflare R2 | Media files + CDN                     |
@@ -406,26 +406,14 @@ Push ke main
         └── Auto-rollback jika health check gagal
 ```
 
-### Setup Railway
+### Setup Fly.io
 
-1. Buat project di Railway
-2. Tambahkan service dari repo (root directory)
-3. Set environment variables:
-
-```env
-NODE_ENV=production
-PORT=4000
-DATABASE_URL=postgresql://...?sslmode=verify-full
-DATABASE_POOLED_URL=postgresql://...:6543/...?sslmode=verify-full
-UPSTASH_REDIS_CACHE_URL=rediss://default:...@....upstash.io:6379
-JWT_SECRET=<random-64-char-string>
-REFRESH_SECRET=<random-64-char-string>
-DASHBOARD_ORIGIN=https://your-dashboard.vercel.app
-INVITATION_ORIGIN=https://your-invitation.vercel.app
-SCANNER_ORIGIN=https://your-scanner.vercel.app
-```
-
-Railway akan menggunakan `packages/api/railway.toml` untuk build & start command.
+1. Pastikan Anda sudah login ke CLI: `fly auth login`
+2. Jalankan perintah deploy pertama kali menggunakan file konfigurasi:
+   - Staging: `fly deploy --config fly.staging.toml`
+   - Production: `fly deploy --config fly.toml`
+3. Set environment variables / secrets di Fly.io menggunakan:
+   `fly secrets set KEY=VALUE`
 
 ### Setup Vercel
 
@@ -435,7 +423,7 @@ Railway akan menggunakan `packages/api/railway.toml` untuk build & start command
 
 ```env
 NEXT_PUBLIC_API_URL=https://api.maruplanner.my.id
-NEXT_PUBLIC_WS_URL=https://ws.maruplanner.my.id
+NEXT_PUBLIC_WS_URL=https://api.maruplanner.my.id
 NEXT_PUBLIC_INVITATION_URL=https://maruplanner.my.id
 NEXT_PUBLIC_CDN_URL=https://cdn.maruplanner.my.id
 ```
@@ -445,8 +433,7 @@ Setiap app sudah punya `vercel.json` dengan build command dan security headers.
 ### Setup GitHub Secrets
 
 ```
-RAILWAY_TOKEN
-RAILWAY_PROJECT_ID
+FLY_API_TOKEN
 VERCEL_ORG_ID
 VERCEL_TOKEN
 VERCEL_PROJECT_ID_DASHBOARD
@@ -585,7 +572,7 @@ wedding-ecosystem/
 
 ## Environment Variables
 
-### Backend (Railway)
+### Backend (Fly.io)
 
 | Variable                  | Required | Default                          | Deskripsi                                 |
 | ------------------------- | -------- | -------------------------------- | ----------------------------------------- |

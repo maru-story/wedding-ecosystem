@@ -69,7 +69,7 @@ graph TB
 | Service                 | Platform              |
 | ----------------------- | --------------------- |
 | Frontend (3 apps)       | Vercel                |
-| Backend API + WebSocket | Railway               |
+| Backend API + WebSocket | Fly.io                |
 | Database                | Supabase (PostgreSQL) |
 | Cache/PubSub            | Upstash (Redis)       |
 | CDN/Storage             | Cloudflare R2         |
@@ -90,7 +90,7 @@ graph TB
 | --------------- | --------------------- | --------------------------------------- |
 | CI              | `ci.yml`              | Tests, lint, security audit, type-check |
 | Deploy Frontend | `deploy-frontend.yml` | Vercel deploy per changed app           |
-| Deploy Backend  | `deploy-backend.yml`  | Railway blue-green deployment           |
+| Deploy Backend  | `deploy-backend.yml`  | Fly.io rolling deployment               |
 | Smoke Test      | `smoke-test.yml`      | Post-deploy HTTP/asset verification     |
 | Secret Scanning | `secret-scanning.yml` | Detect leaked secrets                   |
 

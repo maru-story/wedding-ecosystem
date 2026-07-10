@@ -8,7 +8,7 @@
 
 **Wedding Ecosystem** — A multi-tenant SaaS platform for digital wedding invitation management, targeting the Indonesian market. Monorepo with 2 frontend apps + 1 backend API (plus a standalone invitation app).
 
-**Status**: Production-deployed. All services live on Vercel (frontend) and Railway (backend).
+**Status**: Production-deployed. All services live on Vercel (frontend) and Fly.io (backend).
 
 ---
 
@@ -26,7 +26,7 @@
          └───────────────┬─────────────┘
                              │ REST API + WebSocket (Socket.io)
 ┌────────────────────────────┴────────────────────────────────┐
-│              Backend: Fastify 5 + Socket.io 4.8 (Railway)    │
+│              Backend: Fastify 5 + Socket.io 4.8 (Fly.io)     │
 │                        Port: 4000                            │
 ├──────────────────────────────────────────────────────────────┤
 │  Auth │ Guests │ Events │ RSVP │ Check-in │ CMS │ Scanner   │
@@ -360,7 +360,7 @@ NEXT_PUBLIC_CDN_URL=https://cdn.maruplanner.my.id
 | --------------- | ------------- | ---------------------------- |
 | Dashboard       | Vercel        | `apps/dashboard/vercel.json` |
 | Scanner         | Vercel        | `apps/scanner/vercel.json`   |
-| API + WebSocket | Railway       | `packages/api/railway.toml`  |
+| API + WebSocket | Fly.io        | `fly.toml` / `fly.staging.toml` |
 | Database        | Supabase      | Managed PostgreSQL           |
 | Cache           | Upstash       | Serverless Redis             |
 | CDN/Storage     | Cloudflare R2 | —                            |
@@ -473,6 +473,6 @@ CI/CD via GitHub Actions:
 | Redis config                  | `packages/api/src/config/redis.ts`                |
 | CORS middleware               | `packages/api/src/middleware/cors.middleware.ts`  |
 | CI/CD workflows               | `.github/workflows/`                              |
-| Deploy config (API)           | `packages/api/railway.toml`                       |
+| Deploy config (API)           | `fly.toml` & `fly.staging.toml`                   |
 | Deploy config (Frontend)      | `apps/*/vercel.json`                              |
 | Design system                 | `.agents/summary/design-system.md`                |
