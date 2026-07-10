@@ -10,7 +10,7 @@ primary_region = "sin" # Singapore
   dockerfile = "Dockerfile"
 
 [deploy]
-  release_command = "cd packages/db && npx prisma migrate deploy"
+  release_command = "sh -c 'cd packages/db && npx prisma migrate deploy'"
 
 [env]
   PORT = "4000"
