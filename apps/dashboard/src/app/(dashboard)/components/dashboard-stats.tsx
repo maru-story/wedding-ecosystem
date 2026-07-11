@@ -16,6 +16,7 @@ export function DashboardStats() {
     total_rsvp: 0,
     total_checked_in: 0,
     total_go_show: 0,
+    total_pax_checked_in: 0,
   };
 
   const cards = [
@@ -35,10 +36,10 @@ export function DashboardStats() {
     },
     {
       label: 'Sudah Check-in',
-      value: safeStats.total_checked_in,
+      value: safeStats.total_pax_checked_in ?? safeStats.total_checked_in,
       icon: CheckCircle2,
       colorClass: 'bg-success/10 text-success border-success/20',
-      description: 'Tamu yang sudah memindai QR',
+      description: `${safeStats.total_checked_in} undangan / QR telah dipindai`,
     },
     {
       label: 'Go-Show (Walk-in)',

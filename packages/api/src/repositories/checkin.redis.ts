@@ -24,11 +24,22 @@ export class IoRedisCheckInClient implements RedisClient {
     ttl: number,
     flag: 'NX'
   ): Promise<string | null> {
-    return this.redis.set(key, value, mode, ttl, flag);
+    try {
+      return await this.redis.set(key, value, mode, ttl, flag);
+    } catch (err) {
+      console.warn('Redis set operation failed (graceful degrade to DB):', err);
+      // Return 'OK' to signal that the key was set (behaves as no duplicate in Redis cache)
+      return 'OK';
+    }
   }
 
   async get(key: string): Promise<string | null> {
-    return this.redis.get(key);
+    try {
+      return await this.redis.get(key);
+    } catch (err) {
+      console.warn('Redis get operation failed (graceful degrade to DB):', err);
+      return null;
+    }
   }
 }
 

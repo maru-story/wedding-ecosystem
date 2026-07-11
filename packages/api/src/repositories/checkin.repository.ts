@@ -24,7 +24,7 @@ export class PrismaCheckInRepository implements CheckInRepository {
   async findGuestById(guestId: string): Promise<GuestInfo | null> {
     const guest = await this.prisma.guest.findFirst({
       where: { id: guestId },
-      select: { id: true, event_id: true, name: true, group: true },
+      select: { id: true, event_id: true, name: true, group: true, plus_one_count: true },
     });
 
     if (!guest) return null;
@@ -34,13 +34,14 @@ export class PrismaCheckInRepository implements CheckInRepository {
       event_id: guest.event_id,
       name: guest.name,
       group: guest.group as GuestGroup,
+      plus_one_count: guest.plus_one_count,
     };
   }
 
   async findGuestByIdAndEvent(guestId: string, eventId: string): Promise<GuestInfo | null> {
     const guest = await this.prisma.guest.findFirst({
       where: { id: guestId, event_id: eventId },
-      select: { id: true, event_id: true, name: true, group: true },
+      select: { id: true, event_id: true, name: true, group: true, plus_one_count: true },
     });
 
     if (!guest) return null;
@@ -50,6 +51,7 @@ export class PrismaCheckInRepository implements CheckInRepository {
       event_id: guest.event_id,
       name: guest.name,
       group: guest.group as GuestGroup,
+      plus_one_count: guest.plus_one_count,
     };
   }
 
@@ -199,6 +201,7 @@ export class PrismaCheckInRepository implements CheckInRepository {
       event_id: guest.event_id,
       name: guest.name,
       group: guest.group as GuestGroup,
+      plus_one_count: guest.plus_one_count,
     };
   }
 

@@ -78,6 +78,8 @@ export interface ConnectionInfo {
 export interface SocketData {
   eventId?: string;
   user?: AuthUser;
+  guestId?: string;
+  isGuest?: boolean;
 }
 
 // --- Room Utilities ---
@@ -147,6 +149,23 @@ export function createRealtimeServer(options: RealtimeServerOptions = {}): Realt
 
   // Handle new connections
   io.on('connection', (socket: Socket<any, any, any, SocketData>) => {
+    // If the socket was authenticated as a guest, join their guest room automatically
+    if (socket.data.isGuest && socket.data.guestId) {
+      socket.join(`guest:${socket.data.guestId}`);
+    }
+
+    // Client joins a guest room manually
+    socket.on('join_guest', (guestId: string) => {
+      if (!guestId || typeof guestId !== 'string') {
+        socket.emit('error', { message: 'Invalid guest_id' });
+        return;
+      }
+      socket.join(`guest:${guestId}`);
+      socket.data.guestId = guestId;
+      socket.data.isGuest = true;
+      socket.emit('joined_guest', { guest_id: guestId, status: 'connected' });
+    });
+
     // Client joins an event room
     socket.on('join_event', (eventId: string) => {
       if (!eventId || typeof eventId !== 'string') {
@@ -223,6 +242,10 @@ export function createRealtimeServer(options: RealtimeServerOptions = {}): Realt
   function broadcastCheckIn(eventId: string, payload: GuestCheckedInPayload): void {
     const room = getEventRoom(eventId);
     io.to(room).emit(RealtimeEvent.GUEST_CHECKED_IN, payload);
+
+    // Also broadcast to the guest's private room
+    const guestRoom = `guest:${payload.guest_id}`;
+    io.to(guestRoom).emit(RealtimeEvent.GUEST_CHECKED_IN, payload);
   }
 
   function broadcastRsvpUpdate(eventId: string, payload: RsvpUpdatedPayload): void {

@@ -1,17 +1,24 @@
 'use client';
 
+import { useEffect } from 'react';
+import { reportError } from '@/lib/error-reporter';
+
 /**
  * Global error boundary - catches errors in the root layout.
  * Must include <html> and <body> tags since it replaces the root layout.
  * Critical for PWA: ensures the app can recover from fatal errors.
  */
 export default function GlobalError({
-  _error,
+  error,
   reset,
 }: {
-  _error: Error & { digest?: string };
+  error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    reportError(error, error?.digest);
+  }, [error]);
+
   return (
     <html lang="id">
       <body className="font-body antialiased">

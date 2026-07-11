@@ -59,6 +59,7 @@ Base URL: `http://localhost:4000` (dev) / `https://api.maruplanner.my.id` (prod)
 | DELETE | `/scanner/devices/:deviceId`           | JWT  | Deactivate device                 |
 | GET    | `/scanner/devices/:eventId`            | JWT  | List active devices for event     |
 | GET    | `/scanner/guests/:eventId`             | JWT  | Get guest cache for offline use   |
+| POST   | `/scanner/logs`                        | None | Log client-side scanner PWA errors |
 
 ### RSVP (prefix: `/rsvp`)
 
@@ -141,6 +142,7 @@ The endpoints `GET /events/current/stats` and `GET /events/:id/stats` return a c
   "rsvp_pending": 10,
   "total_pax_invited": 50,
   "total_pax_confirmed": 24,
+  "total_pax_checked_in": 10,
   "attendance_akad": 4,
   "attendance_resepsi": 6,
   "attendance_both": 2,
@@ -202,26 +204,52 @@ classDiagram
 
 ## WebSocket Interface
 
-**Connection**: `wss://api.domain/` with JWT in handshake auth
+### Connection Methods
+
+#### 1. Admin/Operator Connections (Dashboard & Scanner)
+* **Auth**: Connect with `auth: { token: JWT }` in handshake.
+* **Room Join**: Emits `join_event(eventId)` to join room `event:{eventId}` (enforces tenant-event ownership).
+* **Usage**: Listen to all check-ins, RSVPs, and live stats.
 
 ```mermaid
 sequenceDiagram
-    participant Client
+    participant Client as Dashboard/Scanner
     participant Server as Socket.io Server
     participant Room as Event Room
 
     Client->>Server: connect({auth: {token: JWT}})
     Server->>Server: Validate JWT
     Server-->>Client: connected
-    Client->>Server: join_room(event_id)
+    Client->>Server: join_event(event_id)
     Server->>Server: Verify tenant owns event
-    Server-->>Client: room_joined
+    Server-->>Client: joined_event
 
     Note over Room: Broadcasts to all room members
     Room-->>Client: guest_checked_in
     Room-->>Client: rsvp_updated
     Room-->>Client: go_show_added
     Room-->>Client: stats_updated
+```
+
+#### 2. Guest Connections (Invitation App)
+* **Auth**: Connect with `auth: { type: 'guest', guestId: string }` in handshake (JWT bypassed).
+* **Room Join**: Automatically joins private room `guest:{guestId}` on connection.
+* **Usage**: Receive real-time check-in confirmation for the active guest.
+
+```mermaid
+sequenceDiagram
+    participant Guest as Invitation App
+    participant Server as Socket.io Server
+    participant GuestRoom as Guest Room
+
+    Guest->>Server: connect({auth: {type: 'guest', guestId}})
+    Server->>Server: Verify guestId is valid
+    Server->>Server: Auto-join room guest:{guestId}
+    Server-->>Guest: connected
+
+    Note over Server: Backend processes check-in scan
+    Server-->>GuestRoom: guest_checked_in (guest_id)
+    GuestRoom-->>Guest: guest_checked_in
 ```
 
 ### WebSocket Events
@@ -232,8 +260,8 @@ sequenceDiagram
 | `rsvp_updated`     | Server→Client | `{guest_id, attendance, guest_count}`                  | RSVP submitted/updated   |
 | `go_show_added`    | Server→Client | `{guest_id, guest_name}`                               | Walk-in guest registered |
 | `stats_updated`    | Server→Client | `EventStats`                                           | Aggregated stats refresh |
-| `join_room`        | Client→Server | `event_id`                                             | Join event room          |
-| `leave_room`       | Client→Server | `event_id`                                             | Leave event room         |
+| `join_event`        | Client→Server | `event_id`                                             | Join event room          |
+| `leave_event`       | Client→Server | `event_id`                                             | Leave event room         |
 
 ## Invitation URL Interface
 

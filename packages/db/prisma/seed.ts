@@ -2,7 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcrypt';
-import { randomUUID } from 'crypto';
+import { randomUUID, createCipheriv, randomBytes } from 'crypto';
 import 'dotenv/config';
 import { GuestGroup } from '@wedding/shared';
 
@@ -40,6 +40,26 @@ const SECTION_TYPES = [
   'closing',
   'music',
 ] as const;
+
+// Encryption helper
+function createEncryptedPayload(guestId: string, eventId: string): string {
+  const encryptionKeyHex =
+    process.env.ENCRYPTION_KEY_AES256 ||
+    process.env.AES_ENCRYPTION_KEY ||
+    process.env.ENCRYPTION_KEY ||
+    'ff88cc5fadc88c8837e76ede09fc00e086a1914d6ead95c1f24af00388173bb0'; // Dev default key
+
+  const keyBuffer = Buffer.from(encryptionKeyHex, 'hex');
+  const nonce = randomBytes(16).toString('hex');
+  const plaintext = `${guestId}|${eventId}|${Date.now()}|${nonce}`;
+  
+  const iv = randomBytes(16);
+  const cipher = createCipheriv('aes-256-cbc', keyBuffer, iv);
+  let encrypted = cipher.update(plaintext, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  
+  return `${iv.toString('hex')}:${encrypted}`;
+}
 
 async function main() {
   console.log('🌱 Seeding database...');
@@ -192,7 +212,7 @@ async function main() {
       data: {
         id: randomUUID(),
         guest_id: guestId,
-        qr_payload: `${guestId}:${eventId}:${Date.now()}:${Math.random().toString(36).slice(2)}`,
+        qr_payload: createEncryptedPayload(guestId, eventId),
         is_active: true,
       },
     });
