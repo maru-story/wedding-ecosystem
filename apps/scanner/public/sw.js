@@ -34,8 +34,24 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (request.method !== 'GET') return;
 
-  // Skip API requests — they should go to network directly
-  if (request.url.includes('/api/')) return;
+  // Skip API requests — they should go to network directly.
+  // API endpoints are on a different origin (e.g. backend port 4000 or api subdomain)
+  // or match the root API routes directly.
+  const requestUrl = new URL(request.url);
+  if (requestUrl.origin !== self.location.origin) return;
+
+  const path = requestUrl.pathname;
+  if (
+    path.startsWith('/events') ||
+    path.startsWith('/auth') ||
+    path.startsWith('/checkin') ||
+    path.startsWith('/scanner') ||
+    path.startsWith('/guests') ||
+    path.startsWith('/messages') ||
+    path.startsWith('/health')
+  ) {
+    return;
+  }
 
   // Skip WebSocket upgrade requests
   if (request.headers.get('upgrade') === 'websocket') return;

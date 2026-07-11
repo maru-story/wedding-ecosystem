@@ -12,6 +12,7 @@ export interface EventStats {
   total_checked_in: number;
   total_go_show: number;
   total_pax_confirmed?: number;
+  total_pax_checked_in?: number;
 }
 
 /** RSVP record for tracking display (Req 4.8) */
@@ -24,6 +25,7 @@ export interface RsvpTrackingItem {
   group?: string;
   phone?: string | null;
   delivery_status?: string;
+  checked_in_at?: string | null;
 }
 
 interface UseRealtimeStatsOptions {
@@ -42,6 +44,7 @@ const DEFAULT_STATS: EventStats = {
   total_checked_in: 0,
   total_go_show: 0,
   total_pax_confirmed: 0,
+  total_pax_checked_in: 0,
 };
 
 /**

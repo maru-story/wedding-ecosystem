@@ -56,6 +56,7 @@ export interface GuestListItem {
   rsvp_status: string | null;
   check_in_status: boolean;
   qr_active: boolean;
+  checked_in_at: string | null;
 }
 
 export interface GuestExportItem {

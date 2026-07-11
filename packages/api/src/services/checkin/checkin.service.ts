@@ -35,6 +35,7 @@ export interface GuestInfo {
   event_id: string;
   name: string;
   group: GuestGroup;
+  plus_one_count: number;
 }
 
 export interface QRCodeInfo {
@@ -280,6 +281,7 @@ export class CheckInService {
         message: `Check-in berhasil (Scan ke-${updated.scan_count})`,
         scan_count: updated.scan_count,
         checked_in_at: updated.checked_in_at,
+        plus_one_count: guest.plus_one_count,
       };
     }
 
@@ -322,6 +324,7 @@ export class CheckInService {
           message: `Check-in berhasil (Scan ke-${updated.scan_count})`,
           scan_count: updated.scan_count,
           checked_in_at: updated.checked_in_at,
+          plus_one_count: guest.plus_one_count,
         };
       }
     }
@@ -348,6 +351,7 @@ export class CheckInService {
       message: 'Check-in berhasil',
       scan_count: checkIn.scan_count,
       checked_in_at: checkIn.checked_in_at,
+      plus_one_count: guest.plus_one_count,
     };
   }
 

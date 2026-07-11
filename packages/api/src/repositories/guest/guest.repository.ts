@@ -135,7 +135,7 @@ export class PrismaGuestRepository implements GuestRepository {
         include: {
           qr_codes: { where: { is_active: true }, take: 1 },
           rsvps: { take: 1, orderBy: { submitted_at: 'desc' } },
-          check_ins: { take: 1 },
+          check_ins: { take: 1, orderBy: { checked_in_at: 'desc' } },
         },
       }),
     ]);
@@ -155,6 +155,7 @@ export class PrismaGuestRepository implements GuestRepository {
       rsvp_status: (guest.rsvps[0]?.attendance as AttendanceType) ?? null,
       check_in_status: guest.check_ins.length > 0,
       qr_active: guest.qr_codes.length > 0,
+      checked_in_at: guest.check_ins[0]?.checked_in_at?.toISOString() ?? null,
     }));
 
     return {

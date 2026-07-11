@@ -303,7 +303,10 @@ export default function RsvpTrackingPage() {
               <CheckSquare className="text-success h-4 w-4" />
             </CardHeader>
             <CardContent className="flex items-baseline justify-between">
-              <div className="text-success text-2xl font-bold">{stats.total_checked_in}</div>
+              <div className="text-success text-2xl font-bold">
+                {stats.total_pax_checked_in ?? stats.total_checked_in}{' '}
+                <span className="text-muted-foreground text-sm font-normal">pax</span>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
@@ -418,6 +421,7 @@ export default function RsvpTrackingPage() {
               <TableHead className="px-6 py-3">Jumlah Tamu</TableHead>
               <TableHead className="px-6 py-3">Status Kirim WA</TableHead>
               <TableHead className="px-6 py-3">Waktu Submission</TableHead>
+              <TableHead className="px-6 py-3">Waktu Check-in</TableHead>
             </>
           }
           pagination={{
@@ -466,6 +470,22 @@ export default function RsvpTrackingPage() {
               </TableCell>
               <TableCell className="text-muted-foreground px-6 py-4 text-xs">
                 {formatTimestamp(item.submitted_at)}
+              </TableCell>
+              <TableCell className="px-6 py-4">
+                {item.checked_in_at ? (
+                  <span className="text-success inline-flex items-center gap-1.5 text-xs font-semibold">
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {formatTimestamp(item.checked_in_at)}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground/60 text-xs">—</span>
+                )}
               </TableCell>
             </TableRow>
           ))}
@@ -556,12 +576,18 @@ function CheckedInDialog({
                       </Badge>
                     )}
                   </div>
-                  {guest.phone && (
-                    <div className="text-muted-foreground flex items-center gap-1 text-xs">
-                      <Phone className="h-3 w-3" />
-                      <span>{guest.phone}</span>
-                    </div>
-                  )}
+                  <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                    {guest.phone && (
+                      <span className="flex items-center gap-0.5">
+                        <Phone className="h-3 w-3" />
+                        {guest.phone}
+                      </span>
+                    )}
+                    {guest.phone && guest.checked_in_at && <span>•</span>}
+                    {guest.checked_in_at && (
+                      <span>{formatTimestamp(guest.checked_in_at)}</span>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <Badge className="bg-success/20 text-success border-transparent hover:bg-success/30 font-medium">

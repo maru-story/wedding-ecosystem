@@ -83,6 +83,7 @@ export function VerificationResultDisplay({ result, onDismiss }: VerificationRes
           guestName={result.guestName}
           guestGroup={result.guestGroup}
           scanCount={result.scanCount}
+          plusOneCount={result.plusOneCount}
         />
       )}
 
@@ -105,20 +106,25 @@ function ValidContent({
   guestName,
   guestGroup,
   scanCount,
+  plusOneCount = 0,
 }: {
   guestName?: string;
   guestGroup?: string;
   scanCount?: number;
+  plusOneCount?: number;
 }) {
+  const currentScan = scanCount || 1;
+  const totalCapacity = plusOneCount + 1;
+
   return (
     <div className="text-center text-white">
       <h2 className="text-lg font-medium tracking-wide uppercase">Check-in Berhasil</h2>
       <p className="font-heading mt-4 text-4xl font-bold">{guestName || 'Tamu'}</p>
-      {scanCount && scanCount > 1 && (
-        <p className="mt-3 inline-block animate-pulse rounded-full border border-white/20 bg-white/20 px-4 py-1 text-xl font-semibold shadow-sm">
-          Scan ke-{scanCount}
-        </p>
-      )}
+      
+      <p className="mt-3 inline-block rounded-full border border-white/20 bg-white/20 px-4 py-1 text-xl font-semibold shadow-sm">
+        {currentScan}/{totalCapacity} Pax
+      </p>
+
       {guestGroup && (
         <p className="mt-3 text-xl font-medium opacity-90">
           {GROUP_LABELS[guestGroup] || guestGroup}

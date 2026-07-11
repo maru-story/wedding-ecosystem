@@ -62,6 +62,21 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig) {
 
   return (socket: Socket<any, any, any, SocketData>, next: (err?: ExtendedError) => void): void => {
     const token = socket.handshake.auth?.token as string | undefined;
+    const type = socket.handshake.auth?.type as string | undefined;
+    const guestId = socket.handshake.auth?.guestId as string | undefined;
+
+    // Handle guest connections bypass
+    if (type === 'guest' && guestId) {
+      if (typeof guestId === 'string' && guestId.length >= 10) {
+        socket.data.guestId = guestId;
+        socket.data.isGuest = true;
+        return next();
+      } else {
+        const error = new Error('Invalid guest ID') as ExtendedError;
+        error.data = { code: 'AUTH_INVALID_GUEST' };
+        return next(error);
+      }
+    }
 
     if (!token) {
       const error = new Error('Authentication required: no token provided') as ExtendedError;
