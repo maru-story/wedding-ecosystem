@@ -399,6 +399,12 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
             group: true,
             phone: true,
             delivery_status: true,
+            check_ins: {
+              take: 1,
+              select: {
+                checked_in_at: true,
+              },
+            },
           },
         },
       },
@@ -415,6 +421,7 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
       phone:
         pii && pii.isEncrypted(rsvp.guest.phone) ? pii.decrypt(rsvp.guest.phone) : rsvp.guest.phone,
       delivery_status: rsvp.guest.delivery_status,
+      checked_in_at: rsvp.guest.check_ins[0]?.checked_in_at?.toISOString() || null,
     }));
 
     return reply.send({ data });

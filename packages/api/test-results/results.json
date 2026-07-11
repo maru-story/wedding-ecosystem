@@ -88,12 +88,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 528,
+                      "duration": 484,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:32:57.442Z",
+                      "startTime": "2026-07-11T04:42:13.866Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -122,12 +122,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 104,
+                      "duration": 99,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:32:58.290Z",
+                      "startTime": "2026-07-11T04:42:14.592Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -173,12 +173,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 10,
+                      "duration": 9,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:32:58.432Z",
+                      "startTime": "2026-07-11T04:42:14.724Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -207,12 +207,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 13,
+                      "duration": 9,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:32:58.452Z",
+                      "startTime": "2026-07-11T04:42:14.741Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -241,12 +241,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 146,
+                      "duration": 148,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:32:58.480Z",
+                      "startTime": "2026-07-11T04:42:14.763Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -275,12 +275,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 118,
+                      "duration": 115,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:32:58.637Z",
+                      "startTime": "2026-07-11T04:42:14.919Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -326,12 +326,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 170,
+                      "duration": 124,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:32:58.770Z",
+                      "startTime": "2026-07-11T04:42:15.044Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -360,12 +360,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 82,
+                      "duration": 79,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:32:58.948Z",
+                      "startTime": "2026-07-11T04:42:15.177Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -394,12 +394,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 107,
+                      "duration": 132,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:32:59.037Z",
+                      "startTime": "2026-07-11T04:42:15.264Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -445,12 +445,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 227,
+                      "duration": 208,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:32:59.155Z",
+                      "startTime": "2026-07-11T04:42:15.407Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -496,7 +496,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3903,
+                      "duration": 3909,
                       "errors": [],
                       "stdout": [
                         {
@@ -504,6 +504,12 @@
                         },
                         {
                           "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [Fast Refresh] rebuilding\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [Fast Refresh] done in 262ms\n"
                         },
                         {
                           "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
@@ -514,7 +520,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:32:59.403Z",
+                      "startTime": "2026-07-11T04:42:15.630Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -543,7 +549,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1782,
+                      "duration": 1836,
                       "errors": [],
                       "stdout": [
                         {
@@ -561,7 +567,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:03.542Z",
+                      "startTime": "2026-07-11T04:42:19.673Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -590,7 +596,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 933,
+                      "duration": 787,
                       "errors": [],
                       "stdout": [
                         {
@@ -608,7 +614,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:05.334Z",
+                      "startTime": "2026-07-11T04:42:21.521Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -637,7 +643,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2989,
+                      "duration": 2657,
                       "errors": [],
                       "stdout": [
                         {
@@ -647,7 +653,7 @@
                           "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
                         },
                         {
-                          "text": "GUEST CREATED: {\"id\":\"47090bfa-fab2-4dcd-a3d4-520ea0e23f73\",\"event_id\":\"4b6551e9-b1d8-4633-b911-050bcb702682\",\"tenant_id\":\"8c8d310e-cb80-41a8-93c9-15398ecd65e5\",\"name\":\"RSVP Guest Test\",\"slug\":\"rsvp-guest-test\",\"phone\":\"+6281234567890\",\"group\":\"Keluarga\",\"type\":\"invited\",\"plus_one_count\":1,\"invitation_url\":\"/event-a-c83950fb?to=rsvp-guest-test\",\"delivery_status\":\"not_sent\",\"created_at\":\"2026-07-11T04:33:06.775Z\",\"qr_code\":{\"id\":\"1cb2f872-6669-4a55-9837-bab1d8e2c832\",\"guest_id\":\"47090bfa-fab2-4dcd-a3d4-520ea0e23f73\",\"qr_payload\":\"2ae0d1e763061bc3b4241262e4849695:999435a967985864ecc3596be2d59d6c9d13fd58ab416df4be9c34a35c44f4d779d29707f92596b5013208e17cb9846c832a7c01e3dc706ae82390fabcae7a3ef42d642d72660723f169d85f82ad73dd5bbf4a2fbf40d1e21c1dbd1fd76ba18d9b5a6d4600d72183f338d8f3f5ac42c5f37732612aade6aaa201979d2ecea1b1\",\"is_active\":true,\"generated_at\":\"2026-07-11T04:33:06.800Z\"}}\n"
+                          "text": "GUEST CREATED: {\"id\":\"e5538dd4-19f7-4346-ab15-aaab8b05263b\",\"event_id\":\"804e9f61-b673-4416-98ea-62bd5e580ccc\",\"tenant_id\":\"ef58addd-7b05-4eac-b24e-c497b56f9e6e\",\"name\":\"RSVP Guest Test\",\"slug\":\"rsvp-guest-test\",\"phone\":\"+6281234567890\",\"group\":\"Keluarga\",\"type\":\"invited\",\"plus_one_count\":1,\"invitation_url\":\"/event-a-761c641e?to=rsvp-guest-test\",\"delivery_status\":\"not_sent\",\"created_at\":\"2026-07-11T04:42:22.651Z\",\"qr_code\":{\"id\":\"fb4fa5b5-00b7-46ad-8a75-8ddd4f8d7715\",\"guest_id\":\"e5538dd4-19f7-4346-ab15-aaab8b05263b\",\"qr_payload\":\"c4f16762476e6470cfa37f3342059c2b:9b405cf422d66e2305f584ba17e167f0b3e1702591caf9fc34b1201bc29802f75df9e3e8f2b06230b279540b9ebeb7d86256ea14c2e30173526b913e2bcfa56c9d3a94d68e092d28af4d577e482543eb9708c6365a6bd37d22cda692a84330c7d749d0fd89c6616c2e7189cfc8d2fb3201679e9c1b71e1fe184192871249395b\",\"is_active\":true,\"generated_at\":\"2026-07-11T04:42:22.654Z\"}}\n"
                         },
                         {
                           "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
@@ -661,7 +667,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:06.277Z",
+                      "startTime": "2026-07-11T04:42:22.320Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -707,11 +713,14 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4559,
+                      "duration": 4614,
                       "errors": [],
                       "stdout": [
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/login -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2 -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/47fe1b7cd6e6ed85-s.p.0~mcdl10zdfb3.woff2 -> 200\n"
@@ -720,16 +729,13 @@
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/8e6fa89aa22d24ec-s.p.0uvzar8hswo3p.woff2 -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2 -> 200\n"
-                        },
-                        {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2 -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2 -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2 -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/media/e2334d715941921e-s.p.12skym0rqknxy.woff2 -> 200\n"
@@ -738,10 +744,10 @@
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js -> 200\n"
@@ -753,37 +759,34 @@
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js -> 200\n"
-                        },
-                        {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js -> 200\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js -> 200\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js -> 200\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js -> 200\n"
                         },
                         {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js -> 200\n"
+                        },
+                        {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js -> 200\n"
                         },
                         {
-                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/_0t9dsjp._.js -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_login_page_tsx_1029yp_._.js -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/_0t9dsjp._.js -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js -> 200\n"
@@ -792,7 +795,10 @@
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js -> 200\n"
@@ -825,10 +831,10 @@
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css -> 304\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/guests -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js -> 304\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js -> 304\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/guests -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js -> 304\n"
@@ -852,10 +858,10 @@
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js -> 304\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js -> 304\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js -> 304\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js -> 304\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js -> 304\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js -> 304\n"
@@ -882,37 +888,40 @@
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0z6i.yj._.js -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js -> 200\n"
                         },
                         {
-                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
-                        },
-                        {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js -> 200\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_build_polyfills_object-assign_06548tv.js -> 200\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/_0kwm6mf._.js -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_0p66fzd._.js -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_build_polyfills_object-assign_06548tv.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/_0kwm6mf._.js -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_12cbayt._.js -> 200\n"
                         },
                         {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js -> 200\n"
+                        },
+                        {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_framer-motion_dist_es_10zhgje._.js -> 200\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_guests_page_tsx_11-0zvj._.js -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_%40floating-ui_07ekucl._.js -> 200\n"
@@ -921,13 +930,7 @@
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js -> 304\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_guests_page_tsx_11-0zvj._.js -> 200\n"
-                        },
-                        {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js -> 200\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_motion-dom_dist_es_0n_wqqr._.js -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_%40radix-ui_0hvmucl._.js -> 200\n"
@@ -937,6 +940,9 @@
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js -> 304\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/node_modules_motion-dom_dist_es_0n_wqqr._.js -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js -> 304\n"
@@ -966,16 +972,16 @@
                           "text": "[BROWSER REQ] GET http://localhost:4005/guests/groups -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=100 -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=100 -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] PUT http://localhost:4005/guests/4f700670-5d24-437e-acc0-9a482c4c066b -> 200\n"
+                          "text": "[BROWSER REQ] PUT http://localhost:4005/guests/ef5a5d68-d5b3-46ad-aef6-9d3e812b6f81 -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:4005/guests/groups -> 200\n"
@@ -984,10 +990,10 @@
                           "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=100 -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=100 -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] POST http://localhost:4005/guests/import -> 200\n"
@@ -996,12 +1002,12 @@
                           "text": "[BROWSER REQ] GET http://localhost:4005/guests/groups -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
-                        },
-                        {
                           "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=100 -> 200\n"
                         },
                         {
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
+                        },
+                        {
                           "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
                         },
                         {
@@ -1011,7 +1017,7 @@
                           "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] DELETE http://localhost:4005/guests/4f700670-5d24-437e-acc0-9a482c4c066b -> 200\n"
+                          "text": "[BROWSER REQ] DELETE http://localhost:4005/guests/ef5a5d68-d5b3-46ad-aef6-9d3e812b6f81 -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:4005/guests/groups -> 200\n"
@@ -1032,18 +1038,18 @@
                           "text": "[BROWSER REQ] GET http://localhost:4005/guests/groups -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
                         },
                         {
                           "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=100 -> 200\n"
                         },
                         {
-                          "text": "[BROWSER REQ] GET http://localhost:4005/guests?page=1&per_page=20 -> 200\n"
+                          "text": "[BROWSER REQ] GET http://localhost:4005/events/current/stats -> 200\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:09.280Z",
+                      "startTime": "2026-07-11T04:42:24.991Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1089,12 +1095,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 104,
+                      "duration": 107,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:13.855Z",
+                      "startTime": "2026-07-11T04:42:29.618Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1123,12 +1129,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 138,
+                      "duration": 142,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:13.967Z",
+                      "startTime": "2026-07-11T04:42:29.733Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1157,12 +1163,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 70,
+                      "duration": 75,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:14.114Z",
+                      "startTime": "2026-07-11T04:42:29.885Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1191,12 +1197,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 75,
+                      "duration": 79,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:14.193Z",
+                      "startTime": "2026-07-11T04:42:29.970Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1225,12 +1231,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 94,
+                      "duration": 102,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:14.274Z",
+                      "startTime": "2026-07-11T04:42:30.057Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1259,12 +1265,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 153,
+                      "duration": 150,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:14.376Z",
+                      "startTime": "2026-07-11T04:42:30.167Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1293,12 +1299,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 99,
+                      "duration": 97,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:14.536Z",
+                      "startTime": "2026-07-11T04:42:30.325Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1344,12 +1350,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 69,
+                      "duration": 72,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:14.646Z",
+                      "startTime": "2026-07-11T04:42:30.431Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1378,12 +1384,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 66,
+                      "duration": 67,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:14.722Z",
+                      "startTime": "2026-07-11T04:42:30.511Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1412,12 +1418,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 82,
+                      "duration": 64,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:14.795Z",
+                      "startTime": "2026-07-11T04:42:30.584Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1446,12 +1452,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 118,
+                      "duration": 122,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:14.884Z",
+                      "startTime": "2026-07-11T04:42:30.655Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1480,12 +1486,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 61,
+                      "duration": 63,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:15.009Z",
+                      "startTime": "2026-07-11T04:42:30.785Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1531,14 +1537,14 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1663,
+                      "duration": 2003,
                       "errors": [],
                       "stdout": [
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/login\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/47fe1b7cd6e6ed85-s.p.0~mcdl10zdfb3.woff2\n"
@@ -1547,28 +1553,28 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/8e6fa89aa22d24ec-s.p.0uvzar8hswo3p.woff2\n"
                         },
                         {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
+                        },
+                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/e2334d715941921e-s.p.12skym0rqknxy.woff2\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
-                        },
-                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
@@ -1583,40 +1589,40 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
-                        },
-                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_login_page_tsx_1029yp_._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0t9dsjp._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0t9dsjp._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js\n"
                         },
                         {
-                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_login_page_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
@@ -1691,10 +1697,10 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
                         },
                         {
-                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
@@ -1703,28 +1709,22 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_layout_tsx_1029yp_._.js\n"
                         },
                         {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js\n"
+                        },
+                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0z6i.yj._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js\n"
-                        },
-                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_page_tsx_11-0zvj._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0fz24_n._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_page_tsx_11-0zvj._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js\n"
@@ -1733,7 +1733,13 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
                         },
                         {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js\n"
+                        },
+                        {
                           "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0fz24_n._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0glv7_0._.js\n"
@@ -1760,31 +1766,25 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_react-hook-form_dist_index_esm_mjs_06an-fx._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0p66fzd._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0p66fzd._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_12cbayt._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_onboarding_page_tsx_11-0zvj._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_onboarding_page_tsx_11-0zvj._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_075x_p4._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER CONSOLE] log: [Fast Refresh] rebuilding\n"
-                        },
-                        {
-                          "text": "[BROWSER CONSOLE] log: [Fast Refresh] done in 127ms\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0gygh8p._.js\n"
@@ -1796,22 +1796,22 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js\n"
                         },
                         {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_075x_p4._.js\n"
+                        },
+                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0p66fzd._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_12cbayt._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_onboarding_page_tsx_11-0zvj._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_075x_p4._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_12cbayt._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_onboarding_page_tsx_11-0zvj._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] POST http://localhost:4005/events\n"
@@ -1823,7 +1823,13 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/?_rsc=kIn0FPthdPoQq1q3\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/?_rsc=kIn0FPthdPoQq1q3\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/?_rsc=9OR5ru9e7KcMZYPD\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/?_rsc=GNRrUvs1NrofpR8_\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/events/current/stats\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
@@ -1847,16 +1853,10 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
-                        },
-                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/onboarding\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js\n"
@@ -1865,34 +1865,40 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
-                        },
-                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
                         },
                         {
-                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
                         },
                         {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
@@ -1901,25 +1907,22 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0z6i.yj._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js\n"
-                        },
-                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_layout_tsx_1029yp_._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
-                        },
-                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0gygh8p._.js\n"
                         },
                         {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js\n"
+                        },
+                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_react-hook-form_dist_index_esm_mjs_06an-fx._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js\n"
@@ -1932,6 +1935,9 @@
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_12cbayt._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js\n"
@@ -1961,13 +1967,13 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/?_rsc=kIn0FPthdPoQq1q3\n"
                         },
                         {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_page_tsx_11-0zvj._.js\n"
+                        },
+                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0fz24_n._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0glv7_0._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_page_tsx_11-0zvj._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0fz24_n._.js\n"
@@ -1984,7 +1990,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:15.083Z",
+                      "startTime": "2026-07-11T04:42:30.862Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2030,12 +2036,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 126,
+                      "duration": 129,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:16.762Z",
+                      "startTime": "2026-07-11T04:42:32.886Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2086,7 +2092,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:16.919Z",
+                      "startTime": "2026-07-11T04:42:33.048Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2115,12 +2121,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 84,
+                      "duration": 85,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:17.023Z",
+                      "startTime": "2026-07-11T04:42:33.150Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2166,12 +2172,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 125,
+                      "duration": 120,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:17.118Z",
+                      "startTime": "2026-07-11T04:42:33.245Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2200,12 +2206,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 118,
+                      "duration": 128,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:17.251Z",
+                      "startTime": "2026-07-11T04:42:33.373Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2251,7 +2257,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 20552,
+                      "duration": 21627,
                       "errors": [],
                       "stdout": [
                         {
@@ -2311,7 +2317,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:17.380Z",
+                      "startTime": "2026-07-11T04:42:33.512Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2357,7 +2363,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1573,
+                      "duration": 1578,
                       "errors": [],
                       "stdout": [
                         {
@@ -2376,10 +2382,10 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/e2334d715941921e-s.p.12skym0rqknxy.woff2\n"
@@ -2397,10 +2403,10 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js\n"
@@ -2412,13 +2418,16 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
                         },
                         {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
+                        },
+                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js\n"
@@ -2433,16 +2442,13 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_login_page_tsx_1029yp_._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
-                        },
-                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0t9dsjp._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
@@ -2475,10 +2481,10 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/send-invitation\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/send-invitation\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
@@ -2499,6 +2505,9 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js\n"
                         },
                         {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
+                        },
+                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
                         },
                         {
@@ -2514,34 +2523,31 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
-                        },
-                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_layout_tsx_1029yp_._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js\n"
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0z6i.yj._.js\n"
                         },
                         {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_layout_tsx_1029yp_._.js\n"
+                        },
+                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0avfgm~._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js\n"
                         },
                         {
                           "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
@@ -2559,22 +2565,22 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_send-invitation_page_tsx_11-0zvj._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_framer-motion_dist_es_10zhgje._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_send-invitation_page_tsx_11-0zvj._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
@@ -2618,7 +2624,7 @@
                           "duration": 110
                         }
                       ],
-                      "startTime": "2026-07-11T04:33:37.956Z",
+                      "startTime": "2026-07-11T04:42:55.160Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2664,7 +2670,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 992,
+                      "duration": 979,
                       "errors": [],
                       "stdout": [
                         {
@@ -2674,13 +2680,13 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/47fe1b7cd6e6ed85-s.p.0~mcdl10zdfb3.woff2\n"
                         },
                         {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2\n"
+                        },
+                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/2a65768255d6b625-s.p.14by5b4al-y~f.woff2\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/8e6fa89aa22d24ec-s.p.0uvzar8hswo3p.woff2\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/a218039a3287bcfd-s.p.17-1enzs_j91b.woff2\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/media/c875c6f5d3e977ac-s.p.0g_ng0t~d_b9n.woff2\n"
@@ -2719,37 +2725,37 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js\n"
                         },
                         {
                           "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_login_page_tsx_1029yp_._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_06gz65m._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0t9dsjp._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_login_page_tsx_1029yp_._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
@@ -2782,10 +2788,10 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0xov5ia._.css\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/settings\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/settings\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js\n"
@@ -2806,10 +2812,10 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_0rqeker._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/turbopack-apps_dashboard_0p44nws._.js\n"
@@ -2818,10 +2824,10 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0iv.da3._.js\n"
                         },
                         {
-                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0x5huao._.js\n"
+                          "text": "[BROWSER CONSOLE] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_layout_tsx_004glpo._.js\n"
@@ -2833,40 +2839,40 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_not-found_tsx_1029yp_._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0z6i.yj._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js\n"
-                        },
-                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_layout_tsx_1029yp_._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_11-0zvj._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js\n"
-                        },
-                        {
                           "text": "[BROWSER CONSOLE] log: [HMR] connected\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_react-hook-form_dist_index_esm_mjs_06an-fx._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_error_tsx_0aq6o-r._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_0z6i.yj._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_002eh4_._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/_0_mbht5._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js\n"
-                        },
-                        {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0p66fzd._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_react-hook-form_dist_index_esm_mjs_06an-fx._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_postcss_lib_06oojxq._.js\n"
                         },
                         {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_zod_dist_esm_0.f_36.._.js\n"
+                        },
+                        {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_12cbayt._.js\n"
+                        },
+                        {
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_0p66fzd._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_0270sq6._.js\n"
@@ -2875,19 +2881,19 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_(dashboard)_settings_page_tsx_11-0zvj._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_framer-motion_dist_es_10zhgje._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/apps_dashboard_src_app_global-error_tsx_1029yp_._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_framer-motion_dist_es_10zhgje._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js\n"
+                          "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:3000/_next/static/chunks/node_modules_motion-dom_dist_es_0n_wqqr._.js\n"
@@ -2899,7 +2905,7 @@
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/events/current\n"
                         },
                         {
-                          "text": "[BROWSER REQ SUCCESS] PUT http://localhost:4005/events/29e0957f-762d-40e2-93bd-dbdc01eff47c\n"
+                          "text": "[BROWSER REQ SUCCESS] PUT http://localhost:4005/events/1c840adf-2977-4ba1-83b3-8ad2e908c645\n"
                         },
                         {
                           "text": "[BROWSER REQ SUCCESS] GET http://localhost:4005/events/current\n"
@@ -2907,7 +2913,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:39.554Z",
+                      "startTime": "2026-07-11T04:42:56.764Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2936,12 +2942,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 841,
+                      "duration": 949,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:40.556Z",
+                      "startTime": "2026-07-11T04:42:57.755Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2970,12 +2976,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 916,
+                      "duration": 1159,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:41.410Z",
+                      "startTime": "2026-07-11T04:42:58.723Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -3004,12 +3010,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 827,
+                      "duration": 990,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:42.337Z",
+                      "startTime": "2026-07-11T04:42:59.892Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -3055,12 +3061,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 213,
+                      "duration": 230,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-11T04:33:43.175Z",
+                      "startTime": "2026-07-11T04:43:00.898Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -3080,8 +3086,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-07-11T04:32:42.620Z",
-    "duration": 61066.880000000005,
+    "startTime": "2026-07-11T04:42:02.478Z",
+    "duration": 58892.836,
     "expected": 40,
     "skipped": 0,
     "unexpected": 0,

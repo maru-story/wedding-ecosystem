@@ -25,6 +25,7 @@ export interface RsvpTrackingItem {
   group?: string;
   phone?: string | null;
   delivery_status?: string;
+  checked_in_at?: string | null;
 }
 
 interface UseRealtimeStatsOptions {
