@@ -80,6 +80,7 @@ export interface ScanVerificationResult {
   message: string;
   scan_count: number;
   checked_in_at: Date | null;
+  plus_one_count?: number;
 }
 
 // --- Real-time/Stats responses ---
@@ -90,6 +91,7 @@ export interface EventStats {
   total_rsvp: number;
   total_checked_in: number;
   total_go_show: number;
+  total_pax_checked_in?: number;
   rsvp_breakdown: {
     akad: number;
     resepsi: number;

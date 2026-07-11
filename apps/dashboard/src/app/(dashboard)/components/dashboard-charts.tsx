@@ -261,6 +261,7 @@ interface DashboardStatsPayload {
   total_rsvp: number;
   total_checked_in: number;
   total_go_show: number;
+  total_pax_checked_in?: number;
   rsvp_confirmed: number;
   rsvp_declined: number;
   rsvp_pending: number;
@@ -310,6 +311,7 @@ export function DashboardCharts() {
     rsvp_pending: 0,
     total_pax_invited: 0,
     total_pax_confirmed: 0,
+    total_pax_checked_in: 0,
     attendance_akad: 0,
     attendance_resepsi: 0,
     attendance_both: 0,
@@ -688,7 +690,10 @@ export function DashboardCharts() {
                       Sudah Datang
                     </span>
                     <p className="mt-0.5 font-mono text-sm font-extrabold">
-                      {safeStats.total_checked_in}
+                      {safeStats.total_checked_in}{' '}
+                      <span className="text-muted-foreground font-sans text-xs font-normal">
+                        undangan ({safeStats.total_pax_checked_in ?? safeStats.total_checked_in} pax)
+                      </span>
                     </p>
                   </div>
                   <div>

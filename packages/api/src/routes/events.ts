@@ -134,6 +134,7 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
         check_ins: {
           select: {
             checked_in_at: true,
+            scan_count: true,
           },
         },
       },
@@ -158,6 +159,12 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
     const rsvp_pending = guests.filter((g) => g.rsvps.length === 0).length;
 
     const total_pax_invited = guests.reduce((sum, g) => sum + 1 + g.plus_one_count, 0);
+    const total_pax_checked_in = guests.reduce((sum, g) => {
+      if (g.check_ins.length === 0) return sum;
+      const maxCapacity = 1 + g.plus_one_count;
+      const actualCheckedIn = Math.min(g.check_ins[0].scan_count, maxCapacity);
+      return sum + actualCheckedIn;
+    }, 0);
     const total_pax_confirmed = guests.reduce((sum, g) => {
       if (g.rsvps.length > 0 && g.rsvps[0].attendance !== 'decline') {
         return sum + g.rsvps[0].guest_count;
@@ -306,6 +313,7 @@ export async function eventRoutes(app: FastifyInstance, opts: EventRouteOptions)
       rsvp_pending,
       total_pax_invited,
       total_pax_confirmed,
+      total_pax_checked_in,
       attendance_akad,
       attendance_resepsi,
       attendance_both,

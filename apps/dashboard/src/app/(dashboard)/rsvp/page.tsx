@@ -303,7 +303,10 @@ export default function RsvpTrackingPage() {
               <CheckSquare className="text-success h-4 w-4" />
             </CardHeader>
             <CardContent className="flex items-baseline justify-between">
-              <div className="text-success text-2xl font-bold">{stats.total_checked_in}</div>
+              <div className="text-success text-2xl font-bold">
+                {stats.total_pax_checked_in ?? stats.total_checked_in}{' '}
+                <span className="text-muted-foreground text-sm font-normal">pax</span>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
@@ -556,12 +559,18 @@ function CheckedInDialog({
                       </Badge>
                     )}
                   </div>
-                  {guest.phone && (
-                    <div className="text-muted-foreground flex items-center gap-1 text-xs">
-                      <Phone className="h-3 w-3" />
-                      <span>{guest.phone}</span>
-                    </div>
-                  )}
+                  <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                    {guest.phone && (
+                      <span className="flex items-center gap-0.5">
+                        <Phone className="h-3 w-3" />
+                        {guest.phone}
+                      </span>
+                    )}
+                    {guest.phone && guest.checked_in_at && <span>•</span>}
+                    {guest.checked_in_at && (
+                      <span>{formatTimestamp(guest.checked_in_at)}</span>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <Badge className="bg-success/20 text-success border-transparent hover:bg-success/30 font-medium">

@@ -16,6 +16,7 @@ export interface VerificationResult {
   errorMessage?: string;
   previousCheckInTime?: string;
   scanCount?: number;
+  plusOneCount?: number;
 }
 
 interface CheckInApiResponse {
@@ -25,6 +26,7 @@ interface CheckInApiResponse {
   message?: string | null;
   checked_in_at?: string | null;
   scan_count?: number | null;
+  plus_one_count?: number | null;
 }
 
 /**
@@ -79,6 +81,7 @@ async function verifyOnline(
         guestName: data.guest_name || undefined,
         guestGroup: data.guest_group || undefined,
         scanCount: data.scan_count || undefined,
+        plusOneCount: data.plus_one_count !== null && data.plus_one_count !== undefined ? data.plus_one_count : undefined,
       };
     }
 
