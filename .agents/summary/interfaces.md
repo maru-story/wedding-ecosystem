@@ -59,6 +59,7 @@ Base URL: `http://localhost:4000` (dev) / `https://api.maruplanner.my.id` (prod)
 | DELETE | `/scanner/devices/:deviceId`           | JWT  | Deactivate device                 |
 | GET    | `/scanner/devices/:eventId`            | JWT  | List active devices for event     |
 | GET    | `/scanner/guests/:eventId`             | JWT  | Get guest cache for offline use   |
+| POST   | `/scanner/logs`                        | None | Log client-side scanner PWA errors |
 
 ### RSVP (prefix: `/rsvp`)
 

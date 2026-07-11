@@ -1,17 +1,24 @@
 'use client';
 
+import { useEffect } from 'react';
+import { reportError } from '@/lib/error-reporter';
+
 /**
  * Error boundary for the scanner app (Next.js best practice).
  * Must be a Client Component.
  * Provides retry functionality for the PWA context.
  */
 export default function ScannerError({
-  _error,
+  error,
   reset,
 }: {
-  _error: Error & { digest?: string };
+  error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    reportError(error, error?.digest);
+  }, [error]);
+
   return (
     <div className="bg-cream flex min-h-screen flex-col items-center justify-center px-4">
       <div className="text-center">
