@@ -8,7 +8,7 @@
 
 **Wedding Ecosystem** — A multi-tenant SaaS platform for digital wedding invitation management, targeting the Indonesian market. Monorepo with 2 frontend apps + 1 backend API (plus a standalone invitation app).
 
-**Status**: Production-deployed. All services live on Vercel (frontend) and Fly.io (backend).
+**Status**: Production-deployed. All services live on Vercel (frontend) and Render (backend).
 
 ---
 
@@ -26,7 +26,7 @@
          └───────────────┬─────────────┘
                              │ REST API + WebSocket (Socket.io)
 ┌────────────────────────────┴────────────────────────────────┐
-│              Backend: Fastify 5 + Socket.io 4.8 (Fly.io)     │
+│              Backend: Fastify 5 + Socket.io 4.8 (Render)     │
 │                        Port: 4000                            │
 ├──────────────────────────────────────────────────────────────┤
 │  Auth │ Guests │ Events │ RSVP │ Check-in │ CMS │ Scanner   │
@@ -360,7 +360,7 @@ NEXT_PUBLIC_CDN_URL=https://cdn.maruplanner.my.id
 | --------------- | ------------- | ---------------------------- |
 | Dashboard       | Vercel        | `apps/dashboard/vercel.json` |
 | Scanner         | Vercel        | `apps/scanner/vercel.json`   |
-| API + WebSocket | Fly.io        | `fly.toml` / `fly.staging.toml` |
+| API + WebSocket | Render         | `render.yaml` / `Dockerfile` |
 | Database        | Supabase      | Managed PostgreSQL           |
 | Cache           | Upstash       | Serverless Redis             |
 | CDN/Storage     | Cloudflare R2 | —                            |

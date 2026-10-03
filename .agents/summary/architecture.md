@@ -10,7 +10,7 @@ graph TB
         Invitation["Invitation<br/>Next.js 15 (Standalone)"]
     end
 
-    subgraph "Backend (Fly.io)"
+    subgraph "Backend (Render)"
         API["Fastify 5 API<br/>REST — :4000"]
         WS["Socket.io 4.8<br/>WebSocket — :4000"]
     end
@@ -204,14 +204,14 @@ graph TB
     subgraph "CI/CD (GitHub Actions)"
         CI["ci.yml<br/>Tests + Security"]
         DF["deploy-frontend.yml<br/>Vercel per app"]
-        DB["deploy-backend.yml<br/>Fly.io deploy"]
+        DB["deploy-backend.yml<br/>Render deploy"]
         ST["smoke-test.yml<br/>Post-deploy verify"]
         SS["secret-scanning.yml"]
     end
 
     subgraph "Production"
         Vercel["Vercel<br/>(3 frontend apps)"]
-        FlyIO["Fly.io<br/>(API + WebSocket)"]
+        Render["Render<br/>(API + WebSocket)"]
         Supabase["Supabase<br/>(PostgreSQL)"]
         Upstash["Upstash<br/>(Redis)"]
         CF["Cloudflare R2<br/>(Media CDN)"]
@@ -220,13 +220,13 @@ graph TB
     CI -->|pass| DF
     CI -->|pass| DB
     DF --> Vercel
-    DB --> FlyIO
+    DB --> Render
     DB -->|migrate| Supabase
     ST --> Vercel
-    ST --> FlyIO
+    ST --> Render
 ```
 
-**Deployments**: Backend deploys to Fly.io via native rolling updates and automatically runs migrations via release command. Auto-rollback on health check failure.
+**Deployments**: Backend deploys to Render via Docker Web Service and automatically runs migrations on container startup.
 
 ## Key Design Decisions
 

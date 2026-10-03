@@ -34,7 +34,7 @@ Platform multi-tenant untuk manajemen undangan pernikahan digital, menargetkan p
          └───────────────┬─────────────┘
                          │ REST + WebSocket
 ┌────────────────────────────┴────────────────────────────────┐
-│              Backend API + WebSocket (Fly.io)                 │
+│              Backend API + WebSocket (Render)                 │
 │                   Fastify 5 + Socket.io 4.8                  │
 │                        Port: 4000                            │
 ├──────────────────────────────────────────────────────────────┤
@@ -375,7 +375,7 @@ Kredensial demo:
 | Service                 | Platform      | Keterangan                            |
 | ----------------------- | ------------- | ------------------------------------- |
 | Frontend (2 apps)       | Vercel        | Auto-deploy dari branch `main`        |
-| Backend API + WebSocket | Fly.io        | Single service, native rolling update |
+| Backend API + WebSocket | Render        | Docker Web Service, auto-deploy       |
 | Database                | Supabase      | Managed PostgreSQL + PgBouncer        |
 | Cache/PubSub            | Upstash       | Serverless Redis                      |
 | CDN/Storage             | Cloudflare R2 | Media files + CDN                     |
@@ -406,14 +406,18 @@ Push ke main
         └── Auto-rollback jika health check gagal
 ```
 
-### Setup Fly.io
+### Setup Render
 
-1. Pastikan Anda sudah login ke CLI: `fly auth login`
-2. Jalankan perintah deploy pertama kali menggunakan file konfigurasi:
-   - Staging: `fly deploy --config fly.staging.toml`
-   - Production: `fly deploy --config fly.toml`
-3. Set environment variables / secrets di Fly.io menggunakan:
-   `fly secrets set KEY=VALUE`
+1. Hubungkan repository `wedding-ecosystem` ke akun Render.com (atau gunakan Render CLI `render services`).
+2. Buat Web Service baru menggunakan Blueprint [render.yaml](render.yaml) atau pilih runtime Docker.
+3. Jalankan script otomatisasi untuk menyinkronkan environment variables:
+   ```bash
+   RENDER_API_KEY="rnd_xxx" ./scripts/setup-render.sh
+   ```
+4. Update DNS Cloudflare untuk mengarahkan subdomain API ke Render:
+   ```bash
+   ./scripts/update-render-dns.sh wedding-ecosystem-api.onrender.com
+   ```
 
 ### Setup Vercel
 
@@ -433,7 +437,7 @@ Setiap app sudah punya `vercel.json` dengan build command dan security headers.
 ### Setup GitHub Secrets
 
 ```
-FLY_API_TOKEN
+RENDER_DEPLOY_HOOK_URL
 VERCEL_ORG_ID
 VERCEL_TOKEN
 VERCEL_PROJECT_ID_DASHBOARD
@@ -572,7 +576,7 @@ wedding-ecosystem/
 
 ## Environment Variables
 
-### Backend (Fly.io)
+### Backend (Render)
 
 | Variable                  | Required | Default                          | Deskripsi                                 |
 | ------------------------- | -------- | -------------------------------- | ----------------------------------------- |
