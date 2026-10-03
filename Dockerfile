@@ -1,6 +1,6 @@
 # Dockerfile
 # Multi-stage production build for @wedding/api in the monorepo
-# Used for deployment on Fly.io
+# Production deployment for Render.com (Fastify 5 + Socket.io 4.8)
 
 FROM node:22-alpine AS base
 RUN apk add --no-cache libc6-compat openssl
@@ -38,4 +38,4 @@ COPY --from=builder /app ./
 
 EXPOSE 4000
 
-CMD ["node", "packages/api/dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=packages/db/prisma/schema.prisma && node packages/api/dist/index.js"]
