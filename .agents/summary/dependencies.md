@@ -30,13 +30,11 @@ graph TB
 | ------------------------------- | ------- | ------------------------------------------------ |
 | `fastify`                       | 5.12.5  | HTTP framework (high-performance, schema-based)  |
 | `fastify-plugin`                | 5.0.1   | Plugin encapsulation                             |
-| `socket.io`                     | 4.8.3   | WebSocket server for real-time events            |
 | `ioredis`                       | 5.10.1  | Redis client (caching, rate limiting, pub/sub)   |
 | `@prisma/client`                | 7.7.0   | Database ORM (via @wedding/db)                   |
 | `jsonwebtoken`                  | 9.0.3   | JWT token generation and verification            |
 | `bcrypt`                        | 6.0.0   | Password hashing                                 |
 | `zod`                           | 3.25.3  | Runtime input validation                         |
-| `sharp`                         | 0.35.5  | Image processing (resize, format conversion)     |
 | `@fastify/multipart`            | 10.0.0  | Multipart file upload handling (replaces multer) |
 | `@aws-sdk/client-s3`            | 3.777.0 | Cloudflare R2 storage (S3-compatible)            |
 | `@aws-sdk/s3-request-presigner` | 3.777.0 | Signed URL generation for media                  |
@@ -75,7 +73,6 @@ graph TB
 | `@tanstack/react-query`    | 5.100.10 | Server state management, caching         |
 | `react-hook-form`          | 7.75.0   | Form state management                    |
 | `socket.io-client`         | 4.8.3    | WebSocket client for real-time updates   |
-| `zod`                      | 3.25.3   | Client-side validation                   |
 | `radix-ui`                 | 1.4.3    | Accessible UI primitives (via shadcn/ui) |
 | `class-variance-authority` | 0.7.1    | Component variant styling                |
 | `clsx`                     | 2.1.1    | Conditional class names                  |
@@ -95,7 +92,6 @@ graph TB
 | `react` / `react-dom` | 19.2.6  | UI library                             |
 | `html5-qrcode`        | 2.3.8   | Camera-based QR code scanning          |
 | `socket.io-client`    | 4.8.3   | Real-time sync between scanner devices |
-| `zod`                 | 3.25.3  | Input validation                       |
 
 ## Dev Dependencies (Shared Across Workspace)
 

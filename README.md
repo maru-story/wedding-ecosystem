@@ -239,7 +239,6 @@ Berikut adalah spesifikasi lengkap hak akses untuk masing-masing peran (_role_):
 | Cache/PubSub       | Redis (ioredis)               | 5.10      |
 | Auth               | JWT + bcrypt                  | 9.0 / 6.0 |
 | Validation         | Zod                           | 3.25      |
-| Image Processing   | Sharp                         | 0.35      |
 | Storage            | Cloudflare R2 (S3-compatible) | —         |
 | Testing            | Vitest + fast-check           | 3.2 / 4.8 |
 | Language           | TypeScript                    | 5.9       |
