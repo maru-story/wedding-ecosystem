@@ -41,3 +41,47 @@ services:
         sync: false
       - key: R2_SECRET_ACCESS_KEY
         sync: false
+
+  - type: web
+    name: wedding-ecosystem-api-staging
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    branch: develop
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DASHBOARD_ORIGIN
+        value: https://dev-dash.maruplanner.my.id
+      - key: INVITATION_ORIGIN
+        value: https://dev-inv.maruplanner.my.id
+      - key: SCANNER_ORIGIN
+        value: https://dev-scanner.maruplanner.my.id
+      - key: R2_BUCKET_NAME
+        value: wedding-ecosystem
+      - key: R2_PUBLIC_URL
+        value: https://dev-cdn.maruplanner.my.id
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_POOLED_URL
+        sync: false
+      - key: UPSTASH_REDIS_CACHE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: REFRESH_SECRET
+        sync: false
+      - key: AES_ENCRYPTION_KEY
+        sync: false
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+
