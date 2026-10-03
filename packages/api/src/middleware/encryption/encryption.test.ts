@@ -114,6 +114,17 @@ describe('PIIEncryption', () => {
       // or return garbage (not match original plaintext)
       expect(threw || decrypted !== 'secret@email.com').toBe(true);
     });
+
+    it('should safely return null without throwing when decryption fails due to mismatched key', () => {
+      const otherKey = randomBytes(32).toString('hex');
+      const otherPii = new PIIEncryption({ encryptionKey: otherKey });
+      const encrypted = pii.encrypt('+628123456789');
+
+      expect(() => {
+        const result = otherPii.decrypt(encrypted);
+        expect(result).toBeNull();
+      }).not.toThrow();
+    });
   });
 
   describe('isEncrypted', () => {

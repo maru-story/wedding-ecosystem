@@ -100,14 +100,18 @@ fi
 # 3. Read env vars from .env.local and prepare JSON payload
 echo "⚙️ Preparing environment variables..."
 
-if [ ! -f .env.local ]; then
-  echo "❌ Error: .env.local not found."
+TARGET_ENV_FILE=".env.local"
+if [ -f .env.production ]; then
+  TARGET_ENV_FILE=".env.production"
+elif [ ! -f .env.local ]; then
+  echo "❌ Error: Neither .env.production nor .env.local found."
   exit 1
 fi
+echo "📁 Sourcing environment variables from: ${TARGET_ENV_FILE}"
 
 get_env() {
   local key="$1"
-  grep -E "^${key}=" .env.local | cut -d'=' -f2- | tr -d "'\"" || true
+  grep -E "^${key}=" "${TARGET_ENV_FILE}" | cut -d'=' -f2- | tr -d "'\"" || true
 }
 
 DATABASE_URL=$(get_env "DATABASE_URL")
@@ -118,7 +122,10 @@ fi
 UPSTASH_REDIS_CACHE_URL=$(get_env "UPSTASH_REDIS_CACHE_URL")
 JWT_SECRET=$(get_env "JWT_SECRET")
 REFRESH_SECRET=$(get_env "REFRESH_SECRET")
-AES_ENCRYPTION_KEY=$(get_env "AES_ENCRYPTION_KEY")
+ENCRYPTION_KEY=$(get_env "ENCRYPTION_KEY_AES256")
+if [ -z "$ENCRYPTION_KEY" ]; then
+  ENCRYPTION_KEY=$(get_env "AES_ENCRYPTION_KEY")
+fi
 R2_ACCOUNT_ID=$(get_env "R2_ACCOUNT_ID")
 R2_ACCESS_KEY_ID=$(get_env "R2_ACCESS_KEY_ID")
 R2_SECRET_ACCESS_KEY=$(get_env "R2_SECRET_ACCESS_KEY")
@@ -139,7 +146,7 @@ ENV_VARS_JSON=$(jq -n \
   --arg redis_url "$UPSTASH_REDIS_CACHE_URL" \
   --arg jwt "$JWT_SECRET" \
   --arg refresh "$REFRESH_SECRET" \
-  --arg aes "$AES_ENCRYPTION_KEY" \
+  --arg aes "$ENCRYPTION_KEY" \
   --arg dash "$DASHBOARD_ORIGIN" \
   --arg invit "$INVITATION_ORIGIN" \
   --arg scan "$SCANNER_ORIGIN" \
@@ -157,6 +164,7 @@ ENV_VARS_JSON=$(jq -n \
     {"key": "JWT_SECRET", "value": $jwt},
     {"key": "REFRESH_SECRET", "value": $refresh},
     {"key": "AES_ENCRYPTION_KEY", "value": $aes},
+    {"key": "ENCRYPTION_KEY_AES256", "value": $aes},
     {"key": "DASHBOARD_ORIGIN", "value": $dash},
     {"key": "INVITATION_ORIGIN", "value": $invit},
     {"key": "SCANNER_ORIGIN", "value": $scan},

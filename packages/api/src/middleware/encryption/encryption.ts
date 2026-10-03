@@ -65,15 +65,20 @@ export class PIIEncryption {
       return ciphertext;
     }
 
-    const parts = ciphertext.split(':');
-    const [ivHex, encryptedHex] = parts;
-    const iv = Buffer.from(ivHex, ENCODING);
-    const decipher = createDecipheriv(AES_ALGORITHM, this.key, iv);
+    try {
+      const parts = ciphertext.split(':');
+      const [ivHex, encryptedHex] = parts;
+      const iv = Buffer.from(ivHex, ENCODING);
+      const decipher = createDecipheriv(AES_ALGORITHM, this.key, iv);
 
-    let decrypted = decipher.update(encryptedHex, ENCODING, 'utf8');
-    decrypted += decipher.final('utf8');
+      let decrypted = decipher.update(encryptedHex, ENCODING, 'utf8');
+      decrypted += decipher.final('utf8');
 
-    return decrypted;
+      return decrypted;
+    } catch {
+      // In case of bad decrypt (key mismatch or corruption), return null instead of throwing 500
+      return null;
+    }
   }
 
   /**

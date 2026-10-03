@@ -127,6 +127,7 @@
 8. **Real-time broadcast** — Check-in and RSVP updates broadcast via WebSocket, scoped to event room.
 9. **Offline queue** — Scanner stores actions in IndexedDB when offline, syncs on reconnect. Conflict resolution: server timestamp wins.
 10. **Event capacity** — Max 2000 guests per event.
+11. **PII Encryption & Graceful Fallback** — Guest phone is encrypted at rest (AES-256-CBC). `PIIEncryption.decrypt` safely returns `null` on decryption failure (key mismatch or corruption) to prevent unhandled 500 crashes.
 
 ---
 
