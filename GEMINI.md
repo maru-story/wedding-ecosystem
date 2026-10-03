@@ -128,6 +128,7 @@
 9. **Offline queue** — Scanner stores actions in IndexedDB when offline, syncs on reconnect. Conflict resolution: server timestamp wins.
 10. **Event capacity** — Max 2000 guests per event.
 11. **PII Encryption & Graceful Fallback** — Guest phone is encrypted at rest (AES-256-CBC). `PIIEncryption.decrypt` safely returns `null` on decryption failure (key mismatch or corruption) to prevent unhandled 500 crashes.
+12. **Scanner & QR UX** — Scanner runs at 20fps, uses Apple BarcodeDetector hardware acceleration, adaptive 82% qrbox, torch toggle, and haptic feedback. QR rendering across apps is standardized at 240px with clean quiet zone.
 
 ---
 

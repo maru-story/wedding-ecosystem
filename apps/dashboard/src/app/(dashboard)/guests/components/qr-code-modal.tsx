@@ -55,12 +55,12 @@ export function QrCodeModal({ guest, onClose }: QrCodeModalProps) {
       {!isLoading && !errorMessage && qrData && (
         <div className="text-center">
           {qrData.qr_payload ? (
-            <div className="border-border mx-auto inline-block rounded-lg border bg-white p-4">
+            <div className="border-border mx-auto inline-block rounded-xl border bg-white p-5 shadow-sm">
               <QRCode
                 value={qrData.qr_payload}
-                size={192}
+                size={240}
                 style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
-                viewBox="0 0 192 192"
+                viewBox="0 0 240 240"
               />
             </div>
           ) : (
