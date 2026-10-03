@@ -141,4 +141,16 @@ create_or_update_record "api" "CNAME" "${RENDER_HOST}" "true" "Render production
 # 2. Update WS CNAME record to point to Render
 create_or_update_record "ws" "CNAME" "${RENDER_HOST}" "true" "Render production WS gateway"
 
+# 3. Update Staging dev-api CNAME record to point to Render
+create_or_update_record "dev-api" "CNAME" "${RENDER_HOST}" "true" "Render staging API gateway"
+
+echo "Cleaning up obsolete verification records..."
+for stale_name in "_railway-verify.api.${DOMAIN}" "_railway-verify.dev-api.${DOMAIN}"; do
+  stale_records=$(cf_api GET "${ZONE_URL}/dns_records?name=${stale_name}")
+  for r_id in $(echo "$stale_records" | jq -r '.result[].id // empty'); do
+    echo "Deleting obsolete record ${stale_name} (${r_id})..."
+    cf_api DELETE "${ZONE_URL}/dns_records/${r_id}" > /dev/null || true
+  done
+done
+
 echo "=== DNS Update Complete! ==="
