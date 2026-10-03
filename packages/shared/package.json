@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "jsonwebtoken": "^9.0.3",
-    "sanitize-html": "2.17.4",
+    "sanitize-html": "2.18.0",
     "zod": "3.25.3"
   },
   "devDependencies": {
