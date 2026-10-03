@@ -1,0 +1,11 @@
+name = "wedding-render-keepalive"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+account_id = "26af09125c4e1c82b6195c0756a13b9c"
+
+# Trigger every 10 minutes to prevent Render 15-minute hibernation
+[triggers]
+crons = ["*/10 * * * *"]
+
+[vars]
+TARGET_URL = "https://api.maruplanner.my.id/health"
