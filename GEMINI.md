@@ -473,6 +473,6 @@ CI/CD via GitHub Actions:
 | Redis config                  | `packages/api/src/config/redis.ts`                |
 | CORS middleware               | `packages/api/src/middleware/cors.middleware.ts`  |
 | CI/CD workflows               | `.github/workflows/`                              |
-| Deploy config (API)           | `fly.toml` & `fly.staging.toml`                   |
+| Deploy config (API)           | `render.yaml`                                     |
 | Deploy config (Frontend)      | `apps/*/vercel.json`                              |
 | Design system                 | `.agents/summary/design-system.md`                |
