@@ -71,12 +71,12 @@
 
 | Layer      | Technology                  | Version                                       |
 | ---------- | --------------------------- | --------------------------------------------- |
-| Frontend   | Next.js                     | 16.2                                          |
+| Frontend   | Next.js                     | 16.3                                          |
 | UI         | React                       | 19.2                                          |
 | Styling    | TailwindCSS                 | 4.3 (CSS-first config, no tailwind.config.ts) |
 | Components | shadcn/ui                   | latest (copy-paste pattern)                   |
 | Animation  | Motion (Framer Motion)      | 12.17+                                        |
-| Backend    | Fastify                     | 5.8                                           |
+| Backend    | Fastify                     | 5.12                                          |
 | ORM        | Prisma                      | 7.7 (with @prisma/adapter-pg)                 |
 | WebSocket  | Socket.io                   | 4.8                                           |
 | Cache      | Redis via ioredis           | 5.10                                          |

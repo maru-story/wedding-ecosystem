@@ -100,7 +100,7 @@ describe('useSocket connection status logic', () => {
       const wsUrl = 'http://localhost:4000';
       const token = 'test-token';
 
-      (io as unknown as ReturnType<typeof vi.fn>)(wsUrl, {
+      vi.mocked(io)(wsUrl, {
         reconnection: true,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 1000,
@@ -128,7 +128,7 @@ describe('useSocket connection status logic', () => {
       const wsUrl = 'http://localhost:4000';
       const token = 'my-jwt-token';
 
-      (io as unknown as ReturnType<typeof vi.fn>)(wsUrl, {
+      vi.mocked(io)(wsUrl, {
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 30000,
@@ -146,7 +146,7 @@ describe('useSocket connection status logic', () => {
     it('should set autoConnect to false for manual lifecycle control', () => {
       const wsUrl = 'http://localhost:4000';
 
-      (io as unknown as ReturnType<typeof vi.fn>)(wsUrl, {
+      vi.mocked(io)(wsUrl, {
         autoConnect: false,
         reconnection: true,
         reconnectionDelay: 1000,

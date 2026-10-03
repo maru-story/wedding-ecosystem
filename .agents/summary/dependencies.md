@@ -28,7 +28,7 @@ graph TB
 
 | Package                         | Version | Purpose                                          |
 | ------------------------------- | ------- | ------------------------------------------------ |
-| `fastify`                       | 5.8.5   | HTTP framework (high-performance, schema-based)  |
+| `fastify`                       | 5.12.5  | HTTP framework (high-performance, schema-based)  |
 | `fastify-plugin`                | 5.0.1   | Plugin encapsulation                             |
 | `socket.io`                     | 4.8.3   | WebSocket server for real-time events            |
 | `ioredis`                       | 5.10.1  | Redis client (caching, rate limiting, pub/sub)   |
@@ -36,7 +36,7 @@ graph TB
 | `jsonwebtoken`                  | 9.0.3   | JWT token generation and verification            |
 | `bcrypt`                        | 6.0.0   | Password hashing                                 |
 | `zod`                           | 3.25.3  | Runtime input validation                         |
-| `sharp`                         | 0.34.5  | Image processing (resize, format conversion)     |
+| `sharp`                         | 0.35.5  | Image processing (resize, format conversion)     |
 | `@fastify/multipart`            | 10.0.0  | Multipart file upload handling (replaces multer) |
 | `@aws-sdk/client-s3`            | 3.777.0 | Cloudflare R2 storage (S3-compatible)            |
 | `@aws-sdk/s3-request-presigner` | 3.777.0 | Signed URL generation for media                  |
@@ -64,13 +64,13 @@ graph TB
 | Package         | Version | Purpose                                       |
 | --------------- | ------- | --------------------------------------------- |
 | `zod`           | 3.25.3  | Schema definitions shared across all packages |
-| `sanitize-html` | 2.16.0  | HTML sanitization for user-generated content  |
+| `sanitize-html` | 2.18.0  | HTML sanitization for user-generated content  |
 
 ### @wedding/dashboard (Frontend)
 
 | Package                    | Version  | Purpose                                  |
 | -------------------------- | -------- | ---------------------------------------- |
-| `next`                     | 16.2.6   | React framework (App Router, SSR)        |
+| `next`                     | 16.3.8   | React framework (App Router, SSR)        |
 | `react` / `react-dom`      | 19.2.6   | UI library                               |
 | `@tanstack/react-query`    | 5.100.10 | Server state management, caching         |
 | `react-hook-form`          | 7.75.0   | Form state management                    |
@@ -91,7 +91,7 @@ graph TB
 
 | Package               | Version | Purpose                                |
 | --------------------- | ------- | -------------------------------------- |
-| `next`                | 16.2.6  | React framework                        |
+| `next`                | 16.3.8  | React framework                        |
 | `react` / `react-dom` | 19.2.6  | UI library                             |
 | `html5-qrcode`        | 2.3.8   | Camera-based QR code scanning          |
 | `socket.io-client`    | 4.8.3   | Real-time sync between scanner devices |
@@ -108,7 +108,7 @@ graph TB
 | `fast-check`                  | 4.8.0   | Property-based testing                          |
 | `tailwindcss`                 | 4.3.0   | Utility-first CSS                               |
 | `@tailwindcss/postcss`        | 4.3.0   | PostCSS integration                             |
-| `postcss`                     | 8.5.10  | CSS processing                                  |
+| `postcss`                     | 8.5.28  | CSS processing                                  |
 | `prettier`                    | 3.8.3   | Code formatting                                 |
 | `prettier-plugin-tailwindcss` | 0.8.0   | Tailwind class sorting                          |
 | `tsx`                         | 4.20.3  | TypeScript execution (dev server, scripts)      |

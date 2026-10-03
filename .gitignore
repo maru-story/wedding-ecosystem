@@ -41,3 +41,7 @@ coverage/
 .claude/
 .claude-flow/
 .swarm/
+
+# Next.js auto-generated agent docs
+apps/**/AGENTS.md
+apps/**/CLAUDE.md

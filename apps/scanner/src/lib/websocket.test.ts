@@ -84,7 +84,7 @@ describe('WebSocket Manager', () => {
 
     it('should configure exponential backoff with max 30 second delay', () => {
       const wsUrl = 'http://localhost:3100';
-      (io as unknown as ReturnType<typeof vi.fn>)(wsUrl, {
+      vi.mocked(io)(wsUrl, {
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 30000,

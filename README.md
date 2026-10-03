@@ -225,7 +225,7 @@ Berikut adalah spesifikasi lengkap hak akses untuk masing-masing peran (_role_):
 
 | Layer              | Technology                    | Version   |
 | ------------------ | ----------------------------- | --------- |
-| Frontend Framework | Next.js                       | 16.2      |
+| Frontend Framework | Next.js                       | 16.3      |
 | UI Library         | React                         | 19.2      |
 | Styling            | TailwindCSS                   | 4.3       |
 | Components         | shadcn/ui                     | latest    |
@@ -233,13 +233,13 @@ Berikut adalah spesifikasi lengkap hak akses untuk masing-masing peran (_role_):
 | QR Scanning        | html5-qrcode                  | 2.3       |
 | Forms              | React Hook Form               | 7.75      |
 | Data Fetching      | @tanstack/react-query         | 5.89+     |
-| Backend            | Fastify                       | 5.8       |
+| Backend            | Fastify                       | 5.12      |
 | ORM                | Prisma                        | 7.7       |
 | WebSocket          | Socket.io                     | 4.8       |
 | Cache/PubSub       | Redis (ioredis)               | 5.10      |
 | Auth               | JWT + bcrypt                  | 9.0 / 6.0 |
 | Validation         | Zod                           | 3.25      |
-| Image Processing   | Sharp                         | 0.34      |
+| Image Processing   | Sharp                         | 0.35      |
 | Storage            | Cloudflare R2 (S3-compatible) | —         |
 | Testing            | Vitest + fast-check           | 3.2 / 4.8 |
 | Language           | TypeScript                    | 5.9       |
