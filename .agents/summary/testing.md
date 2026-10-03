@@ -5,14 +5,14 @@
 - **Unit/Integration Framework**: Vitest 3.2.4
 - **E2E Testing Framework**: Playwright 1.55.1 (API & Socket.io WebSocket)
 - **Property-Based Testing**: fast-check 4.8.0
-- **Total Tests**: ~1235 + 14 Playwright E2E cases across all packages
+- **Total Tests**: ~1242 + 16 Playwright E2E cases across all packages
 - **Coverage Target**: 80% minimum for business logic
 
 ## Test Distribution
 
 | Package               | Tests         | Type                                                 |
 | --------------------- | ------------- | ---------------------------------------------------- |
-| `@wedding/api`        | ~924 + 14 E2E | Unit + Integration + Property-based + Playwright E2E |
+| `@wedding/api`        | ~931 + 16 E2E | Unit + Integration + Property-based + Playwright E2E |
 | `@wedding/shared`     | 80            | Unit + Property-based                                |
 | `@wedding/realtime`   | ~87           | Unit + Integration + Property-based                  |
 | `@wedding/dashboard`  | ~81           | Unit + Property-based                                |
@@ -296,6 +296,8 @@ export default defineConfig({
 ## E2E Playwright Configuration
 
 Playwright is configured under `packages/api/playwright.config.ts`. It manages starting the backend server synchronously using the `webServer` config block, targets the dedicated test database, and runs the E2E specs in sequential mode to ensure database integrity during test state assertions.
+
+Additionally, `packages/api/tests/e2e/production-smoke.spec.ts` provides a live production smoke test suite to verify endpoint liveness, SSL, error handler resilience, and database authentication responses on live environments without local mock fixtures.
 
 ## E2E Testing Validation Rules
 
