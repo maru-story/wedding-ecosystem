@@ -1,5 +1,15 @@
 export interface Env {
-  TARGET_URL: string;
+  TARGET_URL?: string;
+}
+
+export interface ScheduledController {
+  scheduledTime: number;
+  cron: string;
+}
+
+export interface ExecutionContext {
+  waitUntil(promise: Promise<unknown>): void;
+  passThroughOnException(): void;
 }
 
 export default {
