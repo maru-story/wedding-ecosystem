@@ -98,7 +98,7 @@ app.get('/', async (_request, reply) => {
   return reply.send({
     name: 'wedding-ecosystem-api',
     status: 'online',
-    version: env.APP_VERSION || '1.3.0',
+    version: env.APP_VERSION || '1.3.1',
   });
 });
 

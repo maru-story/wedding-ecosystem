@@ -6,7 +6,7 @@ inclusion: always
 
 ## Frontend
 
-- **Framework**: Next.js 16.2.6 (React 19.2.6)
+- **Framework**: Next.js 16.3.8 (React 19.2.6)
 - **Styling**: TailwindCSS 4.3
 - **Component Library**: shadcn/ui (copy-paste, fully customizable)
 - **Animation**: Motion 12.38 (formerly Framer Motion) — Invitation App
@@ -19,14 +19,13 @@ inclusion: always
 ## Backend
 
 - **Runtime**: Node.js 22+
-- **API Framework**: Fastify 5.8
+- **API Framework**: Fastify 5.12.5
 - **Database**: PostgreSQL
 - **ORM**: Prisma 7.7
 - **Cache/Pub-Sub**: Redis (ioredis 5.10)
-- **WebSocket**: Socket.io 4.8
+- **WebSocket**: Socket.io 4.8 (via @wedding/realtime)
 - **QR Generation**: qrcode (npm)
-- **Image Processing**: Sharp 0.34
-- **File Upload**: Multer + Cloud Storage SDK
+- **File Upload**: @fastify/multipart + Cloudflare R2
 - **Auth**: JWT (jsonwebtoken 9.0) + bcrypt 6.0
 - **Validation**: Zod 3.25
 
@@ -50,7 +49,7 @@ inclusion: always
 
 | Package                      | Version  |
 | ---------------------------- | -------- |
-| next                         | 16.2.6   |
+| next                         | 16.3.8   |
 | react / react-dom            | 19.2.6   |
 | tailwindcss                  | 4.3.0    |
 | typescript                   | 5.9.3    |
@@ -59,11 +58,10 @@ inclusion: always
 | @playwright/test             | 1.55.1   |
 | playwright                   | 1.55.1   |
 | fast-check                   | 4.8.0    |
-| fastify                      | 5.8.5    |
+| fastify                      | 5.12.5   |
 | socket.io / socket.io-client | 4.8.3    |
 | prisma / @prisma/client      | 7.7.0    |
 | motion                       | 12.38.0  |
-| sharp                        | 0.34.5   |
 | bcrypt                       | 6.0.0    |
 | jsonwebtoken                 | 9.0.3    |
 | react-hook-form              | 7.75.0   |
