@@ -2,7 +2,7 @@ name: CI - Testing & Security Scanning
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, release, 'release/**']
   pull_request:
     branches: [main, develop]
 
