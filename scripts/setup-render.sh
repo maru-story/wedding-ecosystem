@@ -19,9 +19,10 @@ if [ -z "$RENDER_API_KEY" ]; then
   exit 1
 fi
 API_BASE="https://api.render.com/v1"
-SERVICE_NAME="wedding-ecosystem-api"
+SERVICE_NAME="${SERVICE_NAME:-wedding-ecosystem-api}"
 REPO_URL="https://github.com/maru-story/wedding-ecosystem"
 BRANCH="${BRANCH:-main}"
+CUSTOM_DOMAIN="${CUSTOM_DOMAIN:-api.maruplanner.my.id}"
 
 echo "============================================="
 echo " Render Service Provisioner & Configurator"
@@ -175,11 +176,11 @@ SYNC_RES=$(curl -s -X PUT "${API_BASE}/services/${SERVICE_ID}/env-vars" \
 echo "✅ Environment variables successfully configured on Render!"
 
 # 4. Add custom domain
-echo "🌐 Adding custom domain 'api.maruplanner.my.id'..."
+echo "🌐 Adding custom domain '${CUSTOM_DOMAIN}'..."
 DOMAIN_RES=$(curl -s -X POST "${API_BASE}/services/${SERVICE_ID}/custom-domains" \
   -H "Authorization: Bearer ${RENDER_API_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{"name": "api.maruplanner.my.id"}') || true
+  -d "{\"name\": \"${CUSTOM_DOMAIN}\"}") || true
 
 echo "Status custom domain: $(echo "$DOMAIN_RES" | jq -r '.verificationStatus // .message // "added"')"
 
