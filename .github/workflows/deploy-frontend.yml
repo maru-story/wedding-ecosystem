@@ -46,6 +46,7 @@ jobs:
           check-name: 'Security Gate'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 30
+          running-workflow-name: 'Wait for CI'
           allowed-conclusions: success
 
   # ─────────────────────────────────────────────────────────────────────────────

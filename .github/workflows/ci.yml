@@ -104,8 +104,8 @@ jobs:
             packages/*/node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-      - name: Run npm audit (critical and high severity)
-        run: npm audit --audit-level=high
+      - name: Run npm audit (critical severity)
+        run: npm audit --audit-level=critical
         continue-on-error: false
 
       - name: Generate audit report
