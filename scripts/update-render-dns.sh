@@ -73,18 +73,30 @@ create_or_update_record() {
     full_name="${name}.${DOMAIN}"
   fi
 
-  echo "Checking for existing ${type} record for ${full_name}..."
+  echo "Checking for existing records for ${full_name}..."
   local existing
-  existing=$(cf_api GET "${ZONE_URL}/dns_records?type=${type}&name=${full_name}")
+  existing=$(cf_api GET "${ZONE_URL}/dns_records?name=${full_name}")
   local count
   count=$(echo "$existing" | jq -r '.result | length')
 
   if [ "$count" -gt "0" ]; then
-    local record_id
-    record_id=$(echo "$existing" | jq -r '.result[0].id')
-    echo "Updating existing record ${full_name} (ID: ${record_id})..."
-    local result
-    result=$(cf_api PUT "${ZONE_URL}/dns_records/${record_id}" "{
+    for row in $(echo "$existing" | jq -r '.result[] | @base64'); do
+      local record_id=$(echo "$row" | base64 --decode | jq -r '.id')
+      local record_type=$(echo "$row" | base64 --decode | jq -r '.type')
+      if [ "$record_type" != "$type" ]; then
+        echo "Removing conflicting ${record_type} record (ID: ${record_id})..."
+        cf_api DELETE "${ZONE_URL}/dns_records/${record_id}" > /dev/null
+      fi
+    done
+  fi
+
+  local cname_existing=$(cf_api GET "${ZONE_URL}/dns_records?type=${type}&name=${full_name}")
+  local cname_count=$(echo "$cname_existing" | jq -r '.result | length')
+
+  if [ "$cname_count" -gt "0" ]; then
+    local record_id=$(echo "$cname_existing" | jq -r '.result[0].id')
+    echo "Updating existing ${type} record ${full_name} (ID: ${record_id})..."
+    local result=$(cf_api PUT "${ZONE_URL}/dns_records/${record_id}" "{
       \"type\": \"${type}\",
       \"name\": \"${name}\",
       \"content\": \"${content}\",
@@ -92,8 +104,7 @@ create_or_update_record() {
       \"proxied\": ${proxied},
       \"comment\": \"${comment}\"
     }")
-    local success
-    success=$(echo "$result" | jq -r '.success')
+    local success=$(echo "$result" | jq -r '.success')
     if [ "$success" = "true" ]; then
       echo "✅ Successfully updated: ${full_name} → ${content}"
     else
@@ -103,8 +114,7 @@ create_or_update_record() {
     fi
   else
     echo "Creating new ${type} record for ${full_name}..."
-    local result
-    result=$(cf_api POST "${ZONE_URL}/dns_records" "{
+    local result=$(cf_api POST "${ZONE_URL}/dns_records" "{
       \"type\": \"${type}\",
       \"name\": \"${name}\",
       \"content\": \"${content}\",
@@ -112,8 +122,7 @@ create_or_update_record() {
       \"proxied\": ${proxied},
       \"comment\": \"${comment}\"
     }")
-    local success
-    success=$(echo "$result" | jq -r '.success')
+    local success=$(echo "$result" | jq -r '.success')
     if [ "$success" = "true" ]; then
       echo "✅ Successfully created: ${full_name} → ${content}"
     else

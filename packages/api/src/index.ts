@@ -93,7 +93,14 @@ app.addHook('onRequest', createCORSMiddleware(corsConfig));
 // --- WebSocket / Realtime Server ---
 let realtime: RealtimeServer | null = null;
 
-// --- Routes ---
+// Root probe endpoint
+app.get('/', async (_request, reply) => {
+  return reply.send({
+    name: 'wedding-ecosystem-api',
+    status: 'online',
+    version: env.APP_VERSION || '1.2.0',
+  });
+});
 
 // Public routes
 app.register(authRoutes, {
