@@ -146,8 +146,12 @@ const eventAuthRepository: EventAuthRepository = {
 
 async function start() {
   try {
-    await prisma.$connect();
-    console.log('✅ Database connected');
+    try {
+      await prisma.$connect();
+      console.log('✅ Database connected');
+    } catch (dbErr: any) {
+      console.warn('⚠️  Database initial connection deferred:', dbErr?.message || dbErr);
+    }
 
     const redis = getCacheClient();
     if (redis) {

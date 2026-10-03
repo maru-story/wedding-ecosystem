@@ -38,4 +38,4 @@ COPY --from=builder /app ./
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "npx prisma migrate deploy --config packages/db/prisma.config.ts && node packages/api/dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --config packages/db/prisma.config.ts || echo '⚠️ DB migration failed or deferred, proceeding to boot API server...'; node packages/api/dist/index.js"]
