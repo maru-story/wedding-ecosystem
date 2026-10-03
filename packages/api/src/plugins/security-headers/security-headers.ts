@@ -79,6 +79,8 @@ const securityHeadersPlugin: FastifyPluginCallback<SecurityHeadersOptions> = (
   // Disable stack traces in production error responses (Req 12.2)
   if (isProduction) {
     fastify.setErrorHandler(async (error, request, reply) => {
+      if (reply.sent) return;
+
       const err = error as { statusCode?: number; code?: string; message?: string };
       const statusCode = err.statusCode ?? 500;
 
@@ -89,7 +91,7 @@ const securityHeadersPlugin: FastifyPluginCallback<SecurityHeadersOptions> = (
         method: request.method,
       });
 
-      reply.status(statusCode).send({
+      return reply.status(statusCode).send({
         success: false,
         error: {
           code: err.code ?? 'INTERNAL_ERROR',
