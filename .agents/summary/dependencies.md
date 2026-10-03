@@ -155,4 +155,4 @@ graph LR
 | `zod`            | Input validation prevents injection                 |
 | `ioredis`        | TLS connections in production (`rediss://`)         |
 | `@prisma/client` | Parameterized queries (SQL injection prevention)    |
-| `sharp`          | Safe image processing (no arbitrary code execution) |
+
