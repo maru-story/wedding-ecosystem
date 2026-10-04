@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createCipheriv, randomBytes } from 'crypto';
+import { randomBytes } from 'crypto';
 import {
   CheckInService,
   CheckInRepository,
@@ -21,13 +21,15 @@ import {
 
 // --- Test Helpers ---
 
-const TEST_ENCRYPTION_KEY = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
+const qrCodeRegistry = new Map<string, { guest_id: string; is_active: boolean }>();
 
 function createMockRepository(): CheckInRepository {
   return {
     findGuestById: vi.fn(),
     findGuestByIdAndEvent: vi.fn(),
-    findQRCodeByPayload: vi.fn(),
+    findQRCodeByPayload: vi.fn().mockImplementation(async (payload: string) => {
+      return qrCodeRegistry.get(payload) ?? null;
+    }),
     findCheckInByGuestId: vi.fn(),
     createCheckIn: vi.fn().mockImplementation(async (data) => ({
       id: data.id,
@@ -75,26 +77,15 @@ function createMockGuest(overrides: Partial<GuestInfo> = {}): GuestInfo {
 }
 
 /**
- * Create a valid encrypted QR payload using the same algorithm as guest.service.ts
- * Format: iv_hex:encrypted_hex
- * Plaintext: guest_id|event_id|timestamp|nonce
+ * Create a valid Short QR Token for tests and register it in the mock repository
  */
 function createValidQRPayload(
   guestId: string,
-  eventId: string,
-  encryptionKey: string = TEST_ENCRYPTION_KEY
+  _eventId?: string
 ): string {
-  const nonce = randomBytes(16).toString('hex');
-  const plaintext = `${guestId}|${eventId}|${Date.now()}|${nonce}`;
-
-  const iv = randomBytes(16);
-  const key = Buffer.from(encryptionKey, 'hex');
-  const cipher = createCipheriv('aes-256-cbc', key, iv);
-
-  let encrypted = cipher.update(plaintext, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-
-  return `${iv.toString('hex')}:${encrypted}`;
+  const token = `w_${randomBytes(8).toString('hex')}`;
+  qrCodeRegistry.set(token, { guest_id: guestId, is_active: true });
+  return token;
 }
 
 // --- Tests ---
@@ -106,6 +97,7 @@ describe('CheckInService', () => {
   let broadcaster: CheckInBroadcaster;
 
   beforeEach(() => {
+    qrCodeRegistry.clear();
     repository = createMockRepository();
     redis = createMockRedis();
     broadcaster = createMockBroadcaster();
@@ -113,33 +105,24 @@ describe('CheckInService', () => {
       id: 'event-001',
       tenant_id: 'tenant-001',
     });
+    vi.mocked(repository.findGuestById).mockImplementation(async (id: string) => {
+      return createMockGuest({ id });
+    });
     service = new CheckInService({
       repository,
       redis,
-      encryptionKey: TEST_ENCRYPTION_KEY,
       broadcaster,
     });
   });
 
   describe('constructor', () => {
-    it('should throw if encryption key is not 32 bytes', () => {
+    it('should create service with valid configuration', () => {
       expect(
         () =>
           new CheckInService({
             repository,
             redis,
-            encryptionKey: 'short_key',
-          })
-      ).toThrow('Encryption key must be 32 bytes (64 hex characters) for AES-256');
-    });
-
-    it('should create service with valid 32-byte key', () => {
-      expect(
-        () =>
-          new CheckInService({
-            repository,
-            redis,
-            encryptionKey: TEST_ENCRYPTION_KEY,
+            broadcaster,
           })
       ).not.toThrow();
     });
@@ -222,7 +205,7 @@ describe('CheckInService', () => {
     });
 
     describe('RED - invalid/not found/wrong event (Req 7.3)', () => {
-      it('should return RED when QR payload cannot be decrypted', async () => {
+      it('should return RED when QR payload not found in database', async () => {
         const result = await service.verifyQRScan('tenant-001', 'invalid-payload', 'event-001');
 
         expect(result.status).toBe(VerificationStatus.RED);
@@ -232,15 +215,11 @@ describe('CheckInService', () => {
         expect(result.checked_in_at).toBeNull();
       });
 
-      it('should return RED when QR payload has wrong format (no colon)', async () => {
-        const result = await service.verifyQRScan('tenant-001', 'nocolonseparator', 'event-001');
+      it('should return RED when QR code is inactive', async () => {
+        const inactiveToken = 'w_inactive_token_01';
+        qrCodeRegistry.set(inactiveToken, { guest_id: 'guest-001', is_active: false });
 
-        expect(result.status).toBe(VerificationStatus.RED);
-        expect(result.message).toBe('QR code tidak valid');
-      });
-
-      it('should return RED when QR payload has invalid hex', async () => {
-        const result = await service.verifyQRScan('tenant-001', 'zzzz:xxxx', 'event-001');
+        const result = await service.verifyQRScan('tenant-001', inactiveToken, 'event-001');
 
         expect(result.status).toBe(VerificationStatus.RED);
         expect(result.message).toBe('QR code tidak valid');
@@ -248,7 +227,13 @@ describe('CheckInService', () => {
 
       it('should return RED when QR belongs to a different event (Req 7.3)', async () => {
         // Create QR for event-002 but scan at event-001
-        const qrPayload = createValidQRPayload('guest-001', 'event-002');
+        const qrPayload = createValidQRPayload('guest-wrong-event', 'event-002');
+        vi.mocked(repository.findGuestById).mockImplementation(async (id: string) => {
+          if (id === 'guest-wrong-event') {
+            return createMockGuest({ id: 'guest-wrong-event', event_id: 'event-002' });
+          }
+          return createMockGuest({ id });
+        });
 
         const result = await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
 
@@ -267,17 +252,6 @@ describe('CheckInService', () => {
         expect(result.status).toBe(VerificationStatus.RED);
         expect(result.message).toBe('Tamu tidak ditemukan');
         expect(result.guest_name).toBeNull();
-      });
-
-      it('should return RED when QR payload has corrupted encryption', async () => {
-        // Valid format but wrong encryption key
-        const wrongKey = 'b1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
-        const qrPayload = createValidQRPayload('guest-001', 'event-001', wrongKey);
-
-        const result = await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
-
-        expect(result.status).toBe(VerificationStatus.RED);
-        expect(result.message).toBe('QR code tidak valid');
       });
     });
 
@@ -467,58 +441,6 @@ describe('CheckInService', () => {
           })
         );
       });
-    });
-  });
-
-  describe('decryptQRPayload', () => {
-    it('should decrypt a valid payload and return guest_id and event_id', () => {
-      const qrPayload = createValidQRPayload('guest-123', 'event-456');
-
-      const result = service.decryptQRPayload(qrPayload);
-
-      expect(result).not.toBeNull();
-      expect(result!.guestId).toBe('guest-123');
-      expect(result!.eventId).toBe('event-456');
-    });
-
-    it('should return null for empty string', () => {
-      const result = service.decryptQRPayload('');
-      expect(result).toBeNull();
-    });
-
-    it('should return null for payload without colon separator', () => {
-      const result = service.decryptQRPayload('noseparator');
-      expect(result).toBeNull();
-    });
-
-    it('should return null for payload with multiple colons', () => {
-      const result = service.decryptQRPayload('a:b:c');
-      expect(result).toBeNull();
-    });
-
-    it('should return null for non-hex IV', () => {
-      const result = service.decryptQRPayload('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz:abcdef');
-      expect(result).toBeNull();
-    });
-
-    it('should return null for IV with wrong length', () => {
-      const result = service.decryptQRPayload('abcdef:123456');
-      expect(result).toBeNull();
-    });
-
-    it('should return null for corrupted encrypted data', () => {
-      // Valid IV length but garbage encrypted data
-      const fakeIv = randomBytes(16).toString('hex');
-      const result = service.decryptQRPayload(`${fakeIv}:deadbeef`);
-      expect(result).toBeNull();
-    });
-
-    it('should return null when decrypted with wrong key', () => {
-      const wrongKey = 'b1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
-      const qrPayload = createValidQRPayload('guest-001', 'event-001', wrongKey);
-
-      const result = service.decryptQRPayload(qrPayload);
-      expect(result).toBeNull();
     });
   });
 

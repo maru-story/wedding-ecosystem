@@ -421,6 +421,7 @@ describe('GuestService', () => {
             rsvp_status: 'confirmed',
             check_in_status: false,
             qr_active: true,
+            checked_in_at: null,
           },
         ],
         pagination: {
@@ -514,7 +515,7 @@ describe('GuestService', () => {
   });
 
   describe('QR Code Generation', () => {
-    it('should generate encrypted QR payload with AES-256 (Req 3.6)', async () => {
+    it('should generate Short QR Token payload (Req 3.6)', async () => {
       vi.mocked(repository.checkQRPayloadExists).mockResolvedValue(false);
       vi.mocked(repository.createQRCode).mockImplementation(async (data) => ({
         ...data,
@@ -523,20 +524,10 @@ describe('GuestService', () => {
 
       const qrCode = await service.generateQRCode('guest-001', 'event-001');
 
-      // Payload should be in format iv:encrypted (hex)
-      expect(qrCode.qr_payload).toMatch(/^[0-9a-f]+:[0-9a-f]+$/);
-
-      // Verify it can be decrypted
-      const [ivHex, encryptedHex] = qrCode.qr_payload.split(':');
-      const iv = Buffer.from(ivHex, 'hex');
-      const key = Buffer.from(TEST_ENCRYPTION_KEY, 'hex');
-      const decipher = createDecipheriv('aes-256-cbc', key, iv);
-      let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
-      decrypted += decipher.final('utf8');
-
-      // Decrypted should contain guest_id and event_id
-      expect(decrypted).toContain('guest-001');
-      expect(decrypted).toContain('event-001');
+      // Payload should be short token format: w_ + 16 hex characters (18 chars total)
+      expect(qrCode.qr_payload).toMatch(/^w_[0-9a-f]{16}$/);
+      expect(qrCode.qr_payload.length).toBe(18);
+      expect(qrCode.is_active).toBe(true);
     });
 
     it('should generate unique payloads for different guests (Req 3.7)', async () => {

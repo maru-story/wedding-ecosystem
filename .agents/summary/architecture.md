@@ -237,5 +237,6 @@ graph TB
 | No staging environment                  | Validation via Vercel previews + CI pipeline            |
 | Room-based WebSocket                    | Data isolation per event without Redis adapter overhead |
 | Prisma over raw SQL                     | Type-safe queries, schema-first migrations              |
+| Short QR Token Architecture             | Replaces dense AES-256 ciphertext with 18-char token (`w_` + 16 hex chars) for fast optical scan detection, low-light resilience, and O(1) indexed database lookup |
 | Next.js App Router                      | RSC for invitation/dashboard performance, shared layout patterns |
 | PWA for Scanner                         | Offline-first requirement for venue reliability         |

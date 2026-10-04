@@ -3,8 +3,7 @@
  *
  * Loads the AES-256 encryption key from a SEPARATE secret store, isolated from
  * general application secrets. This key is used for:
- * - QR payload encryption (guest_id + event_id)
- * - PII encryption at rest (phone, email)
+ * - PII encryption at rest (phone)
  *
  * SECURITY: The encryption key MUST be stored in a dedicated Railway service
  * variable group (or equivalent secret manager scope) that is:

@@ -1,4 +1,4 @@
-import { randomUUID, createCipheriv, randomBytes } from 'crypto';
+import { randomUUID, randomBytes } from 'crypto';
 import { ErrorCode } from '@wedding/shared';
 import type { CreateGuestInput, UpdateGuestInput, PaginationInput } from '@wedding/shared';
 import { GuestGroup, GuestType, DeliveryStatus } from '@wedding/shared';
@@ -7,8 +7,6 @@ import { PIIEncryption } from '../../middleware/encryption/encryption';
 // --- Constants ---
 
 const GUESTS_PER_PAGE = 50;
-const AES_ALGORITHM = 'aes-256-cbc';
-const IV_LENGTH = 16;
 /** Minimum characters for guest name search */
 const MIN_SEARCH_CHARS = 3;
 /** Maximum search results returned */
@@ -235,17 +233,11 @@ export interface GuestRepository {
 
 export class GuestService {
   private readonly repository: GuestRepository;
-  private readonly encryptionKey: Buffer;
   private readonly piiEncryption: PIIEncryption;
 
   constructor(config: { repository: GuestRepository; encryptionKey: string }) {
     this.repository = config.repository;
     this.piiEncryption = new PIIEncryption({ encryptionKey: config.encryptionKey });
-    // AES-256 requires a 32-byte key
-    this.encryptionKey = Buffer.from(config.encryptionKey, 'hex');
-    if (this.encryptionKey.length !== 32) {
-      throw new Error('Encryption key must be 32 bytes (64 hex characters) for AES-256');
-    }
   }
 
   // --- Create Guest ---
@@ -253,7 +245,7 @@ export class GuestService {
   /**
    * Add a new guest with auto QR code generation (Req 3.1)
    * - Generates unique slug for invitation URL
-   * - Generates AES-256 encrypted QR payload (Req 3.6)
+   * - Generates unique Short QR Token (Req 3.6)
    * - QR payload is unique across the platform (Req 3.7)
    */
   async addGuest(
@@ -302,7 +294,7 @@ export class GuestService {
       delivery_status: DeliveryStatus.NOT_SENT,
     });
 
-    // Generate QR code with encrypted payload (Req 3.6, 3.7)
+    // Generate QR code with Short QR Token (Req 3.6, 3.7)
     const qrCode = await this.generateQRCode(guestId, eventId);
 
     return {
@@ -538,11 +530,32 @@ export class GuestService {
   // --- QR Code Generation ---
 
   /**
-   * Generate encrypted QR code payload (Req 3.6, 3.7)
-   * Payload contains guest_id + event_id encrypted with AES-256
+   * Generate a cryptographically secure short token for QR code payload.
+   * Format: w_ prefix + 16 random hex characters (64 bits of entropy).
+   * Resulting QR code is low density (version 2-3, 25x25 matrix) for instant scanning.
    */
-  async generateQRCode(guestId: string, eventId: string): Promise<QRCodeRecord> {
-    const payload = await this.createEncryptedPayload(guestId, eventId);
+  generateQRToken(): string {
+    return `w_${randomBytes(8).toString('hex')}`;
+  }
+
+  /**
+   * Create a guaranteed-unique QR token across the platform.
+   */
+  async createUniqueQRToken(): Promise<string> {
+    let token = this.generateQRToken();
+    let exists = await this.repository.checkQRPayloadExists(token);
+    while (exists) {
+      token = this.generateQRToken();
+      exists = await this.repository.checkQRPayloadExists(token);
+    }
+    return token;
+  }
+
+  /**
+   * Generate QR code with a unique Short QR Token (Req 3.6, 3.7)
+   */
+  async generateQRCode(guestId: string, _eventId: string): Promise<QRCodeRecord> {
+    const payload = await this.createUniqueQRToken();
 
     const qrCode = await this.repository.createQRCode({
       id: randomUUID(),
@@ -555,32 +568,10 @@ export class GuestService {
   }
 
   /**
-   * Create AES-256 encrypted payload (Req 3.6)
-   * Format: iv:encrypted_data (hex encoded)
-   * Plaintext: guest_id|event_id|timestamp|random_nonce
+   * Helper for unique QR payload generation (alias to createUniqueQRToken)
    */
-  async createEncryptedPayload(guestId: string, eventId: string): Promise<string> {
-    // Include timestamp and random nonce to ensure uniqueness (Req 3.7)
-    const nonce = randomBytes(16).toString('hex');
-    const plaintext = `${guestId}|${eventId}|${Date.now()}|${nonce}`;
-
-    const iv = randomBytes(IV_LENGTH);
-    const cipher = createCipheriv(AES_ALGORITHM, this.encryptionKey, iv);
-
-    let encrypted = cipher.update(plaintext, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-
-    // Format: iv:encrypted (both hex encoded)
-    const payload = `${iv.toString('hex')}:${encrypted}`;
-
-    // Verify uniqueness across platform (Req 3.7)
-    const exists = await this.repository.checkQRPayloadExists(payload);
-    if (exists) {
-      // Extremely unlikely but handle by regenerating
-      return this.createEncryptedPayload(guestId, eventId);
-    }
-
-    return payload;
+  async createEncryptedPayload(_guestId?: string, _eventId?: string): Promise<string> {
+    return this.createUniqueQRToken();
   }
 
   async listUniqueGroups(eventId: string, tenantId: string): Promise<string[] | GuestServiceError> {
@@ -639,7 +630,7 @@ export class GuestService {
    *   1. Verifies event + capacity once.
    *   2. Fetches all existing slugs once.
    *   3. Generates slugs entirely in-memory.
-   *   4. Builds encrypted QR payloads in-memory (CPU only, no DB per row).
+   *   4. Builds unique Short QR Tokens in-memory.
    *   5. Inserts all guests + QR codes in a single transaction (2 queries).
    *
    * Returns the number of rows actually inserted.
@@ -709,8 +700,8 @@ export class GuestService {
       const invitationUrl = `/${event.slug}?to=${slug}`;
       const encryptedPhone = this.piiEncryption.encrypt(row.phone || null);
 
-      // Build QR payload in-memory (AES-256 — CPU only, no DB check per row)
-      const qrPayload = this.createEncryptedPayloadSync(guestId, eventId);
+      // Build QR payload in-memory (Short Token — 64-bit entropy, collision-proof)
+      const qrPayload = this.generateQRToken();
 
       guestData.push({
         id: guestId,
@@ -755,21 +746,6 @@ export class GuestService {
       candidate = `${baseSlug}-${suffix}`;
     }
     return candidate;
-  }
-
-  /**
-   * Synchronous AES-256-CBC encryption for batch QR payload generation.
-   * Randomness comes from IV + nonce — no DB uniqueness check needed because
-   * the IV (16 bytes) + nonce (16 bytes) collision probability is negligible.
-   */
-  private createEncryptedPayloadSync(guestId: string, eventId: string): string {
-    const nonce = randomBytes(16).toString('hex');
-    const plaintext = `${guestId}|${eventId}|${Date.now()}|${nonce}`;
-    const iv = randomBytes(IV_LENGTH);
-    const cipher = createCipheriv(AES_ALGORITHM, this.encryptionKey, iv);
-    let encrypted = cipher.update(plaintext, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return `${iv.toString('hex')}:${encrypted}`;
   }
 
   // --- Slug Generation ---
@@ -951,8 +927,6 @@ export function isGuestError(
 
 export const GUEST_CONSTANTS = {
   GUESTS_PER_PAGE,
-  AES_ALGORITHM,
-  IV_LENGTH,
   MIN_SEARCH_CHARS,
   MAX_SEARCH_RESULTS,
 } as const;

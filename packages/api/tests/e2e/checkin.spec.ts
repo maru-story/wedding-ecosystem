@@ -20,6 +20,7 @@ test.describe('Check-in API E2E', () => {
     const qrData = await qrResponse.json();
     const qrPayload = qrData.qr_payload;
     expect(qrPayload).not.toBeNull();
+    expect(qrPayload).toMatch(/^w_[0-9a-f]{16}$/);
 
     // 3. Perform first scan (GREEN)
     const scan1Response = await tenantA.request.post('/checkin/scan', {
