@@ -48,21 +48,10 @@ const arbScannerDeviceId = fc.uuid();
  * Plaintext: guest_id|event_id|timestamp|nonce
  */
 function createValidQRPayload(
-  guestId: string,
-  eventId: string,
-  encryptionKey: string = TEST_ENCRYPTION_KEY
+  _guestId?: string,
+  _eventId?: string
 ): string {
-  const nonce = randomBytes(16).toString('hex');
-  const plaintext = `${guestId}|${eventId}|${Date.now()}|${nonce}`;
-
-  const iv = randomBytes(16);
-  const key = Buffer.from(encryptionKey, 'hex');
-  const cipher = createCipheriv('aes-256-cbc', key, iv);
-
-  let encrypted = cipher.update(plaintext, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-
-  return `${iv.toString('hex')}:${encrypted}`;
+  return `w_${randomBytes(8).toString('hex')}`;
 }
 
 /**
@@ -105,7 +94,9 @@ function createInMemoryRepository(
     findGuestByIdAndEvent: async (guestId: string, eventId: string) => {
       return guestId === guest.id && eventId === guest.event_id ? guest : null;
     },
-    findQRCodeByPayload: async () => null,
+    findQRCodeByPayload: async (payload: string) => {
+      return payload.startsWith('w_') ? { guest_id: guest.id, is_active: true } : null;
+    },
     findCheckInByGuestId: async (guestId: string) => {
       const found = checkIns.find((c) => c.guest_id === guestId);
       return found ? { ...found } : null;

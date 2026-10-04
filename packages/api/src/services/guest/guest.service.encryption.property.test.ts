@@ -1,13 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fc from 'fast-check';
-import { createDecipheriv } from 'crypto';
-import { GuestGroup, GuestType, DeliveryStatus } from '@wedding/shared';
-import { GuestService, GuestRepository, GUEST_CONSTANTS } from './guest.service';
+import { GuestService, GuestRepository } from './guest.service';
 
 // --- Constants ---
 
-const TEST_ENCRYPTION_KEY = 'a'.repeat(64); // 32 bytes in hex for AES-256
-const { AES_ALGORITHM, IV_LENGTH } = GUEST_CONSTANTS;
+const TEST_ENCRYPTION_KEY = 'a'.repeat(64); // 32 bytes in hex for PII
 
 // --- Arbitraries ---
 
@@ -85,6 +82,11 @@ function createMockRepository(): GuestRepository {
     countGuestsByEvent: async () => 0,
     findGuestNamesByEvent: async () => [],
     searchGuestsByName: async () => [],
+    findUniqueGroupsByEvent: async () => [],
+    reassignGroup: async () => 0,
+    findGuestsForExport: async () => [],
+    findSlugsByEvent: async () => [],
+    bulkCreateGuestsAndQRCodes: async () => 0,
   };
 }
 
@@ -95,40 +97,16 @@ function createGuestService(repository: GuestRepository): GuestService {
   });
 }
 
-/**
- * Decrypts a QR payload using the same AES-256-CBC algorithm.
- * Returns the plaintext string or null if decryption fails.
- */
-function decryptPayload(payload: string): string | null {
-  try {
-    const parts = payload.split(':');
-    if (parts.length !== 2) return null;
-
-    const [ivHex, encryptedHex] = parts;
-    const iv = Buffer.from(ivHex, 'hex');
-    const key = Buffer.from(TEST_ENCRYPTION_KEY, 'hex');
-    const decipher = createDecipheriv(AES_ALGORITHM, key, iv);
-
-    let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-
-    return decrypted;
-  } catch {
-    return null;
-  }
-}
-
 // --- Property Tests ---
 
-describe('Property 5: QR Code Encryption', () => {
+describe('Property 5: Short QR Token Opacity & Architecture', () => {
   /**
    * **Validates: Requirements 3.5, 13.1**
    *
-   * For any generated QR code, the payload SHALL be encrypted using AES-256
-   * such that the raw guest_id and event_id are not readable from the payload
-   * without decryption.
+   * For any generated QR code, the token SHALL be opaque such that raw guest_id
+   * and event_id are NOT contained in the token.
    */
-  it('encrypted payload does NOT contain raw guest_id or event_id as plaintext', async () => {
+  it('token does NOT contain raw guest_id or event_id as plaintext', async () => {
     await fc.assert(
       fc.asyncProperty(arbGuestId, arbEventId, async (guestId, eventId) => {
         const repository = createMockRepository();
@@ -145,12 +123,11 @@ describe('Property 5: QR Code Encryption', () => {
   });
 
   /**
-   * **Validates: Requirements 3.5, 13.1**
+   * **Validates: Requirements 3.6, 13.1**
    *
-   * For any generated QR code, the payload CAN be decrypted back to the
-   * original guest_id and event_id using the correct encryption key.
+   * Token format is w_ prefix followed by 16 hex characters (18 characters total).
    */
-  it('encrypted payload can be decrypted to recover original guest_id and event_id', async () => {
+  it('token uses short format (w_ prefix + 16 hex chars = 18 chars)', async () => {
     await fc.assert(
       fc.asyncProperty(arbGuestId, arbEventId, async (guestId, eventId) => {
         const repository = createMockRepository();
@@ -158,101 +135,54 @@ describe('Property 5: QR Code Encryption', () => {
 
         const payload = await service.createEncryptedPayload(guestId, eventId);
 
-        // Decrypt the payload
-        const decrypted = decryptPayload(payload);
-        expect(decrypted).not.toBeNull();
-
-        // Parse the decrypted plaintext: guest_id|event_id|timestamp|nonce
-        const segments = decrypted!.split('|');
-        expect(segments.length).toBe(4);
-
-        const [recoveredGuestId, recoveredEventId] = segments;
-        expect(recoveredGuestId).toBe(guestId);
-        expect(recoveredEventId).toBe(eventId);
+        expect(payload).toMatch(/^w_[0-9a-f]{16}$/);
+        expect(payload.length).toBe(18);
       }),
       { numRuns: 100 }
     );
   });
 
   /**
-   * **Validates: Requirements 3.5, 13.1**
+   * **Validates: Requirements 3.6, 3.7**
    *
-   * The payload format uses AES-256-CBC encryption:
-   * - Format is iv_hex:encrypted_hex
-   * - IV is exactly 16 bytes (32 hex characters)
-   * - Both parts are valid hex strings
+   * Tokens generated across multiple invocations are always unique (64-bit entropy).
    */
-  it('payload uses correct AES-256-CBC format (iv_hex:encrypted_hex)', async () => {
+  it('tokens are uniquely generated for successive calls', async () => {
     await fc.assert(
-      fc.asyncProperty(arbGuestId, arbEventId, async (guestId, eventId) => {
+      fc.asyncProperty(arbGuestId, arbEventId, fc.integer({ min: 2, max: 10 }), async (guestId, eventId, count) => {
         const repository = createMockRepository();
         const service = createGuestService(repository);
 
-        const payload = await service.createEncryptedPayload(guestId, eventId);
+        const tokens: string[] = [];
+        for (let i = 0; i < count; i++) {
+          const payload = await service.createEncryptedPayload(guestId, eventId);
+          tokens.push(payload);
+        }
 
-        // Payload must have format: iv_hex:encrypted_hex
-        const parts = payload.split(':');
-        expect(parts.length).toBe(2);
-
-        const [ivHex, encryptedHex] = parts;
-
-        // IV must be exactly 16 bytes = 32 hex characters (AES block size)
-        expect(ivHex.length).toBe(IV_LENGTH * 2);
-
-        // Both parts must be valid hex strings
-        expect(ivHex).toMatch(/^[0-9a-f]+$/);
-        expect(encryptedHex).toMatch(/^[0-9a-f]+$/);
-
-        // Encrypted data must be non-empty
-        expect(encryptedHex.length).toBeGreaterThan(0);
+        const uniqueTokens = new Set(tokens);
+        expect(uniqueTokens.size).toBe(tokens.length);
       }),
       { numRuns: 100 }
     );
   });
 
   /**
-   * **Validates: Requirements 3.5, 13.1**
+   * **Validates: Requirements 3.7**
    *
-   * The payload cannot be decrypted with a wrong key, ensuring
-   * that AES-256 encryption provides confidentiality.
+   * Regenerates token if collision exists in repository.
    */
-  it('payload cannot be decrypted with a different key', async () => {
-    await fc.assert(
-      fc.asyncProperty(arbGuestId, arbEventId, async (guestId, eventId) => {
-        const repository = createMockRepository();
-        const service = createGuestService(repository);
+  it('regenerates token if collision detected in database', async () => {
+    const repository = createMockRepository();
+    const service = createGuestService(repository);
 
-        const payload = await service.createEncryptedPayload(guestId, eventId);
+    let checkCount = 0;
+    vi.spyOn(repository, 'checkQRPayloadExists').mockImplementation(async () => {
+      checkCount++;
+      return checkCount === 1; // collide on first try, succeed on second
+    });
 
-        // Try to decrypt with a different key
-        const wrongKey = 'b'.repeat(64); // Different 32-byte key
-        const parts = payload.split(':');
-        const [ivHex, encryptedHex] = parts;
-
-        let decryptedWithWrongKey: string | null = null;
-        try {
-          const iv = Buffer.from(ivHex, 'hex');
-          const key = Buffer.from(wrongKey, 'hex');
-          const decipher = createDecipheriv(AES_ALGORITHM, key, iv);
-          let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
-          decrypted += decipher.final('utf8');
-          decryptedWithWrongKey = decrypted;
-        } catch {
-          // Expected: decryption should fail with wrong key
-          decryptedWithWrongKey = null;
-        }
-
-        // Either decryption fails entirely, or the decrypted content
-        // does not contain the original guest_id and event_id
-        if (decryptedWithWrongKey !== null) {
-          const segments = decryptedWithWrongKey.split('|');
-          const wrongGuestId = segments[0];
-          const wrongEventId = segments[1];
-          // Even if decryption doesn't throw, the data should be garbage
-          expect(wrongGuestId === guestId && wrongEventId === eventId).toBe(false);
-        }
-      }),
-      { numRuns: 100 }
-    );
+    const token = await service.createUniqueQRToken();
+    expect(checkCount).toBe(2);
+    expect(token).toMatch(/^w_[0-9a-f]{16}$/);
   });
 });

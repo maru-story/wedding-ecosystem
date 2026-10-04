@@ -33,42 +33,21 @@ const arbGuestGroup = fc.constantFrom(
 /** Generates a guest name (non-empty string) */
 const arbGuestName = fc.string({ minLength: 1, maxLength: 50 }).filter((s) => s.trim().length > 0);
 
-/** Generates a random invalid QR payload (not a valid encrypted payload) */
-const arbInvalidQRPayload = fc.string({ minLength: 1, maxLength: 200 }).filter((s) => {
-  // Filter out strings that could accidentally be valid iv:encrypted format
-  const parts = s.split(':');
-  if (parts.length !== 2) return true;
-  const [ivHex, encHex] = parts;
-  // Must NOT look like valid hex with correct IV length
-  if (/^[0-9a-f]{32}$/.test(ivHex) && /^[0-9a-f]+$/.test(encHex) && encHex.length > 0) {
-    return false;
-  }
-  return true;
-});
+/** Generates a random invalid QR payload (not starting with w_) */
+const arbInvalidQRPayload = fc
+  .string({ minLength: 1, maxLength: 200 })
+  .filter((s) => !s.startsWith('w_'));
 
 // --- Test Helpers ---
 
 /**
- * Create a valid encrypted QR payload using the same algorithm as guest.service.ts
- * Format: iv_hex:encrypted_hex
- * Plaintext: guest_id|event_id|timestamp|nonce
+ * Create a valid Short QR Token for tests
  */
 function createValidQRPayload(
-  guestId: string,
-  eventId: string,
-  encryptionKey: string = TEST_ENCRYPTION_KEY
+  _guestId?: string,
+  _eventId?: string
 ): string {
-  const nonce = randomBytes(16).toString('hex');
-  const plaintext = `${guestId}|${eventId}|${Date.now()}|${nonce}`;
-
-  const iv = randomBytes(16);
-  const key = Buffer.from(encryptionKey, 'hex');
-  const cipher = createCipheriv('aes-256-cbc', key, iv);
-
-  let encrypted = cipher.update(plaintext, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-
-  return `${iv.toString('hex')}:${encrypted}`;
+  return `w_${randomBytes(8).toString('hex')}`;
 }
 
 /**
@@ -96,7 +75,8 @@ function createInMemoryRedis(): RedisClient & { store: Map<string, string> } {
  * Creates an in-memory repository that tracks check-in records.
  */
 function createInMemoryRepository(
-  guest: GuestInfo
+  guest: GuestInfo,
+  validPayload?: string
 ): CheckInRepository & { checkIns: CheckInRecord[] } {
   const checkIns: CheckInRecord[] = [];
 
@@ -108,7 +88,12 @@ function createInMemoryRepository(
     findGuestByIdAndEvent: async (guestId: string, eventId: string) => {
       return guestId === guest.id && eventId === guest.event_id ? guest : null;
     },
-    findQRCodeByPayload: async () => null,
+    findQRCodeByPayload: async (payload: string) => {
+      if (validPayload !== undefined) {
+        return payload === validPayload ? { guest_id: guest.id, is_active: true } : null;
+      }
+      return payload.startsWith('w_') ? { guest_id: guest.id, is_active: true } : null;
+    },
     findCheckInByGuestId: async (guestId: string) => {
       const found = checkIns.find((c) => c.guest_id === guestId);
       return found ? { ...found } : null;
@@ -139,9 +124,10 @@ function createInMemoryRepository(
       event_id: data.event_id,
       name: data.name,
       group: GuestGroup.FRIEND,
+      plus_one_count: 0,
     }),
     findEventById: async (eventId: string) => {
-      return eventId === guest.event_id ? { id: eventId, tenant_id: 'tenant-001' } : null;
+      return { id: eventId, tenant_id: 'tenant-001' };
     },
   };
 }

@@ -40,12 +40,9 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
     ? new IoRedisCheckInClient(redisClient)
     : new NoOpRedisCheckInClient();
 
-  const encryptionKey = process.env.ENCRYPTION_KEY_AES256 || process.env.AES_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
-
   const checkInService = new CheckInService({
     repository,
     redis: redisAdapter,
-    encryptionKey,
     broadcaster,
   });
 

@@ -119,7 +119,7 @@
 
 1. **Tenant isolation** — EVERY database query MUST be scoped by `tenant_id`. Never expose data across tenants.
 2. **Personalized URLs** — Format: `/{event-slug}?to={guest-slug}`. The guest-slug determines the name on the cover.
-3. **QR uniqueness** — One QR code per guest per event. Payload contains `guest_id` + `event_id`.
+3. **QR uniqueness & Short QR Token** — One QR code per guest per event. Payload is an opaque high-entropy Short QR Token (`w_` prefix + 16 hex chars, 18 chars total) with collision retry. Verified via O(1) indexed lookup in DB.
 4. **Duplicate detection** — Allow duplicate check-ins. Subsequent scans increment the `scan_count` counter and return a success status (GREEN).
 5. **Go-Show flow** — Walk-in guests added on-site. Temporary record, no QR code, immediately checked in.
 6. **CMS sections** — 15 configurable sections per invitation (cover, bride_groom, bride, groom, story, verse, countdown, akad_resepsi, rsvp, gallery, video, gift, messages, closing, music). Each toggleable and reorderable.

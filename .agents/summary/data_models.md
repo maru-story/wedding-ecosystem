@@ -123,7 +123,7 @@ QR code associated with a guest for check-in verification.
 | -------------- | -------- | --------------- | --------------------------------------- |
 | `id`           | UUID     | PK              | Unique identifier                       |
 | `guest_id`     | UUID     | FK → Guest      | Owning guest                            |
-| `qr_payload`   | String   | Unique          | Encrypted payload (guest_id + event_id) |
+| `qr_payload`   | String   | Unique          | Short QR Token (`w_` + 16 hex chars)    |
 | `is_active`    | Boolean  | Default: `true` | Can be deactivated                      |
 | `generated_at` | DateTime | Auto            | Generation timestamp                    |
 

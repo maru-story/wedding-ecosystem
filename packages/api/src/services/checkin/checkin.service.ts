@@ -1,4 +1,4 @@
-import { createDecipheriv, randomUUID } from 'crypto';
+import { randomUUID } from 'crypto';
 import {
   CheckInMethod,
   ErrorCode,
@@ -10,7 +10,6 @@ import type { ScanVerificationResult } from '@wedding/shared';
 
 // --- Constants ---
 
-const AES_ALGORITHM = 'aes-256-cbc';
 const CHECKIN_KEY_PREFIX = 'checkin:';
 /** TTL for check-in keys in Redis (24 hours) */
 const CHECKIN_KEY_TTL_SECONDS = 86400;
@@ -151,22 +150,17 @@ export interface CheckInBroadcaster {
 export class CheckInService {
   private readonly repository: CheckInRepository;
   private readonly redis: RedisClient;
-  private readonly encryptionKey: Buffer;
   private readonly broadcaster: CheckInBroadcaster | null;
 
   constructor(config: {
     repository: CheckInRepository;
     redis: RedisClient;
-    encryptionKey: string;
+    encryptionKey?: string;
     broadcaster?: CheckInBroadcaster;
   }) {
     this.repository = config.repository;
     this.redis = config.redis;
     this.broadcaster = config.broadcaster ?? null;
-    this.encryptionKey = Buffer.from(config.encryptionKey, 'hex');
-    if (this.encryptionKey.length !== 32) {
-      throw new Error('Encryption key must be 32 bytes (64 hex characters) for AES-256');
-    }
   }
 
   /**
@@ -201,9 +195,9 @@ export class CheckInService {
       };
     }
 
-    // Step 1: Decrypt QR payload
-    const decryptResult = this.decryptQRPayload(qrPayload);
-    if (!decryptResult) {
+    // Step 1: Look up QR code by token payload (Req 7.1, 7.3)
+    const qrCode = await this.repository.findQRCodeByPayload(qrPayload);
+    if (!qrCode || !qrCode.is_active) {
       return {
         status: VerificationStatus.RED,
         guest_name: null,
@@ -214,21 +208,9 @@ export class CheckInService {
       };
     }
 
-    const { guestId, eventId: qrEventId } = decryptResult;
+    const guestId = qrCode.guest_id;
 
-    // Step 2: Validate event matches (Req 7.3 - wrong event)
-    if (qrEventId !== eventId) {
-      return {
-        status: VerificationStatus.RED,
-        guest_name: null,
-        guest_group: null,
-        message: 'QR code bukan untuk event ini',
-        scan_count: 0,
-        checked_in_at: null,
-      };
-    }
-
-    // Step 3: Validate guest exists in database
+    // Step 2: Validate guest exists in database
     const guest = await this.repository.findGuestById(guestId);
     if (!guest) {
       return {
@@ -236,6 +218,18 @@ export class CheckInService {
         guest_name: null,
         guest_group: null,
         message: 'Tamu tidak ditemukan',
+        scan_count: 0,
+        checked_in_at: null,
+      };
+    }
+
+    // Step 3: Validate event matches (Req 7.3 - wrong event)
+    if (guest.event_id !== eventId) {
+      return {
+        status: VerificationStatus.RED,
+        guest_name: null,
+        guest_group: null,
+        message: 'QR code bukan untuk event ini',
         scan_count: 0,
         checked_in_at: null,
       };
@@ -576,56 +570,6 @@ export class CheckInService {
       results,
     };
   }
-
-  /**
-   * Decrypt a QR payload to extract guest_id and event_id.
-   * Payload format: iv_hex:encrypted_hex
-   * Plaintext format: guest_id|event_id|timestamp|nonce
-   *
-   * Returns null if decryption fails (invalid QR).
-   */
-  decryptQRPayload(payload: string): { guestId: string; eventId: string } | null {
-    try {
-      const parts = payload.split(':');
-      if (parts.length !== 2) {
-        return null;
-      }
-
-      const [ivHex, encryptedHex] = parts;
-
-      // Validate hex format
-      if (!/^[0-9a-f]+$/.test(ivHex) || !/^[0-9a-f]+$/.test(encryptedHex)) {
-        return null;
-      }
-
-      // IV must be 16 bytes (32 hex chars)
-      if (ivHex.length !== 32) {
-        return null;
-      }
-
-      const iv = Buffer.from(ivHex, 'hex');
-      const decipher = createDecipheriv(AES_ALGORITHM, this.encryptionKey, iv);
-
-      let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
-      decrypted += decipher.final('utf8');
-
-      // Parse plaintext: guest_id|event_id|timestamp|nonce
-      const segments = decrypted.split('|');
-      if (segments.length < 2) {
-        return null;
-      }
-
-      const [guestId, eventId] = segments;
-      if (!guestId || !eventId) {
-        return null;
-      }
-
-      return { guestId, eventId };
-    } catch {
-      // Decryption failure — invalid QR
-      return null;
-    }
-  }
 }
 
 // --- Type guards ---
@@ -652,7 +596,6 @@ export function isServiceError(
 // --- Exported constants for testing ---
 
 export const CHECKIN_CONSTANTS = {
-  AES_ALGORITHM,
   CHECKIN_KEY_PREFIX,
   CHECKIN_KEY_TTL_SECONDS,
   MIN_SEARCH_CHARS,
