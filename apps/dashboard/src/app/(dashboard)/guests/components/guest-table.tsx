@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { GuestGroup } from '@wedding/shared';
 import type { GuestListItem } from '../page';
+import { getApiErrorMessage } from '@/lib/api';
 import { TableCell, TableHead, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -114,10 +115,10 @@ export function GuestTable({
     try {
       await deleteGuest.mutateAsync(id);
       toast.success(`Tamu "${name}" berhasil dihapus`);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Delete guest error:', err);
       toast.error(
-        err instanceof Error ? err.message : `Gagal menghapus tamu "${name}". Silakan coba lagi.`
+        getApiErrorMessage(err, `Gagal menghapus tamu "${name}". Silakan coba lagi.`)
       );
     } finally {
       setPendingDeleteGuest(null);
@@ -130,10 +131,10 @@ export function GuestTable({
       const result = await bulkDeleteGuests.mutateAsync(selectedIds);
       toast.success(`${result.deletedCount} tamu berhasil dihapus`);
       onClearSelection();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Bulk delete error:', err);
       toast.error(
-        err instanceof Error ? err.message : 'Gagal menghapus beberapa tamu. Silakan coba lagi.'
+        getApiErrorMessage(err, 'Gagal menghapus beberapa tamu. Silakan coba lagi.')
       );
     } finally {
       setShowBulkDeleteDialog(false);

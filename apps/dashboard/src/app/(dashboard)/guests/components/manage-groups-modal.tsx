@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { GuestGroup } from '@wedding/shared';
 import { useGuestGroups, useGuests, useReassignGroup } from '@/hooks/queries';
+import { getApiErrorMessage } from '@/lib/api';
 import { toast } from 'sonner';
 import { ArrowRight, Loader2, Trash2 } from 'lucide-react';
 
@@ -125,8 +126,8 @@ export function ManageGroupsModal({ open, onClose }: ManageGroupsModalProps) {
       });
       toast.success(result.message);
       handleCancel();
-    } catch {
-      toast.error('Gagal memindahkan grup. Silakan coba lagi.');
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Gagal memindahkan grup. Silakan coba lagi.'));
     }
   };
 

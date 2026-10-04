@@ -56,7 +56,7 @@ export async function apiFetch<T>(endpoint: string, options: ApiOptions = {}): P
         body: body ? JSON.stringify(body) : undefined,
       });
       if (!retryResponse.ok) {
-        throw new ApiError(retryResponse.status, await retryResponse.json());
+        throw new ApiError(retryResponse.status, await parseResponsePayload(retryResponse));
       }
       return retryResponse.json();
     } else {
@@ -70,7 +70,7 @@ export async function apiFetch<T>(endpoint: string, options: ApiOptions = {}): P
   }
 
   if (!response.ok) {
-    throw new ApiError(response.status, await response.json());
+    throw new ApiError(response.status, await parseResponsePayload(response));
   }
 
   return response.json();
@@ -113,7 +113,7 @@ export async function apiFetchRaw(endpoint: string, options: ApiOptions = {}): P
         body: body ? JSON.stringify(body) : undefined,
       });
       if (!retryResponse.ok) {
-        throw new ApiError(retryResponse.status, await retryResponse.json());
+        throw new ApiError(retryResponse.status, await parseResponsePayload(retryResponse));
       }
       return retryResponse;
     } else {
@@ -126,21 +126,59 @@ export async function apiFetchRaw(endpoint: string, options: ApiOptions = {}): P
   }
 
   if (!response.ok) {
-    throw new ApiError(response.status, await response.json());
+    throw new ApiError(response.status, await parseResponsePayload(response));
   }
 
   return response;
 }
 
+async function parseResponsePayload(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
 export class ApiError extends Error {
   status: number;
   data: unknown;
+  code?: string;
 
   constructor(status: number, data: unknown) {
-    super(`API Error: ${status}`);
+    const errorObj = (data as { error?: { message?: string; code?: string }; message?: string })?.error;
+    const extractedMessage =
+      errorObj?.message ||
+      (typeof (data as { message?: string })?.message === 'string' ? (data as { message: string }).message : null) ||
+      `API Error: ${status}`;
+
+    super(extractedMessage);
+    this.name = 'ApiError';
     this.status = status;
     this.data = data;
+    this.code = errorObj?.code;
   }
+}
+
+/**
+ * Universal error message extractor for dashboard.
+ * Prioritizes ApiError parsed message, generic Error.message, or string error,
+ * falling back to a localized default message.
+ */
+export function getApiErrorMessage(
+  err: unknown,
+  fallback = 'Terjadi kesalahan sistem. Silakan coba lagi.'
+): string {
+  if (err instanceof ApiError) {
+    return err.message;
+  }
+  if (err instanceof Error) {
+    return err.message;
+  }
+  if (typeof err === 'string' && err.trim().length > 0) {
+    return err;
+  }
+  return fallback;
 }
 
 // --- Token Management ---

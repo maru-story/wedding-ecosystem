@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ApiError } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api';
 import { DeliveryStatus } from '@wedding/shared';
 import {
   useGuestsWithDeliveryStatus,
@@ -119,10 +119,7 @@ export default function SendInvitationPage() {
   // Error notifications
   useEffect(() => {
     if (guestsError) {
-      const msg =
-        guestsError instanceof ApiError
-          ? (guestsError.data as { message?: string })?.message || 'Unknown error'
-          : 'Terjadi kesalahan jaringan';
+      const msg = getApiErrorMessage(guestsError, 'Terjadi kesalahan jaringan');
       toast.error(`Gagal memuat data tamu: ${msg}`);
     }
   }, [guestsError]);
@@ -148,10 +145,7 @@ export default function SendInvitationPage() {
           }
         },
         onError: (err) => {
-          const errorMessage =
-            err instanceof ApiError
-              ? (err.data as { message?: string })?.message || 'Terjadi kesalahan'
-              : 'Terjadi kesalahan jaringan';
+          const errorMessage = getApiErrorMessage(err, 'Terjadi kesalahan jaringan');
           toast.error(`Gagal: ${errorMessage}`);
         },
       }
@@ -171,10 +165,7 @@ export default function SendInvitationPage() {
           toast.success('Template pesan berhasil diperbarui');
         },
         onError: (err) => {
-          const errorMessage =
-            err instanceof ApiError
-              ? (err.data as { message?: string })?.message || 'Terjadi kesalahan'
-              : 'Gagal memperbarui template';
+          const errorMessage = getApiErrorMessage(err, 'Gagal memperbarui template');
           toast.error(errorMessage);
         },
       }
@@ -222,10 +213,7 @@ export default function SendInvitationPage() {
           setEditingPhoneGuestId(null);
         },
         onError: (err) => {
-          const errorMessage =
-            err instanceof ApiError
-              ? (err.data as { message?: string })?.message || 'Gagal menyimpan nomor telepon'
-              : 'Terjadi kesalahan jaringan';
+          const errorMessage = getApiErrorMessage(err, 'Gagal menyimpan nomor telepon');
           toast.error(errorMessage);
         },
       }

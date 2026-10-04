@@ -8,7 +8,7 @@ import { TableCell, TableHead, TableRow } from '@/components/ui/table';
 import { FadeIn } from '@/components/ui/motion-wrapper';
 import { MessageSquare, Download, Trash2, Loader2, RefreshCw, Eye } from 'lucide-react';
 import { toast } from 'sonner';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, getApiErrorMessage } from '@/lib/api';
 import { useTableState } from '@/hooks/use-table-state';
 import { DataTable } from '@/components/ui/data-table';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
@@ -67,8 +67,8 @@ export default function WishesPage() {
     try {
       await toggleMutation.mutateAsync({ id: wish.id, isVisible: !wish.is_visible });
       toast.success(!wish.is_visible ? 'Ucapan ditampilkan di undangan' : 'Ucapan disembunyikan');
-    } catch {
-      toast.error('Gagal mengubah status visibilitas ucapan');
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Gagal mengubah status visibilitas ucapan'));
     } finally {
       setTogglingId(null);
     }
@@ -79,8 +79,8 @@ export default function WishesPage() {
     try {
       await deleteMutation.mutateAsync(pendingDeleteWish.id);
       toast.success('Ucapan berhasil dihapus');
-    } catch {
-      toast.error('Gagal menghapus ucapan');
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Gagal menghapus ucapan'));
     } finally {
       setPendingDeleteWish(null);
     }
@@ -140,8 +140,8 @@ export default function WishesPage() {
       link.click();
       document.body.removeChild(link);
       toast.success('Daftar ucapan berhasil diexport ke CSV');
-    } catch {
-      toast.error('Gagal mengexport ucapan');
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Gagal mengexport ucapan'));
     } finally {
       setIsExporting(false);
     }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ApiError, apiFetch } from '@/lib/api';
+import { getApiErrorMessage, apiFetch } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
 import { useTableState } from '@/hooks/use-table-state';
@@ -228,16 +228,9 @@ export default function AdminAuditLogsPage() {
     }
   };
 
-  // Format error message
-  let errorMessage = '';
-  if (error) {
-    if (error instanceof ApiError) {
-      const errData = error.data as { error?: { message?: string } };
-      errorMessage = errData.error?.message || 'Gagal memuat log audit aktivitas';
-    } else {
-      errorMessage = 'Terjadi kesalahan koneksi ke server';
-    }
-  }
+  const errorMessage = error
+    ? getApiErrorMessage(error, 'Gagal memuat log audit aktivitas')
+    : '';
 
   return (
     <div className="space-y-6">

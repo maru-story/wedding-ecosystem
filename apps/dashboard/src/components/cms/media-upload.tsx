@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { validateMediaFile } from '@/lib/cms';
+import { getApiErrorMessage } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Upload, X, FileImage, Music } from 'lucide-react';
@@ -76,7 +77,7 @@ export function MediaUpload({
         const url = await onUpload(file);
         setPreview(url);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Upload gagal. Silakan coba lagi.');
+        setError(getApiErrorMessage(err, 'Upload gagal. Silakan coba lagi.'));
         setPreview(currentUrl || null);
       } finally {
         setUploading(false);

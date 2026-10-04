@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
-import { ApiError } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,12 +22,7 @@ export default function LoginPage() {
       await login(email, password);
       router.push('/');
     } catch (err) {
-      if (err instanceof ApiError) {
-        const data = err.data as { message?: string };
-        setError(data.message || 'Login gagal. Silakan coba lagi.');
-      } else {
-        setError('Terjadi kesalahan. Silakan coba lagi.');
-      }
+      setError(getApiErrorMessage(err, 'Login gagal. Silakan coba lagi.'));
     } finally {
       setIsLoading(false);
     }

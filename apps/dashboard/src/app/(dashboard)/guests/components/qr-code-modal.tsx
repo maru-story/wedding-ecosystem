@@ -1,7 +1,7 @@
 'use client';
 
 import QRCode from 'react-qr-code';
-import { ApiError } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api';
 import { useGuestQr } from '@/hooks/queries';
 import type { GuestListItem } from '../page';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
@@ -15,15 +15,7 @@ interface QrCodeModalProps {
 export function QrCodeModal({ guest, onClose }: QrCodeModalProps) {
   const { data: qrData, isLoading, error } = useGuestQr(guest.id);
 
-  let errorMessage = '';
-  if (error) {
-    if (error instanceof ApiError) {
-      const errData = error.data as { error?: { message?: string }; message?: string };
-      errorMessage = errData.error?.message || errData.message || 'Gagal memuat QR code';
-    } else {
-      errorMessage = 'Terjadi kesalahan saat memuat QR code';
-    }
-  }
+  const errorMessage = error ? getApiErrorMessage(error, 'Gagal memuat QR code') : '';
 
   return (
     <ResponsiveDialog
