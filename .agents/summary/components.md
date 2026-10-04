@@ -176,7 +176,7 @@ graph TB
         UseTable["hooks/use-table-state.ts"]
         UseGroups["hooks/queries → useGuestGroups (dynamic group names)"]
         AuthLib["lib/auth.ts"]
-        APILib["lib/api.ts"]
+        APILib["lib/api.ts (ApiError + getApiErrorMessage)"]
         CMSLib["lib/cms.ts"]
         SocketLib["lib/socket.ts"]
     end
@@ -191,6 +191,11 @@ Guest groups are **event-scoped free-text strings** (not a DB enum). The dashboa
 - `GuestFilters` sources its group options from the same `useGuestGroups()` hook
 - `ManageGroupsModal` (`guests/components/manage-groups-modal.tsx`) allows bulk reassign of all guests from one group to another via `PATCH /guests/groups/reassign`. Accessible from the page header "Kelola Grup" button.
 - All guest mutation hooks (`useCreateGuest`, `useUpdateGuest`, `useDeleteGuest`, `useBulkDeleteGuests`, `useImportGuests`, `useReassignGroup`) invalidate the `['guest-groups']` and `['rsvp-list']` React Query caches on success
+
+#### Frontend Error Handling Pattern
+
+- **Dashboard**: Centralized in `apps/dashboard/src/lib/api.ts`. The `ApiError` class automatically extracts backend error messages from `data.error.message` or `data.message` into `error.message`. Components use `getApiErrorMessage(err, fallback)` for consistent, user-facing error reporting in toasts and alerts.
+- **Scanner PWA**: Centralized in `apps/scanner/src/lib/error-utils.ts`. Uses `parseApiErrorMessage(data, fallback)` to parse structured backend API responses (`{ success: false, error: { message, code } }`) during manual check-in, walk-in registration, and online QR validation.
 
 ### Invitation (Standalone Repo: `wedding-ecosystem-invitation`)
 
@@ -223,6 +228,7 @@ graph TB
         SyncManager["sync-manager.ts"]
         CheckinSvc["checkin-service.ts (online/offline verify)"]
         AuthClient["auth.ts (token management, device registration)"]
+        ErrorUtils["error-utils.ts (parseApiErrorMessage)"]
         WS["websocket.ts (useWebSocket hook)"]
         SWReg["service-worker-registration.ts"]
     end
@@ -241,6 +247,6 @@ graph TB
 | Real-time Updates | Socket.io rooms scoped per event, broadcast on state changes   |
 | Offline Support   | Scanner: IndexedDB queue + service worker + background sync    |
 | Input Validation  | Zod schemas in `packages/shared`, enforced in API middleware   |
-| Error Handling    | Standardized `ErrorCode` enum, typed error responses           |
+| Error Handling    | Standardized `ErrorCode` enum, typed responses from BE, consumed via `getApiErrorMessage` (Dashboard) and `parseApiErrorMessage` (Scanner) |
 | Caching           | Redis response cache with pattern-based invalidation           |
 | Audit Logging     | Auto-logged for sensitive operations                           |

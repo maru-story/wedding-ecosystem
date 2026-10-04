@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { ApiError } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api';
 import { useImportGuests, useEvent } from '@/hooks/queries';
 import { toast } from 'sonner';
 import { DEFAULT_MAX_GUESTS, CSV_MAX_ROWS, CSV_MAX_FILE_SIZE } from '@/lib/constants';
@@ -89,11 +89,7 @@ export function CsvImportModal({ onClose, onComplete, currentCount }: CsvImportM
         toast.success(`${response.imported} tamu berhasil diimport!`);
       }
     } catch (err) {
-      let message = 'Terjadi kesalahan saat mengimport file';
-      if (err instanceof ApiError) {
-        const data = err.data as { message?: string };
-        message = data.message || message;
-      }
+      const message = getApiErrorMessage(err, 'Terjadi kesalahan saat mengimport file');
       toast.error(message);
       setError(message);
       setState('error');

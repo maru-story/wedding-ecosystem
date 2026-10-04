@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { GuestGroup } from '@wedding/shared';
-import { ApiError } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api';
 import type { GuestListItem } from '../page';
 import { useCreateGuest, useUpdateGuest, useGuestGroups } from '@/hooks/queries';
 import { toast } from 'sonner';
@@ -201,12 +200,7 @@ export function AddGuestModal({ guest, onClose, onSaved }: AddGuestModalProps) {
       }
       onSaved();
     } catch (err) {
-      if (err instanceof ApiError) {
-        const data = err.data as { message?: string };
-        setError(data.message || 'Gagal menyimpan data tamu');
-      } else {
-        setError('Terjadi kesalahan. Silakan coba lagi.');
-      }
+      setError(getApiErrorMessage(err, 'Gagal menyimpan data tamu'));
     }
   }
 

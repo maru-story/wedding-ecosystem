@@ -72,6 +72,19 @@ function createMockGuest(overrides: Partial<GuestInfo> = {}): GuestInfo {
     event_id: 'event-001',
     name: 'John Doe',
     group: GuestGroup.FRIEND,
+    plus_one_count: 0,
+    ...overrides,
+  };
+}
+
+function createMockCheckIn(overrides: Partial<CheckInRecord> = {}): CheckInRecord {
+  return {
+    id: 'checkin-001',
+    guest_id: 'guest-001',
+    scanner_device_id: null,
+    method: CheckInMethod.QR_SCAN,
+    scan_count: 1,
+    checked_in_at: new Date(),
     ...overrides,
   };
 }
@@ -136,13 +149,7 @@ describe('CheckInService', () => {
 
         vi.mocked(repository.findGuestById).mockResolvedValue(mockGuest);
         vi.mocked(redis.set).mockResolvedValue('OK'); // SET NX succeeds
-        vi.mocked(repository.createCheckIn).mockResolvedValue({
-          id: 'checkin-001',
-          guest_id: 'guest-001',
-          scanner_device_id: null,
-          method: CheckInMethod.QR_SCAN,
-          checked_in_at: new Date(),
-        });
+        vi.mocked(repository.createCheckIn).mockResolvedValue(createMockCheckIn());
 
         const result = await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
 
@@ -153,19 +160,15 @@ describe('CheckInService', () => {
         expect(result.checked_in_at).toBeInstanceOf(Date);
       });
 
-      it('should create a check-in record in the database', async () => {
+      it('should create a check-in record in the database and broadcast via websocket', async () => {
         const qrPayload = createValidQRPayload('guest-001', 'event-001');
         const mockGuest = createMockGuest();
 
         vi.mocked(repository.findGuestById).mockResolvedValue(mockGuest);
         vi.mocked(redis.set).mockResolvedValue('OK');
-        vi.mocked(repository.createCheckIn).mockResolvedValue({
-          id: 'checkin-001',
-          guest_id: 'guest-001',
-          scanner_device_id: 'scanner-001',
-          method: CheckInMethod.QR_SCAN,
-          checked_in_at: new Date(),
-        });
+        vi.mocked(repository.createCheckIn).mockResolvedValue(
+          createMockCheckIn({ scanner_device_id: 'scanner-001' })
+        );
 
         await service.verifyQRScan('tenant-001', qrPayload, 'event-001', 'scanner-001');
 
@@ -173,6 +176,14 @@ describe('CheckInService', () => {
           expect.objectContaining({
             guest_id: 'guest-001',
             scanner_device_id: 'scanner-001',
+            method: CheckInMethod.QR_SCAN,
+          })
+        );
+        expect(broadcaster.broadcast).toHaveBeenCalledWith(
+          'event-001',
+          expect.objectContaining({
+            event_type: 'guest_checked_in',
+            guest_id: 'guest-001',
             method: CheckInMethod.QR_SCAN,
           })
         );
@@ -184,13 +195,7 @@ describe('CheckInService', () => {
 
         vi.mocked(repository.findGuestById).mockResolvedValue(mockGuest);
         vi.mocked(redis.set).mockResolvedValue('OK');
-        vi.mocked(repository.createCheckIn).mockResolvedValue({
-          id: 'checkin-001',
-          guest_id: 'guest-001',
-          scanner_device_id: null,
-          method: CheckInMethod.QR_SCAN,
-          checked_in_at: new Date(),
-        });
+        vi.mocked(repository.createCheckIn).mockResolvedValue(createMockCheckIn());
 
         await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
 
@@ -402,13 +407,9 @@ describe('CheckInService', () => {
 
         vi.mocked(repository.findGuestById).mockResolvedValue(mockGuest);
         vi.mocked(redis.set).mockResolvedValue('OK');
-        vi.mocked(repository.createCheckIn).mockResolvedValue({
-          id: 'checkin-001',
-          guest_id: 'guest-001',
-          scanner_device_id: 'device-abc',
-          method: CheckInMethod.QR_SCAN,
-          checked_in_at: new Date(),
-        });
+        vi.mocked(repository.createCheckIn).mockResolvedValue(
+          createMockCheckIn({ scanner_device_id: 'device-abc' })
+        );
 
         await service.verifyQRScan('tenant-001', qrPayload, 'event-001', 'device-abc');
 
@@ -425,13 +426,7 @@ describe('CheckInService', () => {
 
         vi.mocked(repository.findGuestById).mockResolvedValue(mockGuest);
         vi.mocked(redis.set).mockResolvedValue('OK');
-        vi.mocked(repository.createCheckIn).mockResolvedValue({
-          id: 'checkin-001',
-          guest_id: 'guest-001',
-          scanner_device_id: null,
-          method: CheckInMethod.QR_SCAN,
-          checked_in_at: new Date(),
-        });
+        vi.mocked(repository.createCheckIn).mockResolvedValue(createMockCheckIn());
 
         await service.verifyQRScan('tenant-001', qrPayload, 'event-001');
 
@@ -574,13 +569,10 @@ describe('CheckInService', () => {
   describe('manualCheckIn (Req 8.2)', () => {
     it('should check-in a guest with method="manual"', async () => {
       const mockGuest = createMockGuest();
-      const mockCheckIn: CheckInRecord = {
-        id: 'checkin-001',
-        guest_id: 'guest-001',
-        scanner_device_id: null,
+      const mockCheckIn = createMockCheckIn({
         method: CheckInMethod.MANUAL,
         checked_in_at: new Date('2024-06-15T10:00:00Z'),
-      };
+      });
 
       vi.mocked(repository.findEventById).mockResolvedValue({
         id: 'event-001',
@@ -601,14 +593,11 @@ describe('CheckInService', () => {
 
     it('should bypass and increment check-in if guest already checked-in (Req 8.4)', async () => {
       const mockGuest = createMockGuest();
-      const existingCheckIn: CheckInRecord = {
-        id: 'checkin-001',
-        guest_id: 'guest-001',
-        scanner_device_id: null,
+      const existingCheckIn = createMockCheckIn({
         method: CheckInMethod.QR_SCAN,
         scan_count: 1,
         checked_in_at: new Date('2024-06-15T09:00:00Z'),
-      };
+      });
 
       vi.mocked(repository.findEventById).mockResolvedValue({
         id: 'event-001',
@@ -659,13 +648,10 @@ describe('CheckInService', () => {
 
     it('should broadcast guest_checked_in event via WebSocket (Req 8.8)', async () => {
       const mockGuest = createMockGuest();
-      const mockCheckIn: CheckInRecord = {
-        id: 'checkin-001',
-        guest_id: 'guest-001',
-        scanner_device_id: null,
+      const mockCheckIn = createMockCheckIn({
         method: CheckInMethod.MANUAL,
         checked_in_at: new Date('2024-06-15T10:00:00Z'),
-      };
+      });
 
       vi.mocked(repository.findEventById).mockResolvedValue({
         id: 'event-001',
@@ -685,20 +671,17 @@ describe('CheckInService', () => {
         guest_group: GuestGroup.FRIEND,
         guest_type: GuestType.INVITED,
         method: CheckInMethod.MANUAL,
+        scan_count: mockCheckIn.scan_count,
         checked_in_at: mockCheckIn.checked_in_at,
       });
     });
 
     it('should broadcast guest_checked_in with incremented count when already checked-in', async () => {
       const mockGuest = createMockGuest();
-      const existingCheckIn: CheckInRecord = {
-        id: 'checkin-001',
-        guest_id: 'guest-001',
-        scanner_device_id: null,
+      const existingCheckIn = createMockCheckIn({
         method: CheckInMethod.QR_SCAN,
         scan_count: 1,
-        checked_in_at: new Date(),
-      };
+      });
 
       vi.mocked(repository.findEventById).mockResolvedValue({
         id: 'event-001',
@@ -725,13 +708,11 @@ describe('CheckInService', () => {
 
     it('should pass scanner_device_id when provided', async () => {
       const mockGuest = createMockGuest();
-      const mockCheckIn: CheckInRecord = {
-        id: 'checkin-001',
-        guest_id: 'guest-001',
+      const mockCheckIn = createMockCheckIn({
         scanner_device_id: 'scanner-001',
         method: CheckInMethod.MANUAL,
         checked_in_at: new Date('2024-06-15T10:00:00Z'),
-      };
+      });
 
       vi.mocked(repository.findEventById).mockResolvedValue({
         id: 'event-001',
@@ -760,13 +741,11 @@ describe('CheckInService', () => {
         name: 'Walk-in Guest',
         group: GuestGroup.FRIEND,
       };
-      const mockCheckIn: CheckInRecord = {
-        id: 'checkin-001',
+      const mockCheckIn = createMockCheckIn({
         guest_id: 'guest-new',
-        scanner_device_id: null,
         method: CheckInMethod.GO_SHOW,
         checked_in_at: new Date('2024-06-15T10:00:00Z'),
-      };
+      });
 
       vi.mocked(repository.findEventById).mockResolvedValue({
         id: 'event-001',
@@ -791,13 +770,10 @@ describe('CheckInService', () => {
         name: 'New Guest',
         group: GuestGroup.FRIEND,
       };
-      const mockCheckIn: CheckInRecord = {
-        id: 'checkin-001',
+      const mockCheckIn = createMockCheckIn({
         guest_id: 'guest-new',
-        scanner_device_id: null,
         method: CheckInMethod.GO_SHOW,
-        checked_in_at: new Date(),
-      };
+      });
 
       vi.mocked(repository.findEventById).mockResolvedValue({
         id: 'event-001',
@@ -825,13 +801,10 @@ describe('CheckInService', () => {
         name: 'New Guest',
         group: GuestGroup.FRIEND,
       };
-      const mockCheckIn: CheckInRecord = {
-        id: 'checkin-001',
+      const mockCheckIn = createMockCheckIn({
         guest_id: 'guest-new',
-        scanner_device_id: null,
         method: CheckInMethod.GO_SHOW,
-        checked_in_at: new Date(),
-      };
+      });
 
       vi.mocked(repository.findEventById).mockResolvedValue({
         id: 'event-001',
@@ -861,13 +834,11 @@ describe('CheckInService', () => {
         name: 'Walk-in Guest',
         group: GuestGroup.FRIEND,
       };
-      const mockCheckIn: CheckInRecord = {
-        id: 'checkin-001',
+      const mockCheckIn = createMockCheckIn({
         guest_id: 'guest-new',
-        scanner_device_id: null,
         method: CheckInMethod.GO_SHOW,
         checked_in_at: new Date('2024-06-15T10:00:00Z'),
-      };
+      });
 
       vi.mocked(repository.findEventById).mockResolvedValue({
         id: 'event-001',
@@ -886,6 +857,7 @@ describe('CheckInService', () => {
         guest_group: GuestGroup.FRIEND,
         guest_type: GuestType.GO_SHOW,
         method: CheckInMethod.GO_SHOW,
+        scan_count: mockCheckIn.scan_count,
         checked_in_at: mockCheckIn.checked_in_at,
       });
     });
@@ -931,13 +903,10 @@ describe('CheckInService', () => {
         name: 'Walk-in Guest',
         group: GuestGroup.FRIEND,
       };
-      const mockCheckIn: CheckInRecord = {
-        id: 'checkin-001',
+      const mockCheckIn = createMockCheckIn({
         guest_id: 'guest-new',
-        scanner_device_id: null,
         method: CheckInMethod.GO_SHOW,
-        checked_in_at: new Date(),
-      };
+      });
 
       vi.mocked(repository.findEventById).mockResolvedValue({
         id: 'event-001',
@@ -962,13 +931,11 @@ describe('CheckInService', () => {
         name: 'New Guest',
         group: GuestGroup.FRIEND,
       };
-      const mockCheckIn: CheckInRecord = {
-        id: 'checkin-001',
+      const mockCheckIn = createMockCheckIn({
         guest_id: 'guest-new',
         scanner_device_id: 'scanner-001',
         method: CheckInMethod.GO_SHOW,
-        checked_in_at: new Date(),
-      };
+      });
 
       vi.mocked(repository.findEventById).mockResolvedValue({
         id: 'event-001',
@@ -985,6 +952,99 @@ describe('CheckInService', () => {
           method: CheckInMethod.GO_SHOW,
         })
       );
+    });
+  });
+
+  describe('syncOfflineRecords', () => {
+    it('should process regular check-in records and return synced status', async () => {
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
+      vi.mocked(repository.findGuestByIdAndEvent).mockResolvedValue(createMockGuest({ id: 'guest-001' }));
+      vi.mocked(repository.findCheckInByGuestId).mockResolvedValue(null);
+      vi.mocked(repository.createCheckIn).mockResolvedValue(createMockCheckIn({ id: 'checkin-001', guest_id: 'guest-001' }));
+
+      const result = await service.syncOfflineRecords('tenant-001', [
+        {
+          guest_id: 'guest-001',
+          event_id: 'event-001',
+          method: 'qr_scan',
+          checked_in_at: '2026-10-04T10:00:00.000Z',
+        },
+      ]);
+
+      expect(result.total).toBe(1);
+      expect(result.synced).toBe(1);
+      expect(result.duplicates).toBe(0);
+      expect(result.errors).toBe(0);
+      expect(result.results[0].status).toBe('synced');
+    });
+
+    it('should process go_show records properly by creating guest and check-in', async () => {
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
+      vi.mocked(repository.createGoShowGuest).mockResolvedValue(
+        createMockGuest({ id: 'guest-goshow-1', name: 'Budi Offline' })
+      );
+      vi.mocked(repository.createCheckIn).mockResolvedValue(
+        createMockCheckIn({ id: 'checkin-goshow-1', guest_id: 'guest-goshow-1', method: CheckInMethod.GO_SHOW })
+      );
+
+      const result = await service.syncOfflineRecords('tenant-001', [
+        {
+          guest_id: 'temp-go-show-123',
+          guest_name: 'Budi Offline',
+          event_id: 'event-001',
+          method: 'go_show',
+          checked_in_at: '2026-10-04T10:05:00.000Z',
+        },
+      ]);
+
+      expect(result.total).toBe(1);
+      expect(result.synced).toBe(1);
+      expect(result.errors).toBe(0);
+      expect(repository.createGoShowGuest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Budi Offline',
+          event_id: 'event-001',
+        })
+      );
+    });
+
+    it('should handle duplicates and errors in batch gracefully', async () => {
+      vi.mocked(repository.findEventById).mockResolvedValue({
+        id: 'event-001',
+        tenant_id: 'tenant-001',
+      });
+      // First guest: exists and already checked in
+      vi.mocked(repository.findGuestByIdAndEvent).mockImplementation(async (id) => {
+        if (id === 'guest-dup') return createMockGuest({ id: 'guest-dup' });
+        return null; // second guest not found
+      });
+      vi.mocked(repository.findCheckInByGuestId).mockResolvedValue(createMockCheckIn({ id: 'existing-checkin', scan_count: 1 }));
+      vi.mocked(repository.incrementScanCount).mockResolvedValue(createMockCheckIn({ id: 'existing-checkin', scan_count: 2 }));
+
+      const result = await service.syncOfflineRecords('tenant-001', [
+        {
+          guest_id: 'guest-dup',
+          event_id: 'event-001',
+          method: 'qr_scan',
+          checked_in_at: '2026-10-04T10:00:00.000Z',
+        },
+        {
+          guest_id: 'guest-unknown',
+          event_id: 'event-001',
+          method: 'qr_scan',
+          checked_in_at: '2026-10-04T10:00:00.000Z',
+        },
+      ]);
+
+      expect(result.total).toBe(2);
+      expect(result.duplicates).toBe(1);
+      expect(result.errors).toBe(1);
     });
   });
 
@@ -1011,13 +1071,9 @@ describe('CheckInService', () => {
       expect(
         isServiceError({
           guest: createMockGuest(),
-          check_in: {
-            id: 'c1',
-            guest_id: 'g1',
-            scanner_device_id: null,
+          check_in: createMockCheckIn({
             method: CheckInMethod.MANUAL,
-            checked_in_at: new Date(),
-          },
+          }),
         })
       ).toBe(false);
     });
@@ -1026,13 +1082,9 @@ describe('CheckInService', () => {
       expect(
         isServiceError({
           guest: createMockGuest(),
-          check_in: {
-            id: 'c1',
-            guest_id: 'g1',
-            scanner_device_id: null,
+          check_in: createMockCheckIn({
             method: CheckInMethod.GO_SHOW,
-            checked_in_at: new Date(),
-          },
+          }),
         })
       ).toBe(false);
     });

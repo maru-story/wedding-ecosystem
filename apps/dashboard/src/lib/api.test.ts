@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   setTokens,
   getAccessToken,
@@ -6,6 +6,7 @@ import {
   clearTokens,
   isTokenExpiringSoon,
   ApiError,
+  getApiErrorMessage,
 } from './api';
 
 // Mock localStorage
@@ -69,15 +70,51 @@ describe('Token Management', () => {
 });
 
 describe('ApiError', () => {
-  it('creates error with status and data', () => {
+  it('creates error with status and data and extracts error message', () => {
     const error = new ApiError(401, { message: 'Unauthorized' });
     expect(error.status).toBe(401);
     expect(error.data).toEqual({ message: 'Unauthorized' });
-    expect(error.message).toBe('API Error: 401');
+    expect(error.message).toBe('Unauthorized');
+  });
+
+  it('extracts nested backend error format', () => {
+    const error = new ApiError(400, {
+      success: false,
+      error: {
+        code: 'GUEST_6005',
+        message: 'Kapasitas tamu telah mencapai batas maksimum (2000 tamu)',
+      },
+    });
+    expect(error.status).toBe(400);
+    expect(error.code).toBe('GUEST_6005');
+    expect(error.message).toBe('Kapasitas tamu telah mencapai batas maksimum (2000 tamu)');
+  });
+
+  it('falls back to status code when no message is present', () => {
+    const error = new ApiError(500, {});
+    expect(error.message).toBe('API Error: 500');
   });
 
   it('is an instance of Error', () => {
     const error = new ApiError(500, {});
     expect(error).toBeInstanceOf(Error);
+  });
+});
+
+describe('getApiErrorMessage', () => {
+  it('extracts message from ApiError', () => {
+    const err = new ApiError(400, { error: { message: 'Nama harus diisi' } });
+    expect(getApiErrorMessage(err)).toBe('Nama harus diisi');
+  });
+
+  it('extracts message from standard Error', () => {
+    const err = new Error('Network timeout');
+    expect(getApiErrorMessage(err)).toBe('Network timeout');
+  });
+
+  it('handles string errors and fallback', () => {
+    expect(getApiErrorMessage('Gagal menghubungi server')).toBe('Gagal menghubungi server');
+    expect(getApiErrorMessage(null, 'Terjadi error')).toBe('Terjadi error');
+    expect(getApiErrorMessage(undefined, 'Fallback error')).toBe('Fallback error');
   });
 });

@@ -14,6 +14,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { usePWA } from '@/components/pwa-provider';
 import { searchCachedGuests, type CachedGuest } from '@/lib/indexed-db';
 import { enqueueCheckIn } from '@/lib/offline-queue';
+import { parseApiErrorMessage } from '@/lib/error-utils';
 import { SuccessOverlay } from './success-overlay';
 import { GoShowForm } from './go-show-form';
 
@@ -183,7 +184,9 @@ export function ManualCheckIn({ eventId }: ManualCheckInProps) {
           showSuccess(guest.name);
         } else {
           const errorData = await response.json().catch(() => null);
-          setCheckInError(errorData?.message || 'Gagal melakukan check-in. Silakan coba lagi.');
+          setCheckInError(
+            parseApiErrorMessage(errorData, 'Gagal melakukan check-in. Silakan coba lagi.')
+          );
         }
       } else {
         // Offline: queue the check-in locally
@@ -237,7 +240,9 @@ export function ManualCheckIn({ eventId }: ManualCheckInProps) {
           showSuccess(nama);
         } else {
           const errorData = await response.json().catch(() => null);
-          setGoShowError(errorData?.message || 'Gagal mendaftarkan tamu. Silakan coba lagi.');
+          setGoShowError(
+            parseApiErrorMessage(errorData, 'Gagal mendaftarkan tamu. Silakan coba lagi.')
+          );
         }
       } else {
         // Offline: queue the Go-Show locally

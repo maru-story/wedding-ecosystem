@@ -7,7 +7,7 @@ import { AddGuestModal } from './components/add-guest-modal';
 import { CsvImportModal } from './components/csv-import-modal';
 import { QrCodeModal } from './components/qr-code-modal';
 import { ManageGroupsModal } from './components/manage-groups-modal';
-import { ApiError, apiFetchRaw } from '@/lib/api';
+import { getApiErrorMessage, apiFetchRaw } from '@/lib/api';
 import { useGuests, useEvent, useDashboardStats } from '@/hooks/queries';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -113,15 +113,9 @@ export default function GuestsPage() {
 
   const isFiltered = !!groupFilter || !!statusFilter || !!tableState.searchQuery;
 
-  let errorMessage = '';
-  if (queryError) {
-    if (queryError instanceof ApiError) {
-      const errorData = queryError.data as { message?: string };
-      errorMessage = errorData.message || 'Gagal memuat daftar tamu';
-    } else {
-      errorMessage = 'Terjadi kesalahan saat memuat data';
-    }
-  }
+  const errorMessage = queryError
+    ? getApiErrorMessage(queryError, 'Gagal memuat daftar tamu')
+    : '';
 
   // Get selection helpers dynamically
   const { allSelected, someSelected, handleSelectAll, handleSelectOne } =

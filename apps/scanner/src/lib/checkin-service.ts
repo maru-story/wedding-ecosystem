@@ -6,6 +6,7 @@
 
 import { getCachedGuestByQR, updateCachedGuestCheckIn } from './indexed-db';
 import { enqueueCheckIn } from './offline-queue';
+import { parseApiErrorMessage } from './error-utils';
 
 export type VerificationStatus = 'valid' | 'invalid' | 'duplicate';
 
@@ -20,13 +21,17 @@ export interface VerificationResult {
 }
 
 interface CheckInApiResponse {
-  status: 'green' | 'yellow' | 'red';
+  status?: 'green' | 'yellow' | 'red';
   guest_name?: string | null;
   guest_group?: string | null;
   message?: string | null;
   checked_in_at?: string | null;
   scan_count?: number | null;
   plus_one_count?: number | null;
+  error?: {
+    code?: string;
+    message?: string;
+  };
 }
 
 /**
@@ -97,7 +102,7 @@ async function verifyOnline(
     // red or other error — invalid QR
     return {
       status: 'invalid',
-      errorMessage: data.message || 'QR code tidak valid',
+      errorMessage: parseApiErrorMessage(data, 'QR code tidak valid'),
     };
   } catch {
     // Network error — fall back to offline verification

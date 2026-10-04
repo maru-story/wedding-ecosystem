@@ -1,7 +1,7 @@
 'use client';
 
 import { useAdminStats, useSystemHealth } from '@/hooks/queries';
-import { ApiError } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DonutChart } from '@/app/(dashboard)/components/dashboard-charts';
@@ -35,15 +35,9 @@ export default function AdminOverviewPage() {
   };
 
   // Format error message
-  let errorMessage = '';
-  if (error) {
-    if (error instanceof ApiError) {
-      const errData = error.data as { error?: { message?: string } };
-      errorMessage = errData.error?.message || 'Gagal memuat data statistik global';
-    } else {
-      errorMessage = 'Terjadi kesalahan koneksi ke server';
-    }
-  }
+  const errorMessage = error
+    ? getApiErrorMessage(error, 'Gagal memuat data statistik global')
+    : '';
 
   if (isLoading) {
     return (
