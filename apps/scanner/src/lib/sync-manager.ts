@@ -73,6 +73,7 @@ export async function syncPendingCheckIns(
               records: batch.map((record) => ({
                 guest_id: record.guestId,
                 qr_payload: record.qrPayload,
+                guest_name: record.guestName,
                 method: record.method,
                 checked_in_at: record.checkedInAt,
                 event_id: record.eventId,
@@ -84,11 +85,29 @@ export async function syncPendingCheckIns(
 
         if (response.ok) {
           const data = await response.json();
-          const syncedIds = batch.map((r) => r.id);
-          await markRecordsSynced(syncedIds);
+          const results = data.results as Array<{ guest_id: string; status: string }> | undefined;
 
-          result.synced += data.synced || batch.length;
-          result.duplicatesIgnored += data.duplicatesIgnored || 0;
+          if (results && results.length > 0) {
+            const succeededGuestIds = new Set(
+              results
+                .filter((r) => r.status === 'synced' || r.status === 'duplicate')
+                .map((r) => r.guest_id)
+            );
+            const syncedRecordIds = batch
+              .filter((r) => succeededGuestIds.has(r.guestId))
+              .map((r) => r.id);
+
+            if (syncedRecordIds.length > 0) {
+              await markRecordsSynced(syncedRecordIds);
+            }
+          } else {
+            const syncedIds = batch.map((r) => r.id);
+            await markRecordsSynced(syncedIds);
+          }
+
+          result.synced += data.synced || 0;
+          result.duplicatesIgnored += data.duplicates ?? data.duplicatesIgnored ?? 0;
+          result.failed += data.errors || 0;
         } else if (response.status === 409) {
           // All duplicates — mark as synced (idempotency)
           const syncedIds = batch.map((r) => r.id);
@@ -142,7 +161,7 @@ export async function refreshGuestCache(
   refreshCachePromise = (async () => {
     try {
       const response = await fetchWithTimeout(
-        `${apiBaseUrl}/guests/cache?eventId=${eventId}`,
+        `${apiBaseUrl}/scanner/guests/${eventId}`,
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -153,14 +172,20 @@ export async function refreshGuestCache(
 
       if (response.ok) {
         const data = await response.json();
-        const guests: CachedGuest[] = (data.guests || []).map((g: Record<string, unknown>) => ({
+        const rawList = Array.isArray(data.data)
+          ? data.data
+          : Array.isArray(data.guests)
+            ? data.guests
+            : [];
+
+        const guests: CachedGuest[] = rawList.map((g: Record<string, unknown>) => ({
           id: g.id as string,
           name: g.name as string,
-          qrPayload: g.qrPayload as string,
-          group: g.group as string,
-          checkedIn: g.checkedIn as boolean,
-          checkedInAt: g.checkedInAt as string | undefined,
-          eventId: g.eventId as string,
+          qrPayload: (g.qr_payload ?? g.qrPayload ?? '') as string,
+          group: (g.group ?? '') as string,
+          checkedIn: Boolean(g.is_checked_in ?? g.checkedIn),
+          checkedInAt: (g.checked_in_at ?? g.checkedInAt) as string | undefined,
+          eventId: (g.eventId ?? eventId) as string,
         }));
 
         // Replace entire cache with fresh data

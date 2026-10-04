@@ -34,7 +34,7 @@ export interface GuestInfo {
   event_id: string;
   name: string;
   group: GuestGroup;
-  plus_one_count: number;
+  plus_one_count?: number;
 }
 
 export interface QRCodeInfo {
@@ -66,7 +66,9 @@ export interface SyncRecordInput {
   event_id: string;
   method: string;
   checked_in_at: string;
-  scanner_device_id?: string;
+  scanner_device_id?: string | null;
+  guest_name?: string;
+  qr_payload?: string;
 }
 
 export interface SyncRecordsResult {
@@ -338,6 +340,20 @@ export class CheckInService {
       await this.redis.set(redisKey, timestamp, 'EX', CHECKIN_KEY_TTL_SECONDS, 'NX');
     }
 
+    if (this.broadcaster) {
+      this.broadcaster.broadcast(eventId, {
+        event_type: 'guest_checked_in',
+        event_id: eventId,
+        guest_id: guest.id,
+        guest_name: guest.name,
+        guest_group: guest.group,
+        guest_type: GuestType.INVITED,
+        method: CheckInMethod.QR_SCAN,
+        scan_count: checkIn.scan_count,
+        checked_in_at: checkIn.checked_in_at,
+      });
+    }
+
     return {
       status: VerificationStatus.GREEN,
       guest_name: guest.name,
@@ -476,7 +492,8 @@ export class CheckInService {
     tenantId: string,
     name: string,
     eventId: string,
-    scannerDeviceId?: string | null
+    scannerDeviceId?: string | null,
+    checkedInAt?: Date
   ): Promise<GoShowResult | CheckInServiceError> {
     // Validate name is not empty
     if (!name || name.trim().length === 0) {
@@ -506,7 +523,7 @@ export class CheckInService {
     });
 
     // Immediately create check-in record with method="go_show" (Req 8.6)
-    const now = new Date();
+    const now = checkedInAt ?? new Date();
     const checkIn = await this.repository.createCheckIn({
       id: randomUUID(),
       guest_id: guestId,
@@ -543,22 +560,42 @@ export class CheckInService {
     const results: SyncRecordsResult['results'] = [];
 
     for (const record of records) {
-      const syncResult = await this.manualCheckIn(
-        tenantId,
-        record.guest_id,
-        record.event_id,
-        record.scanner_device_id || null,
-        new Date(record.checked_in_at)
-      );
+      if (record.method === CheckInMethod.GO_SHOW || record.method === 'go_show') {
+        const guestName = record.guest_name || 'Tamu Go-Show';
+        const syncResult = await this.registerGoShow(
+          tenantId,
+          guestName,
+          record.event_id,
+          record.scanner_device_id || null,
+          new Date(record.checked_in_at)
+        );
 
-      if (isServiceError(syncResult)) {
-        results.push({ guest_id: record.guest_id, status: 'error', message: syncResult.message });
+        if (isServiceError(syncResult)) {
+          results.push({ guest_id: record.guest_id, status: 'error', message: syncResult.message });
+        } else {
+          results.push({
+            guest_id: record.guest_id,
+            status: 'synced',
+          });
+        }
       } else {
-        const isDuplicate = syncResult.check_in.scan_count > 1;
-        results.push({
-          guest_id: record.guest_id,
-          status: isDuplicate ? 'duplicate' : 'synced',
-        });
+        const syncResult = await this.manualCheckIn(
+          tenantId,
+          record.guest_id,
+          record.event_id,
+          record.scanner_device_id || null,
+          new Date(record.checked_in_at)
+        );
+
+        if (isServiceError(syncResult)) {
+          results.push({ guest_id: record.guest_id, status: 'error', message: syncResult.message });
+        } else {
+          const isDuplicate = syncResult.check_in.scan_count > 1;
+          results.push({
+            guest_id: record.guest_id,
+            status: isDuplicate ? 'duplicate' : 'synced',
+          });
+        }
       }
     }
 

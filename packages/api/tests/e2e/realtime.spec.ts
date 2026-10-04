@@ -124,4 +124,68 @@ test.describe('Real-time Socket.io API E2E', () => {
     // Clean up connection
     socket.disconnect();
   });
+
+  test('should broadcast check-in updates on first QR scan verification', async ({ tenantA }) => {
+    // 1. Create a guest
+    const guestResponse = await tenantA.request.post('/guests', {
+      data: {
+        name: 'QR Realtime Guest',
+        group: 'friend',
+        plus_one_count: 0,
+      },
+    });
+    expect(guestResponse.status()).toBe(201);
+    const guest = await guestResponse.json();
+
+    // 2. Fetch QR code
+    const qrResponse = await tenantA.request.get(`/guests/${guest.id}/qr`);
+    expect(qrResponse.status()).toBe(200);
+    const { qr_payload } = await qrResponse.json();
+
+    // 3. Connect socket client as guest
+    const socket = io('http://localhost:4005', {
+      auth: {
+        type: 'guest',
+        guestId: guest.id,
+      },
+      transports: ['websocket'],
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Guest connection timed out')), 5000);
+      socket.on('connect', () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+      socket.on('connect_error', (err) => {
+        clearTimeout(timeout);
+        reject(err);
+      });
+    });
+
+    const checkedInPromise = new Promise<any>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Guest WebSocket event timed out')), 5000);
+      socket.on('guest_checked_in', (data) => {
+        clearTimeout(timeout);
+        resolve(data);
+      });
+    });
+
+    // 4. Perform first scan verification
+    const scanResponse = await tenantA.request.post('/checkin/scan', {
+      data: {
+        qr_payload,
+        event_id: tenantA.eventId,
+      },
+    });
+    expect(scanResponse.status()).toBe(200);
+
+    // 5. Assert check-in event was received via WebSocket
+    const eventData = await checkedInPromise;
+    expect(eventData.guest_id).toBe(guest.id);
+    expect(eventData.guest_name).toBe('QR Realtime Guest');
+    expect(eventData.scan_count).toBe(1);
+
+    socket.disconnect();
+  });
 });

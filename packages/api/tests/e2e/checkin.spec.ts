@@ -103,4 +103,47 @@ test.describe('Check-in API E2E', () => {
     expect(duplicateBody.scan_count).toBe(2);
     expect(duplicateBody.checked_in_at).not.toBeNull();
   });
+
+  test('should sync offline check-in records including regular and go-show check-ins', async ({
+    tenantA,
+  }) => {
+    // 1. Create a guest for regular check-in
+    const guestResponse = await tenantA.request.post('/guests', {
+      data: {
+        name: 'Offline Sync Guest',
+        group: 'friend',
+        plus_one_count: 0,
+      },
+    });
+    expect(guestResponse.status()).toBe(201);
+    const guestId = (await guestResponse.json()).id;
+
+    // 2. Submit batch sync containing regular guest and go-show guest
+    const syncResponse = await tenantA.request.post('/checkin/sync', {
+      data: {
+        records: [
+          {
+            guest_id: guestId,
+            event_id: tenantA.eventId,
+            method: 'qr_scan',
+            checked_in_at: new Date('2026-10-04T08:00:00.000Z').toISOString(),
+          },
+          {
+            guest_id: 'temp-offline-goshow-999',
+            guest_name: 'Walk-in Offline Guest',
+            event_id: tenantA.eventId,
+            method: 'go_show',
+            checked_in_at: new Date('2026-10-04T08:05:00.000Z').toISOString(),
+          },
+        ],
+      },
+    });
+
+    expect(syncResponse.status()).toBe(200);
+    const syncBody = await syncResponse.json();
+    expect(syncBody.success).toBe(true);
+    expect(syncBody.total).toBe(2);
+    expect(syncBody.synced).toBe(2);
+    expect(syncBody.errors).toBe(0);
+  });
 });

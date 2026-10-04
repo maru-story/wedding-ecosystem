@@ -407,3 +407,22 @@ export const reassignGroupSchema = z
     path: ['to'],
   });
 export type ReassignGroupInput = z.infer<typeof reassignGroupSchema>;
+
+/** Offline check-in sync input */
+export const syncOfflineItemSchema = z.object({
+  guest_id: z.string().min(1, { message: 'ID tamu tidak boleh kosong' }),
+  event_id: z.string().uuid({ message: 'ID event tidak valid' }),
+  method: z.string().min(1, { message: 'Method tidak boleh kosong' }),
+  checked_in_at: z.string().min(1, { message: 'Waktu check-in tidak boleh kosong' }),
+  scanner_device_id: z.string().uuid({ message: 'ID device tidak valid' }).optional().nullable(),
+  guest_name: z.string().optional(),
+  qr_payload: z.string().optional(),
+});
+
+export const syncOfflineSchema = z.object({
+  records: z
+    .array(syncOfflineItemSchema)
+    .min(1, { message: 'Daftar records tidak boleh kosong' }),
+});
+export type SyncOfflineInput = z.infer<typeof syncOfflineSchema>;
+

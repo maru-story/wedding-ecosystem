@@ -11,7 +11,13 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { PrismaClient } from '@wedding/db';
 import type { RealtimeServer } from '@wedding/realtime';
-import { ErrorCode, qrCheckInSchema, manualCheckInSchema, goShowSchema } from '@wedding/shared';
+import {
+  ErrorCode,
+  qrCheckInSchema,
+  manualCheckInSchema,
+  goShowSchema,
+  syncOfflineSchema,
+} from '@wedding/shared';
 import { CheckInService, isServiceError } from '../services/checkin/checkin.service';
 import {
   PrismaCheckInRepository,
@@ -141,22 +147,8 @@ export async function checkinRoutes(app: FastifyInstance, opts: CheckInRouteOpti
   // POST /checkin/sync - Sync offline check-in records
   app.post('/sync', async (request, reply) => {
     const user = request.user!;
-    const body = request.body as {
-      records: Array<{
-        guest_id: string;
-        event_id: string;
-        method: string;
-        checked_in_at: string;
-        scanner_device_id?: string;
-      }>;
-    };
-
-    if (!body.records || !Array.isArray(body.records)) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: 'VAL_4001', message: 'records diperlukan' },
-      });
-    }
+    const body = validate(request.body, syncOfflineSchema, reply);
+    if (!body) return reply;
 
     const syncResult = await checkInService.syncOfflineRecords(user.tenant_id, body.records);
 
