@@ -63,7 +63,10 @@ const app = Fastify({
 
 // Security & Infrastructure
 app.register(securityHeaders);
-app.register(requestLogger);
+// Only enable request logging in development to avoid hitting Railway's 500 logs/sec limit
+if (env.NODE_ENV !== 'production') {
+  app.register(requestLogger);
+}
 app.register(auditLogger, { prisma });
 app.register(responseCache, {
   cacheRoutes: DEFAULT_CACHE_ROUTES,
