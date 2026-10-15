@@ -66,8 +66,8 @@ const rateLimiterPlugin: FastifyPluginAsync<RateLimiterPluginOptions> = async (a
   const keyPrefix = opts.keyPrefix ?? DEFAULT_KEY_PREFIX;
 
   app.addHook('preHandler', async (request: FastifyRequest, reply: FastifyReply) => {
-    // Skip rate limiting for health check and OPTIONS preflight
-    if (request.url === '/health' || request.method === 'OPTIONS') {
+    // Skip rate limiting for root probe, health check, and OPTIONS preflight
+    if (request.url === '/' || request.url.startsWith('/health') || request.method === 'OPTIONS') {
       return;
     }
 

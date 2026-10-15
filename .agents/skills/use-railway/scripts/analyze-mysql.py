@@ -99,7 +99,7 @@ def run_mysql_query(service: str, query: str, timeout: int = 30) -> Tuple[int, s
     # (single quotes in SQL IN clauses break bash -c '...' wrapping)
     encoded = base64.b64encode(query.encode()).decode()
     command = (
-        f'''bash +H -c 'echo {encoded} | base64 -d | MYSQL_PWD="$MYSQLPASSWORD" mysql -h localhost -P 3306 '''
+        f'''bash +H -c 'echo {encoded} | base64 -d | MYSQL_PWD="$MYSQLPASSWORD" mysql -h localhost -P 3306 '''  # nosecret
         f'''-u "$MYSQLUSER" -D "$MYSQLDATABASE" --default-character-set=utf8mb4 '''
         f'''-B' '''
     )

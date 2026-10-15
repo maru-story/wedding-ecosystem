@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-const PROD_URL = process.env.PRODUCTION_URL || 'https://api.maruplanner.my.id';
+const PROD_URL = process.env.PRODUCTION_URL;
 
 test.describe('Production Live API Smoke Test', () => {
-  test.use({ baseURL: PROD_URL });
+  test.skip(!PROD_URL, 'Skipping production smoke test when PRODUCTION_URL is not set');
+  test.use({ baseURL: PROD_URL || 'https://api.maruplanner.my.id' });
 
   test('GET / should return 200 and online status', async ({ request }) => {
     const response = await request.get('/');

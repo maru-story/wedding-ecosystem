@@ -225,7 +225,6 @@ export function useSystemHealth() {
   return useQuery({
     queryKey: ['system-health'],
     queryFn: () => apiFetch<SystemHealthData>('/health'),
-    refetchInterval: 15000, // Pooling every 15 seconds
   });
 }
 

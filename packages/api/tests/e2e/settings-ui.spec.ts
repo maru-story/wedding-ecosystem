@@ -52,7 +52,7 @@ test.describe('Settings UI E2E', () => {
         slug: eventSlug,
         bride_name: 'Juliet',
         groom_name: 'Romeo',
-        event_date: new Date('2026-10-12'),
+        event_date: new Date(Date.now() + 30 * 86400000),
         venue_name: 'Gedung Kesenian Jakarta',
         venue_address: 'Jl. Gedung Kesenian No. 1, Jakarta',
         venue_maps_url: '',

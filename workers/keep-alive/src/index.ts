@@ -17,7 +17,7 @@ export default {
    * Cron Trigger Handler (Automated ping every 10 minutes)
    */
   async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    const target = env.TARGET_URL || 'https://api.maruplanner.my.id/health';
+    const target = env.TARGET_URL || 'https://api.maruplanner.my.id/';
     const start = Date.now();
     try {
       const response = await fetch(target, {
@@ -36,7 +36,7 @@ export default {
    * HTTP Fetch Handler (Allows manual invocation and status checking)
    */
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const target = env.TARGET_URL || 'https://api.maruplanner.my.id/health';
+    const target = env.TARGET_URL || 'https://api.maruplanner.my.id/';
     const start = Date.now();
     try {
       const response = await fetch(target, {

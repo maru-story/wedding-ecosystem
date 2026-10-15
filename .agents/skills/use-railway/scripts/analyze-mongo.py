@@ -150,7 +150,7 @@ def run_mongosh_query(service: str, js_expr: str, timeout: int = 30) -> Tuple[in
     # Escape single quotes in the JS expression for the shell
     escaped = js_expr.replace("'", "'\\''")
     command = (
-        f'''bash +H -c 'mongosh "mongodb://$MONGOUSER:$MONGOPASSWORD@localhost:27017" '''
+        f'''bash +H -c 'mongosh "mongodb://$MONGOUSER:$MONGOPASSWORD@localhost:27017" '''  # nosecret
         f'''--quiet --norc --eval "EJSON.stringify({escaped})"' '''
     )
     return run_ssh_query(service, command, timeout)
