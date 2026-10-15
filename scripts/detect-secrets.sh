@@ -74,6 +74,8 @@ EXCLUDE_PATTERNS=(
   'infrastructure/'
   # Deployment configs — contain template variables (e.g. ${{PGPASSWORD}}), not real secrets
   'railway\.toml$'
+  # Agent configs & skills
+  '\.agents/'
 )
 
 found_secrets=0
