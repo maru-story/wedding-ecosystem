@@ -127,7 +127,8 @@ test.describe('Onboarding UI E2E', () => {
     await page.fill('input[name="groom_name"]', 'Andi');
     await page.fill('input[name="bride_name"]', 'Siti');
     await page.fill('input[name="slug"]', eventSlug);
-    await page.fill('input[name="event_date"]', '2026-10-12');
+    const futureDate = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+    await page.fill('input[name="event_date"]', futureDate);
     await page.fill('input[name="venue_name"]', 'Gedung Kesenian Jakarta');
     await page.fill(
       'textarea[name="venue_address"]',
