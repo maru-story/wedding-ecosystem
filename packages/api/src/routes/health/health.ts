@@ -99,14 +99,22 @@ export async function healthRoutes(app: FastifyInstance, opts: HealthRouteOption
     );
 
     try {
-      const [postgresql, redisCache, redisPubSub] = await Promise.race([
-        Promise.all([
-          checkPostgresql(prisma),
-          checkRedis(getCacheClient),
-          checkRedis(getPubSubClient),
-        ]),
+      const cacheClient = getCacheClient();
+      const pubsubClient = getPubSubClient();
+
+      const [postgresql, redisCache] = await Promise.race([
+        Promise.all([checkPostgresql(prisma), checkRedis(() => cacheClient)]),
         timeoutPromise,
       ]);
+
+      // If pubsub shares the exact same client instance or points to the same instance without dedicated URL,
+      // reuse the cache ping result to avoid burning redundant Redis commands
+      const redisPubSub =
+        pubsubClient &&
+        cacheClient &&
+        (pubsubClient === cacheClient || !process.env.UPSTASH_REDIS_PUBSUB_URL)
+          ? { ...redisCache }
+          : await checkRedis(() => pubsubClient);
 
       const websocket = checkWebSocket(getRealtimeServer);
 

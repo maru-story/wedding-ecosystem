@@ -92,6 +92,7 @@ describe('Rate Limiter Plugin', () => {
     app.get('/api/test', async () => ({ ok: true }));
     app.post('/auth/login', async () => ({ token: 'abc' }));
     app.post('/scanner/checkin', async () => ({ checked: true }));
+    app.get('/', async () => ({ status: 'online' }));
     app.get('/health', async () => ({ status: 'ok' }));
 
     await app.ready();
@@ -197,17 +198,23 @@ describe('Rate Limiter Plugin', () => {
       expect(response.statusCode).toBe(429);
     });
 
-    it('skips rate limiting for /health endpoint', async () => {
-      // Even with Redis down, health should work
+    it('skips rate limiting for /health and / endpoints', async () => {
+      // Even with Redis down, health and root probe should work
       __setMockRedis(null);
 
-      const response = await app.inject({
+      const healthRes = await app.inject({
         method: 'GET',
         url: '/health',
       });
+      expect(healthRes.statusCode).toBe(200);
+      expect(healthRes.headers['x-ratelimit-limit']).toBeUndefined();
 
-      expect(response.statusCode).toBe(200);
-      expect(response.headers['x-ratelimit-limit']).toBeUndefined();
+      const rootRes = await app.inject({
+        method: 'GET',
+        url: '/',
+      });
+      expect(rootRes.statusCode).toBe(200);
+      expect(rootRes.headers['x-ratelimit-limit']).toBeUndefined();
     });
 
     it('skips rate limiting for OPTIONS requests', async () => {
